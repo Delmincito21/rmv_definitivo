@@ -1,26 +1,29 @@
 import React from 'react';
-// import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import './App.css';
 
 const Bienvenido = () => {
-    // const navigate = useNavigate();
+  const navigate = useNavigate();
 
-    return (
-        <div className="bienvenido-container">
-            <h1 className="bienvenido-titulo">¡Bienvenido a nuestra aplicación!</h1>
-            <p className="bienvenido-descripcion">
-                Selecciona tu perfil para continuar:
-            </p>
-            <div className="bienvenido-botones">
-                <button className="btn empleado" >
-                    Cliente
-                </button>
-                <button className="btn administrador" >
-                    Administrador
-                </button>
-            </div>
-        </div>
-    );
+  return (
+    <div className="bienvenido-container">
+      <h1 className="bienvenido-titulo">¡Bienvenido a nuestra aplicación!</h1>
+      <p className="bienvenido-descripcion">
+        Selecciona tu perfil para continuar:
+      </p>
+      <div className="bienvenido-botones">
+        <button
+          className="btn empleado"
+          onClick={() => navigate('/loginCliente')}
+        >
+          Cliente
+        </button>
+        <button className="btn administrador">
+          Administrador
+        </button>
+      </div>
+    </div>
+  );
 };
 
 export default Bienvenido;

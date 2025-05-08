@@ -1,88 +1,12 @@
-/* REGISTRARSE */
 
-.registro-cliente-container {
-  max-width: 600px;
-  margin: 2rem auto;
-  padding: 2rem;
-  background-color: #f9f9f9;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.registro-cliente-container h2 {
-  text-align: center;
-  color: #333;
-  margin-bottom: 1.5rem;
-}
-
-.form-group {
-  margin-bottom: 1rem;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 0.5rem;
-  font-weight: 600;
-  color: #444;
-}
-
-.form-group input,
-.form-group textarea {
-  width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 1rem;
-}
-
-.form-group textarea {
-  min-height: 100px;
-  resize: vertical;
-}
-
-.submit-btn {
-  width: 100%;
-  padding: 0.75rem;
-  background-color: #4CAF50;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.submit-btn:hover {
-  background-color: #45a049;
-}
-
-/* Validación de campos */
-input:invalid,
-textarea:invalid {
-  border-color: #ff4444;
-}
-
-input:valid,
-textarea:valid {
-  border-color: #00C851;
-}
-
-/*  */
-/* Estilo para el componente Bienvenido */
+/*  Bienvenido */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
-body,
-html {
-  height: 100%;
-  width: 100%;
-  overflow: hidden;
-  /* Evita scrolls innecesarios */
-  font-family: 'Arial', sans-serif;
-}
+
 
 .bienvenido-container {
   display: flex;
@@ -138,4 +62,177 @@ html {
 .administrador:hover {
   background-color: #1976D2;
   transform: scale(1.05);
+}
+
+/* Fondo global y centrado general */
+body, html {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background-color: #1e1e1e;
+  font-family: sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* === LOGIN CLIENTE === */
+.login-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  width: 100vw;
+  background-color: #f0f2f5;
+  border-radius: 8px;
+  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.2);
+  text-align: center;
+}
+
+.login-container h1 {
+  color: #333;
+  margin-bottom: 1.5rem;
+  font-size: 1.8rem;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.input-group {
+  text-align: left;
+}
+
+.input-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #555;
+  font-weight: 500;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 0.8rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.input-group input:focus {
+  outline: none;
+  border-color: #007bff;
+}
+
+.separator {
+  height: 1px;
+  background-color: #eee;
+  margin: 1rem 0;
+}
+
+.login-button {
+  padding: 0.8rem;
+  background-color: #007bff; /* azul */
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.login-button:hover {
+  background-color: #0056b3;
+}
+
+.register-link {
+  margin-top: 1.5rem;
+  color: #666;
+}
+
+.register-link span {
+  color: #007bff;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.register-link span:hover {
+  color: #0056b3;
+}
+
+
+/* === REGISTRO CLIENTE === */
+.registro-cliente-container {
+ 
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  width: 100vw;
+  background-color: #f0f2f5;
+  border-radius: 1px;
+  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.2);
+  text-align: center;
+}
+
+.registro-cliente-container h2 {
+  color: #333;
+  margin-bottom: 1.5rem;
+  font-size: 1.6rem;
+}
+
+.form-group {
+  margin-bottom: 1rem;
+  text-align: left;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: #444;
+}
+
+.form-group input,
+.form-group textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 1rem;
+  background-color: #fff;
+}
+
+.form-group textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.submit-btn {
+  width: 100%;
+  padding: 0.75rem;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.submit-btn:hover {
+  background-color: #0056b3;
+}
+
+/* Validación visual */
+input:invalid, textarea:invalid {
+  border-color: #ff4444;
+}
+
+input:valid, textarea:valid {
+  border-color: #00C851;
 }

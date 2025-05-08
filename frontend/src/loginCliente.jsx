@@ -35,7 +35,6 @@ const LoginCliente = () => {
       <div className="logo-panel">
         <div className="logo-container">
           <img src={logo} alt="Logo" className="logo-horizontal" />
-          <div className="logo-text">BIENVENIDO</div>
         </div>
       </div>
 

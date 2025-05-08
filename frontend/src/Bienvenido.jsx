@@ -24,9 +24,14 @@ const Bienvenido = () => {
         >
           Cliente
         </button>
-        <button className="btn administrador">
+        <div className="bienvenido-botones">
+        <button
+          className="btn empleado"
+          onClick={() => navigate('/loginAdmin')} 
+        >
           Administrador
         </button>
+      </div>
       </div>
     </div>
   );

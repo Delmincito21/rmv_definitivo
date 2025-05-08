@@ -7,8 +7,7 @@ import Bienvenido from './Bienvenido.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <RegistroCliente />
-    <App />
+
     <Bienvenido />
   </StrictMode>,
 )

@@ -57,10 +57,86 @@
 }
 
 /* Validación de campos */
-input:invalid, textarea:invalid {
+input:invalid,
+textarea:invalid {
   border-color: #ff4444;
 }
 
-input:valid, textarea:valid {
+input:valid,
+textarea:valid {
   border-color: #00C851;
+}
+
+/* ---------------------------------------DISENO BIENVENIDO */
+/* Estilo para el componente Bienvenido */
+/* Estilo para el componente Bienvenido */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body,
+html {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  /* Evita scrolls innecesarios */
+  font-family: 'Arial', sans-serif;
+}
+
+.bienvenido-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  width: 100vw;
+  background-color: #f0f2f5;
+}
+
+.bienvenido-titulo {
+  font-size: 3rem;
+  color: #333;
+  margin-bottom: 1.5rem;
+}
+
+.bienvenido-descripcion {
+  font-size: 1.2rem;
+  color: #666;
+  margin-bottom: 2rem;
+}
+
+.bienvenido-botones {
+  display: flex;
+  gap: 2rem;
+}
+
+.btn {
+  padding: 0.8rem 2rem;
+  font-size: 1.1rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.2s;
+}
+
+.empleado {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.empleado:hover {
+  background-color: #45a049;
+  transform: scale(1.05);
+}
+
+.administrador {
+  background-color: #2196F3;
+  color: white;
+}
+
+.administrador:hover {
+  background-color: #1976D2;
+  transform: scale(1.05);
 }

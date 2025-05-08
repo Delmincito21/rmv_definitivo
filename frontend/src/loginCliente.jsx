@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import './App.css';
+import './LogiAdmin.css'; // Asegúrate de usar el mismo archivo CSS
+import logo from './imagenes/lgo.png'; // Asegúrate de tener la ruta correcta
 
 const LoginCliente = () => {
   const [credenciales, setCredenciales] = useState({
@@ -20,9 +21,7 @@ const LoginCliente = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Lógica de autenticación aquí
     console.log('Iniciando sesión:', credenciales);
-    // Redirigir al dashboard después del login
     // navigate('/dashboard');
   };
 
@@ -31,42 +30,56 @@ const LoginCliente = () => {
   };
 
   return (
-    <div className="login-container">
-      <h1>Iniciar Sesión</h1>
-      
-      <form onSubmit={handleSubmit} className="login-form">
-        <div className="input-group">
-          <label htmlFor="usuario">Usuario</label>
-          <input
-            type="text"
-            id="usuario"
-            name="usuario"
-            value={credenciales.usuario}
-            onChange={handleChange}
-            required
-          />
+    <div className="login-horizontal">
+      {/* Panel izquierdo con logo */}
+      <div className="logo-panel">
+        <div className="logo-container">
+          <img src={logo} alt="Logo" className="logo-horizontal" />
+          <div className="logo-text">BIENVENIDO</div>
         </div>
+      </div>
 
-        <div className="input-group">
-          <label htmlFor="contraseña">Contraseña</label>
-          <input
-            type="password"
-            id="contraseña"
-            name="contraseña"
-            value={credenciales.contraseña}
-            onChange={handleChange}
-            required
-          />
+      {/* Panel derecho con formulario */}
+      <div className="form-panel">
+        <div className="form-content">
+          <h2 className="form-title">INICIAR SESIÓN</h2>
+
+          <form onSubmit={handleSubmit} className="horizontal-form">
+            <div className="form-row">
+              <input
+                type="text"
+                name="usuario"
+                value={credenciales.usuario}
+                onChange={handleChange}
+                placeholder="Usuario"
+                required
+                className="input-field"
+              />
+            </div>
+
+            <div className="form-row">
+              <input
+                type="password"
+                name="contraseña"
+                value={credenciales.contraseña}
+                onChange={handleChange}
+                placeholder="Contraseña"
+                required
+                className="input-field"
+              />
+            </div>
+
+            <div className="form-actions">
+              <button type="submit" className="submit-button">
+                ENTRAR
+              </button>
+              <div className="register-link">
+                ¿No tienes cuenta? <span onClick={irARegistro} className="register-anchor">REGÍSTRATE</span>
+              </div>
+            </div>
+          </form>
         </div>
-
-        <div className="separator"></div>
-
-        <button type="submit" className="login-button">Entrar</button>
-      </form>
-
-      <p className="register-link">
-        ¿No tienes cuenta? <span onClick={irARegistro}>Regístrate</span>
-      </p>
+      </div>
     </div>
   );
 };

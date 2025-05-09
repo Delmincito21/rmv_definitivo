@@ -17,7 +17,7 @@
 .admin-sidebar {
     width: 250px;
     height: 100vh;
-    background-color: #2c3e50;
+    background-color: #3182ce;
     color: white;
     display: flex;
     flex-direction: column;
@@ -34,7 +34,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid #34495e;
+    border-bottom: 1px solid #3182ce;
 }
 
 .sidebar-header h2 {
@@ -133,4 +133,736 @@
 .admin-sidebar.closed~.main-content {
     margin-left: 70px;
     width: calc(100vw - 70px);
+}
+
+/* Estilos para el mensaje de bienvenida */
+.welcome-container {
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.welcome-container h1 {
+    color: #2c3e50;
+    margin-bottom: 1rem;
+    font-size: 2.2rem;
+}
+
+.welcome-container p {
+    color: #7f8c8d;
+    font-size: 1.2rem;
+    margin-bottom: 3rem;
+}
+
+.quick-stats {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    margin-top: 2rem;
+    flex-wrap: wrap;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 8px;
+    padding: 1.5rem 2rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    min-width: 200px;
+    border: 1px solid #e0e0e0;
+}
+
+.stat-card h3 {
+    color: #3498db;
+    margin-bottom: 0.5rem;
+    font-size: 1.1rem;
+}
+
+.stat-card p {
+    color: #2c3e50;
+    font-size: 1.8rem;
+    font-weight: bold;
+    margin: 0;
+}
+
+/* Estilos generales */
+.admin-container {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* Panel lateral */
+.admin-sidebar {
+    width: 250px;
+    background-color: #2c3e50;
+    color: white;
+    position: fixed;
+    height: 100vh;
+    padding: 20px 0;
+}
+
+.sidebar-header {
+    padding: 0 20px 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-header h2 {
+    font-size: 1.3rem;
+}
+
+.sidebar-nav {
+    padding: 20px 0;
+}
+
+.nav-btn {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 12px 20px;
+    background: transparent;
+    border: none;
+    color: #ecf0f1;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.nav-btn i {
+    margin-right: 10px;
+    width: 20px;
+    text-align: center;
+}
+
+.nav-btn:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.nav-btn.active {
+    background-color: #3498db;
+    color: white;
+}
+
+/* Contenido principal */
+.admin-main {
+    flex: 1;
+    margin-left: 250px;
+    padding: 20px;
+    background-color: #f5f7fa;
+}
+
+.content-card {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    padding: 25px;
+    margin-bottom: 20px;
+}
+
+.welcome-message {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: calc(100vh - 40px);
+}
+
+.welcome-content {
+    text-align: center;
+    max-width: 500px;
+}
+
+.welcome-content h3 {
+    margin-bottom: 15px;
+    color: #2c3e50;
+}
+
+/* Estilos para el formulario */
+.product-form {
+    max-width: 600px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #2c3e50;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.form-group textarea {
+    min-height: 100px;
+    resize: vertical;
+}
+
+.form-row {
+    display: flex;
+    gap: 20px;
+}
+
+.form-row .form-group {
+    flex: 1;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 30px;
+}
+
+.btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.btn-primary {
+    background-color: #3498db;
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #2980b9;
+}
+
+.btn-secondary {
+    background-color: #95a5a6;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background-color: #7f8c8d;
+}
+
+/* Estilos para la tabla */
+.table-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.search-input {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    width: 250px;
+}
+
+.product-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.product-table th,
+.product-table td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+
+.product-table th {
+    background-color: #f8f9fa;
+    font-weight: 500;
+    color: #000000;
+    /* Cambiado a negro */
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+    text-transform: uppercase;
+    /* Opcional */
+
+}
+
+.product-table tr:hover {
+    background-color: #f8f9fa;
+}
+
+.stock-badge {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.in-stock {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.out-of-stock {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.action-btn {
+    padding: 5px 10px;
+    margin-right: 5px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: all 0.2s;
+}
+
+.action-btn i {
+    margin-right: 5px;
+}
+
+.edit {
+    background-color: #ffeeba;
+    color: #856404;
+}
+
+.edit:hover {
+    background-color: #ffdf7e;
+}
+
+.delete {
+    background-color: #f5c6cb;
+    color: #721c24;
+}
+
+.delete:hover {
+    background-color: #f1aeb5;
+}
+
+/* Estilos para la vista de productos */
+.product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+.product-card {
+    border: 1px solid #eee;
+    border-radius: 8px;
+    overflow: hidden;
+    transition: transform 0.2s;
+}
+
+.product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.product-image {
+    position: relative;
+    height: 180px;
+    background-color: #f8f9fa;
+}
+
+.product-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.out-of-stock-label {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: #dc3545;
+    color: white;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+}
+
+.product-info {
+    padding: 15px;
+}
+
+.product-price {
+    font-size: 18px;
+    font-weight: bold;
+    color: #2980b9;
+    margin: 8px 0;
+}
+
+.product-stock {
+    display: flex;
+    align-items: center;
+    font-size: 14px;
+    color: #7f8c8d;
+}
+
+.stock-indicator {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 8px;
+}
+
+.stock-indicator.in-stock {
+    background-color: #28a745;
+}
+
+.stock-indicator.out-of-stock {
+    background-color: #dc3545;
+}
+
+/* Asegura que el body ocupe toda la pantalla */
+body,
+html {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    min-height: 100vh;
+    background-color: #f8fafc;
+}
+
+/* Contenedor principal */
+.dashboard-container {
+    width: 100vw;
+    overflow-x: hidden;
+}
+
+/* Contenido principal */
+.main-content {
+    width: calc(100vw - 250px);
+    background-color: #f8fafc;
+}
+
+/* ===== VERSIÓN CON TEXTO NEGRO ===== */
+.horizontal-products-container {
+    display: flex;
+    gap: 1.5rem;
+    padding: 1rem 0;
+    overflow-x: auto;
+    scrollbar-width: thin;
+}
+
+.horizontal-product-card {
+    min-width: 180px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    border: 1px solid #e2e8f0;
+    padding: 1.5rem;
+    transition: all 0.2s;
+    flex-shrink: 0;
+    color: #000000;
+    /* Texto negro */
+}
+
+.horizontal-product-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-color: #3182ce;
+}
+
+.horizontal-product-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.horizontal-product-price {
+    font-size: 1.4rem;
+    font-weight: bold;
+    color: #000000;
+    /* Precio en negro */
+    margin: 0;
+    text-align: center;
+}
+
+.horizontal-product-stock {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    color: #000000;
+    /* Texto de stock en negro */
+}
+
+/* Indicadores de stock (manteniendo colores pero con texto negro) */
+.stock-indicator {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+
+.in-stock {
+    background-color: #38a169;
+}
+
+.out-of-stock {
+    background-color: #e53e3e;
+}
+
+/* Añade esto al final de tu CSS */
+.product-table th,
+.product-table td {
+    color: #000000 !important;
+}
+
+.product-table th {
+    color: #000000 !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .horizontal-product-card {
+        min-width: 160px;
+        padding: 1rem;
+    }
+
+    .horizontal-product-price {
+        font-size: 1.2rem;
+    }
+}
+
+/* Estilos para el mensaje de bienvenida horizontal */
+.welcome-horizontal {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    padding: 20px;
+    background: linear-gradient(135deg, #4e99ea, #00c6ff);
+    border-radius: 15px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.welcome-image {
+    flex: 1;
+}
+
+.welcome-banner {
+    width: 100%;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.welcome-text {
+    flex: 2;
+    color: #fff;
+}
+
+.welcome-title {
+    font-size: 2.5rem;
+    margin-bottom: 15px;
+    font-weight: bold;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.welcome-description {
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+    line-height: 1.5;
+}
+
+.welcome-actions {
+    margin-top: 20px;
+}
+
+.welcome-actions .btn {
+    padding: 10px 20px;
+    font-size: 1rem;
+    margin-right: 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.welcome-actions .btn-primary {
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+}
+
+.welcome-actions .btn-primary:hover {
+    background-color: #0056b3;
+}
+
+.welcome-actions .btn-secondary {
+    background-color: #6c757d;
+    color: #fff;
+    border: none;
+}
+
+.welcome-actions .btn-secondary:hover {
+    background-color: #5a6268;
+}
+
+/* Animaciones */
+.animated-fade-in {
+    animation: fadeIn 1.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.animated-slide-in-left {
+    animation: slideInLeft 1.5s ease-in-out;
+}
+
+@keyframes slideInLeft {
+    from {
+        transform: translateX(-100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.animated-slide-in-right {
+    animation: slideInRight 1.5s ease-in-out;
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Contenedor de los íconos */
+.welcome-icons {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+}
+
+.welcome-icon {
+    font-size: 3rem;
+    color: #040f1b;
+    animation: bounce 1.5s infinite;
+}
+
+/* Animación de rebote */
+@keyframes bounce {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+/* Contenedor vertical */
+.welcome-vertical {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 20px;
+    padding: 20px;
+    background: linear-gradient(135deg, #4e99ea, #00c6ff);
+    border-radius: 15px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+/* Íconos centrados */
+.welcome-icons {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.welcome-icon {
+    font-size: 3rem;
+    color: #000000;
+    animation: bounce 1.5s infinite;
+}
+
+/* Texto centrado */
+.welcome-text {
+    color: #fff;
+    padding: 0 15px;
+}
+
+.welcome-title {
+    font-size: 2.5rem;
+    margin-bottom: 15px;
+    font-weight: bold;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.welcome-description {
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+    line-height: 1.5;
+}
+
+/* Responsividad */
+@media (max-width: 768px) {
+    .welcome-vertical {
+        padding: 15px;
+    }
+
+    .welcome-icons {
+        gap: 10px;
+    }
+
+    .welcome-icon {
+        font-size: 2.5rem;
+    }
+
+    .welcome-title {
+        font-size: 2rem;
+    }
+
+    .welcome-description {
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .welcome-vertical {
+        padding: 10px;
+    }
+
+    .welcome-title {
+        font-size: 1.8rem;
+    }
+
+    .welcome-description {
+        font-size: 0.9rem;
+    }
+
+    .welcome-icon {
+        font-size: 2rem;
+    }
 }

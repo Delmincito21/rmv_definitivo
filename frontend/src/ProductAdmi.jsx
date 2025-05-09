@@ -1,112 +1,108 @@
-import React, { useState } from 'react';
+import React from 'react';
 import './Dashboard.css';
 import { useNavigate } from "react-router-dom";
-import { FaSignOutAlt, FaPlusCircle, FaEdit, FaEye, FaHome, FaSnowflake, FaFan, FaThermometerHalf , FaFire, FaWind, FaTemperatureHigh} from "react-icons/fa";
+import { FaSignOutAlt, FaPlusCircle, FaEdit, FaEye, FaHome, FaSnowflake, FaFire, FaTemperatureHigh, FaWind, FaBars } from "react-icons/fa";
+import { useState } from 'react';
 
-// Componente para agregar producto
 function AgregarProductoForm({ onCancel }) {
   return (
-    <div className="content-card">
-      <h3 style={{ color: '#000000' }}>Agregar Nuevo Producto</h3>
-      <form className="horizontal-product-form">
-        <div className="form-row">
-          <div className="form-group compact">
-            <label>Nombre del Producto</label>
-            <input type="text" placeholder="Ej: Aire Inverter" required />
-          </div>
+    <div className="horizontal-product-form">
+      <h2 className="form-title">Agregar Producto</h2>
 
-          <div className="form-group compact">
-            <label>Descripción</label>
-            <textarea placeholder="Descripción detallada..." required></textarea>
-          </div>
+      {/* Primera fila horizontal */}
+      <div className="form-row">
+        <div className="form-field">
+          <label>Nombre del Producto</label>
+          <input type="text" placeholder="Ej: Aire Inverter" />
         </div>
 
-        <div className="form-row triple">
-          <div className="form-group compact">
-            <label>Precio ($)</label>
-            <input type="number" step="0.01" placeholder="0.00" required />
-          </div>
-
-          <div className="form-group compact">
-            <label>Stock</label>
-            <input type="number" placeholder="0" required />
-          </div>
-
-          <div className="form-group compact">
-            <label>Imagen (URL)</label>
-            <input type="url" placeholder="https://ejemplo.com/imagen.jpg" />
-          </div>
+        <div className="form-field">
+          <label>Marca</label>
+          <input type="text" placeholder="Ej: Samsung" />
         </div>
 
-        <div className="form-actions">
-          <button type="button" className="btn btn-secondary" onClick={onCancel}>
-            Cancelar
-          </button>
-          <button type="submit" className="btn btn-primary">
-            Guardar Producto
-          </button>
+        <div className="form-field">
+          <label>Modelo</label>
+          <input type="text" placeholder="Ej: AR12TXCAAWK" />
         </div>
-      </form>
-    </div>
-  );
-}
-
-// Componente para modificar productos
-function ModificarProductoList() {
-  const [productos] = useState([
-    { id: 1, nombre: 'Aire acondicionado Inverter', precio: 29.99, stock: 15, categoria: 'Electrodomestico' },
-    { id: 2, nombre: 'Aire acondiciondo Industrial', precio: 89.50, stock: 8, categoria: 'Electrodomestico' },
-    { id: 3, nombre: 'Aire acondicionado TGM', precio: 599.99, stock: 22, categoria: 'Electrodomestico' },
-  ]);
-
-  return (
-    <div className="content-card">
-      <div className="table-header">
-        <h3 style={{ color: '#000000' }}>Lista de Productos</h3>
-        <input type="text" placeholder="Buscar productos..." className="search-input" />
       </div>
-      <div className="table-responsive">
-        <table className="product-table">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Nombre</th>
-              <th>Categoría</th>
-              <th>Precio</th>
-              <th>Stock</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {productos.map(producto => (
-              <tr key={producto.id}>
-                <td>{producto.id}</td>
-                <td>{producto.nombre}</td>
-                <td>{producto.categoria}</td>
-                <td>${producto.precio.toFixed(2)}</td>
-                <td>
-                  <span className={`stock-badge ${producto.stock > 0 ? 'in-stock' : 'out-of-stock'}`}>
-                    {producto.stock}
-                  </span>
-                </td>
-                <td>
-                  <button className="action-btn edit">
-                    <i className="fas fa-edit"></i> Editar
-                  </button>
-                  <button className="action-btn delete">
-                    <i className="fas fa-trash"></i> Eliminar
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+
+      {/* Segunda fila horizontal */}
+      <div className="form-row">
+        <div className="form-field">
+          <label>Precio ($DOP)</label>
+          <input type="number" step="0.01" placeholder="0.00" />
+        </div>
+
+        <div className="form-field">
+          <label>Precio Compra ($DOP)</label>
+          <input type="number" step="0.01" placeholder="0.00" />
+        </div>
+
+        <div className="form-field">
+          <label>Tipo de Garantía </label>
+          <input type="text" />
+        </div>
+      </div>
+
+      {/* Tercera fila horizontal */}
+      <div className="form-row">
+        <div className="form-field">
+          <label>Categoría</label>
+          <select>
+            <option value="" style={{ color: '#000000' }}>Seleccionar categoría</option>
+            <option value="Aire Acondicionado">Aire Acondicionado</option>
+            <option value="Refrigerador">Refrigerador</option>
+            <option value="Estufa">Estufa</option>
+          </select>
+        </div>
+
+        <div className="form-field">
+          <label>Stock</label>
+          <input type="number" placeholder="0" />
+        </div>
+
+        <div className="form-field">
+          <label>Colores</label>
+          <input type="text" placeholder="Ej: Blanco, Negro" />
+        </div>
+      </div>
+
+      {/* Cuarta fila horizontal */}
+      <div className="form-row">
+        <div className="form-field wide">
+          <label>Descripción</label>
+          <textarea placeholder="Descripción detallada..." rows="2"></textarea>
+        </div>
+
+        <div className="form-field">
+          <label>Suplidor (opcional)</label>
+          <input type="text" placeholder="Nombre del suplidor" />
+        </div>
+      </div>
+
+      {/* Quinta fila horizontal */}
+      <div className="form-row">
+        <div className="form-field wide">
+          <label>Imagen (URL)</label>
+          <input type="url" placeholder="https://ejemplo.com/imagen.jpg" />
+        </div>
+      </div>
+
+      {/* Botones de acción */}
+      <div className="form-actions">
+        <button type="button" className="cancel-btn" onClick={onCancel}>
+          Cancelar
+        </button>
+        <button type="submit" className="submit-btn">
+          Guardar Producto
+        </button>
       </div>
     </div>
   );
 }
 
-// Componente para ver productos disponibles
+// Componente para ver productos disponibles (sin cambios)
 const ProductosDisponiblesList = () => {
   const [productos] = useState([
     { id: 1, nombre: 'Aire inverter', precio: 29.99, stock: 15, imagen: 'https://via.placeholder.com/150' },
@@ -135,8 +131,40 @@ const ProductosDisponiblesList = () => {
   );
 };
 
+// Componente para modificar productos
+const ModificarProductoList = () => {
+  const [productos] = useState([
+    { id: 1, nombre: 'Aire inverter', precio: 29.99, stock: 15, imagen: 'https://via.placeholder.com/150' },
+    { id: 2, nombre: 'Aire industrial', precio: 89.50, stock: 8, imagen: 'https://via.placeholder.com/150' },
+    { id: 3, nombre: 'Nevera Samsung', precio: 599.99, stock: 22, imagen: 'https://via.placeholder.com/150' },
+    { id: 4, nombre: 'Aire TGM', precio: 15.00, stock: 0, imagen: 'https://via.placeholder.com/150' },
+  ]);
 
-// Dashboard de Categorías
+  return (
+    <div className="content-card">
+      <h3 style={{ color: '#000000' }}>Gestionar Productos</h3>
+      <div className="horizontal-products-container">
+        {productos.map(producto => (
+          <div key={producto.id} className="horizontal-product-card">
+            <div className="horizontal-product-content">
+              <h4>{producto.nombre}</h4>
+              <p className="horizontal-product-price">${producto.precio.toFixed(2)}</p>
+              <div className="horizontal-product-stock">
+                <span className={`stock-indicator ${producto.stock > 0 ? 'in-stock' : 'out-of-stock'}`}></span>
+                {producto.stock > 0 ? `${producto.stock} disponibles` : 'Sin stock'}
+              </div>
+              <button className="edit-btn">
+                <FaEdit /> Editar
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// Dashboard de Categorías (sin cambios)
 function DashboardCategorias() {
   const [categorias] = useState([
     { id: 1, nombre: 'Aires Acondicionados', icon: <FaSnowflake />, color: '#3498db', cantidad: 8 },
@@ -148,7 +176,7 @@ function DashboardCategorias() {
   return (
     <div className="content-card">
       <h3 style={{ color: '#000000' }}>Dashboard de Categorías</h3>
-      
+
       <div className="horizontal-products-container">
         {categorias.map(categoria => (
           <div key={categoria.id} className="horizontal-product-card" style={{ borderLeft: `4px solid ${categoria.color}` }}>
@@ -162,13 +190,13 @@ function DashboardCategorias() {
           </div>
         ))}
       </div>
-      
+
       <div className="stats-container">
         <div className="stats-card">
           <h4>Total de Productos</h4>
           <p className="stats-number">{categorias.reduce((total, cat) => total + cat.cantidad, 0)}</p>
         </div>
-        
+
         <div className="stats-card">
           <h4>Categorías Activas</h4>
           <p className="stats-number">{categorias.length}</p>
@@ -180,10 +208,15 @@ function DashboardCategorias() {
 
 export default function ProductAdmin() {
   const [view, setView] = useState(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const navigate = useNavigate();
 
   const handleExit = () => {
-    navigate("/AdminDashboard"); // Redirige a la página de inicio
+    navigate("/AdminDashboard");
+  };
+
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen);
   };
 
   const renderView = () => {
@@ -195,58 +228,259 @@ export default function ProductAdmin() {
       case 'view':
         return <ProductosDisponiblesList />;
       default:
-        'panel' 
         return <DashboardCategorias />;
     }
   };
 
   return (
-    <div className="product-admin-container">
-      {/* Panel lateral fijo */}
-      <div className="admin-sidebar">
+    <div className="dashboard-container">
+      {/* Botón para móvil */}
+      <button
+        className="mobile-toggle"
+        onClick={toggleSidebar}
+        style={{
+          display: 'none',
+          position: 'fixed',
+          top: '10px',
+          left: '10px',
+          zIndex: 1001,
+          background: '#2c3e50',
+          color: 'white',
+          border: 'none',
+          padding: '10px',
+          borderRadius: '4px',
+          cursor: 'pointer'
+        }}
+      >
+        <FaBars />
+      </button>
+
+      {/* Panel lateral */}
+      <div className={`admin-sidebar ${!isSidebarOpen ? 'closed' : ''}`}>
         <div className="sidebar-header">
           <h2>Panel de Productos</h2>
         </div>
         <nav className="sidebar-nav">
           <button
             className={`nav-btn ${view === null ? 'active' : ''}`}
-            onClick={() => setView('panel')}
+            onClick={() => {
+              setView(null);
+              if (window.innerWidth <= 768) setIsSidebarOpen(false);
+            }}
           >
-            <FaHome className="nav-icon" /> Inicio
+            <FaHome className="nav-icon" /> <span>Inicio</span>
           </button>
           <button
             className={`nav-btn ${view === 'add' ? 'active' : ''}`}
-            onClick={() => setView('add')}
+            onClick={() => {
+              setView('add');
+              if (window.innerWidth <= 768) setIsSidebarOpen(false);
+            }}
           >
-            <FaPlusCircle className="nav-icon" /> Agregar Producto
+            <FaPlusCircle className="nav-icon" /> <span>Agregar Producto</span>
           </button>
           <button
             className={`nav-btn ${view === 'modify' ? 'active' : ''}`}
-            onClick={() => setView('modify')}
+            onClick={() => {
+              setView('modify');
+              if (window.innerWidth <= 768) setIsSidebarOpen(false);
+            }}
           >
-            <FaEdit className="nav-icon" /> Gestionar Productos
+            <FaEdit className="nav-icon" /> <span>Gestionar Productos</span>
           </button>
           <button
             className={`nav-btn ${view === 'view' ? 'active' : ''}`}
-            onClick={() => setView('view')}
+            onClick={() => {
+              setView('view');
+              if (window.innerWidth <= 768) setIsSidebarOpen(false);
+            }}
           >
-            <FaEye className="nav-icon" /> Ver Productos
+            <FaEye className="nav-icon" /> <span>Ver Productos</span>
           </button>
         </nav>
 
-        {/* Botón Salir en el sidebar */}
         <div className="sidebar-footer">
           <button onClick={handleExit} className="exit-btn">
             <FaSignOutAlt className="exit-icon" />
-            Salir del Panel
+            <span>Salir del Panel</span>
           </button>
         </div>
       </div>
 
       {/* Contenido principal */}
-      <div className="admin-main">
-        {renderView()}
+      <div className={`admin-main ${!isSidebarOpen ? 'expanded' : ''}`}>
+        <div className="content-wrapper">
+          {renderView()}
+        </div>
       </div>
+
+      <style>
+        {`
+          .dashboard-container {
+            display: flex;
+            min-height: 100vh;
+            width: 100%;
+            position: relative;
+            background-color: #f5f7fa;
+          }
+
+          .admin-sidebar {
+            width: 250px;
+            background-color: #2c3e50;
+            color: white;
+            position: fixed;
+            height: 100vh;
+            left: 0;
+            top: 0;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+          }
+
+          .admin-sidebar.closed {
+            transform: translateX(-250px);
+          }
+
+          .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+          }
+
+          .sidebar-header h2 {
+            font-size: 1.3rem;
+            margin: 0;
+          }
+
+          .sidebar-nav {
+            flex: 1;
+            padding: 20px 0;
+            overflow-y: auto;
+          }
+
+          .nav-btn {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            padding: 12px 20px;
+            background: transparent;
+            border: none;
+            color: #ecf0f1;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.3s;
+          }
+
+          .nav-btn:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+          }
+
+          .nav-btn.active {
+            background-color: #3498db;
+          }
+
+          .nav-icon {
+            margin-right: 10px;
+            font-size: 1.2rem;
+            min-width: 20px;
+          }
+
+          .sidebar-footer {
+            padding: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+          }
+
+          .exit-btn {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            padding: 12px;
+            background: transparent;
+            border: none;
+            color: #ecf0f1;
+            cursor: pointer;
+            transition: all 0.3s;
+          }
+
+          .exit-btn:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+          }
+
+          .exit-icon {
+            margin-right: 10px;
+            min-width: 20px;
+          }
+
+          .admin-main {
+            flex: 1;
+            margin-left: 250px;
+            min-height: 100vh;
+            width: calc(100% - 250px);
+            padding: 20px;
+            background-color: #f5f7fa;
+            transition: all 0.3s ease;
+          }
+
+          .admin-main.expanded {
+            margin-left: 0;
+            width: 100%;
+          }
+
+          .content-wrapper {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+          }
+
+          @media (max-width: 768px) {
+            .mobile-toggle {
+              display: block !important;
+            }
+
+            .admin-sidebar {
+              transform: translateX(-250px);
+            }
+
+            .admin-sidebar.open {
+              transform: translateX(0);
+            }
+
+            .admin-main {
+              margin-left: 0;
+              width: 100%;
+            }
+
+            .nav-btn span,
+            .exit-btn span {
+              display: none;
+            }
+
+            .nav-icon,
+            .exit-icon {
+              margin-right: 0;
+            }
+
+            .nav-btn,
+            .exit-btn {
+              justify-content: center;
+              padding: 15px;
+            }
+          }
+
+          @media (max-width: 480px) {
+            .content-wrapper {
+              padding: 15px;
+            }
+
+            .admin-main {
+              padding: 10px;
+            }
+          }
+        `}
+      </style>
     </div>
   );
 }

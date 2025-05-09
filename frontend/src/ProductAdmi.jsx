@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import './Dashboard.css';
 import { useNavigate } from "react-router-dom";
-import { FaSignOutAlt, FaPlusCircle, FaEdit, FaEye, FaSnowflake, FaFan, FaThermometerHalf } from "react-icons/fa";
+import { FaSignOutAlt, FaPlusCircle, FaEdit, FaEye, FaHome, FaSnowflake, FaFan, FaThermometerHalf , FaFire, FaWind, FaTemperatureHigh} from "react-icons/fa";
 
 // Componente para agregar producto
 function AgregarProductoForm({ onCancel }) {
@@ -135,6 +135,49 @@ const ProductosDisponiblesList = () => {
   );
 };
 
+
+// Dashboard de Categorías
+function DashboardCategorias() {
+  const [categorias] = useState([
+    { id: 1, nombre: 'Aires Acondicionados', icon: <FaSnowflake />, color: '#3498db', cantidad: 8 },
+    { id: 2, nombre: 'Estufas', icon: <FaFire />, color: '#e74c3c', cantidad: 6 },
+    { id: 3, nombre: 'Refrigeradores', icon: <FaTemperatureHigh />, color: '#2ecc71', cantidad: 5 },
+    { id: 4, nombre: 'Extractores de Grasa', icon: <FaWind />, color: '#f39c12', cantidad: 3 }
+  ]);
+
+  return (
+    <div className="content-card">
+      <h3 style={{ color: '#000000' }}>Dashboard de Categorías</h3>
+      
+      <div className="horizontal-products-container">
+        {categorias.map(categoria => (
+          <div key={categoria.id} className="horizontal-product-card" style={{ borderLeft: `4px solid ${categoria.color}` }}>
+            <div className="horizontal-product-icon" style={{ backgroundColor: categoria.color }}>
+              {categoria.icon}
+            </div>
+            <div className="horizontal-product-info">
+              <h4>{categoria.nombre}</h4>
+              <p><strong>{categoria.cantidad}</strong> productos</p>
+            </div>
+          </div>
+        ))}
+      </div>
+      
+      <div className="stats-container">
+        <div className="stats-card">
+          <h4>Total de Productos</h4>
+          <p className="stats-number">{categorias.reduce((total, cat) => total + cat.cantidad, 0)}</p>
+        </div>
+        
+        <div className="stats-card">
+          <h4>Categorías Activas</h4>
+          <p className="stats-number">{categorias.length}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function ProductAdmin() {
   const [view, setView] = useState(null);
   const navigate = useNavigate();
@@ -152,26 +195,8 @@ export default function ProductAdmin() {
       case 'view':
         return <ProductosDisponiblesList />;
       default:
-        return (
-          <div className="content-card welcome-message animated-fade-in">
-            <div className="welcome-vertical">
-              <div className="welcome-icons animated-slide-in-top">
-                <FaSnowflake className="welcome-icon" />
-                <FaFan className="welcome-icon" />
-                <FaThermometerHalf className="welcome-icon" />
-              </div>
-              <div className="welcome-text animated-fade-in">
-                <h3 className="welcome-title">¡Bienvenido al Panel de Productos!</h3>
-                <p className="welcome-description">
-                  Gestiona tus productos de manera eficiente y rápida.
-                </p>
-                <p className="welcome-description">
-                  Selecciona una acción del menú lateral para comenzar.
-                </p>
-              </div>
-            </div>
-          </div>
-        );
+        'panel' 
+        return <DashboardCategorias />;
     }
   };
 
@@ -183,6 +208,12 @@ export default function ProductAdmin() {
           <h2>Panel de Productos</h2>
         </div>
         <nav className="sidebar-nav">
+          <button
+            className={`nav-btn ${view === null ? 'active' : ''}`}
+            onClick={() => setView('panel')}
+          >
+            <FaHome className="nav-icon" /> Inicio
+          </button>
           <button
             className={`nav-btn ${view === 'add' ? 'active' : ''}`}
             onClick={() => setView('add')}

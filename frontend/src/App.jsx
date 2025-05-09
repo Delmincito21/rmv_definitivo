@@ -15,7 +15,7 @@ function App() {
         <Route path="/ProductAdmi" element={<ProductAdmi />} />
         <Route path="/Ventas" element={<Venta/>} />
         <Route path="/AdminDashboard" element={<AdminDashboard />} />
-        {/* Aquí puedes agregar más rutas según sea necesario */}
+        <Route path="/Clientes" element={<Clientes />} />
         <Route path="/Bienvenido" element={<Bienvenido />} />
         <Route path="/loginCliente" element={<LoginCliente />} />
         <Route path="/loginAdmin" element={<LoginAdministrador />} />

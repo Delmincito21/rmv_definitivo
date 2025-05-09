@@ -315,7 +315,7 @@ export default function ProductAdmin() {
       </div>
 
       <style>
-        {`
+        {/* {`
           .dashboard-container {
             display: flex;
             min-height: 100vh;
@@ -478,8 +478,8 @@ export default function ProductAdmin() {
             .admin-main {
               padding: 10px;
             }
-          }
-        `}
+          } */}
+        {/* `} */}
       </style>
     </div>
   );

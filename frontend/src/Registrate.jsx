@@ -9,6 +9,7 @@ const RegistroCliente = () => {
     cedula_cliente: '',
     telefono_cliente: '',
     direccion_cliente: '',
+    Usuario: '',
     contrasena: '',
     confirmar_contrasena: ''
   });
@@ -111,6 +112,19 @@ const RegistroCliente = () => {
                   value={cliente.direccion_cliente}
                   onChange={handleChange}
                   placeholder="Dirección"
+                  required
+                  className="input-field enhanced-textarea"
+                  rows="3"
+                />
+              </div>
+
+              <div className="form-row">
+                <input
+                  type="text"
+                  name="Usuario"
+                  value={cliente.Usuario}
+                  onChange={handleChange}
+                  placeholder="Usuario"
                   required
                   className="input-field enhanced-textarea"
                   rows="3"

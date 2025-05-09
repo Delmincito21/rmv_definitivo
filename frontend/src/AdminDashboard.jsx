@@ -24,7 +24,7 @@ const AdminDashboard = () => {
             {/* Sidebar */}
             <aside className={`admin-sidebar ${sidebarOpen ? "open" : "closed"}`}>
                 <div className="sidebar-header">
-                    <h2>Panel de Administración</h2>
+                    <h3>Panel de Administración</h3>
                     <button
                         onClick={() => setSidebarOpen(!sidebarOpen)}
                         className="toggle-btn"

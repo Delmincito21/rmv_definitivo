@@ -6,6 +6,7 @@ import LoginAdministrador from './LoginAdministrador';
 import ProductAdmi from './ProductAdmi';
 import Venta from './Ventas';
 import AdminDashboard from './AdminDashboard';
+import Clientes from './Clientes';
 
 function App() {
   return (
@@ -13,7 +14,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Navigate to="/Bienvenido" />} />
         <Route path="/ProductAdmi" element={<ProductAdmi />} />
-        <Route path="/Ventas" element={<Venta/>} />
+        <Route path="/Ventas" element={<Venta />} />
         <Route path="/AdminDashboard" element={<AdminDashboard />} />
         <Route path="/Clientes" element={<Clientes />} />
         <Route path="/Bienvenido" element={<Bienvenido />} />

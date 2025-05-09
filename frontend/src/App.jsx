@@ -4,6 +4,7 @@ import LoginCliente from './loginCliente';
 import RegistroCliente from './Registrate';
 import LoginAdministrador from './LoginAdministrador';
 import ProductAdmi from './ProductAdmi';
+import Venta from './Ventas';
 import AdminDashboard from './AdminDashboard';
 
 function App() {
@@ -12,6 +13,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Navigate to="/Bienvenido" />} />
         <Route path="/ProductAdmi" element={<ProductAdmi />} />
+        <Route path="/Ventas" element={<Venta/>} />
         <Route path="/AdminDashboard" element={<AdminDashboard />} />
         {/* Aquí puedes agregar más rutas según sea necesario */}
         <Route path="/Bienvenido" element={<Bienvenido />} />

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import './Dashboard.css';
 import { useNavigate } from "react-router-dom";
-import { FaSignOutAlt, FaPlusCircle, FaEdit, FaEye, FaSnowflake, FaFan, FaThermometerHalf } from "react-icons/fa";
+import { FaSignOutAlt, FaPlusCircle, FaEdit, FaEye, FaHome, FaSnowflake, FaFan, FaThermometerHalf } from "react-icons/fa";
 
 // Componente para agregar producto
 function AgregarProductoForm({ onCancel }) {
@@ -152,26 +152,7 @@ export default function ProductAdmin() {
       case 'view':
         return <ProductosDisponiblesList />;
       default:
-        return (
-          <div className="content-card welcome-message animated-fade-in">
-            <div className="welcome-vertical">
-              <div className="welcome-icons animated-slide-in-top">
-                <FaSnowflake className="welcome-icon" />
-                <FaFan className="welcome-icon" />
-                <FaThermometerHalf className="welcome-icon" />
-              </div>
-              <div className="welcome-text animated-fade-in">
-                <h3 className="welcome-title">¡Bienvenido al Panel de Productos!</h3>
-                <p className="welcome-description">
-                  Gestiona tus productos de manera eficiente y rápida.
-                </p>
-                <p className="welcome-description">
-                  Selecciona una acción del menú lateral para comenzar.
-                </p>
-              </div>
-            </div>
-          </div>
-        );
+        return <div className="content-card"></div>; // VACÍO
     }
   };
 
@@ -183,6 +164,12 @@ export default function ProductAdmin() {
           <h2>Panel de Productos</h2>
         </div>
         <nav className="sidebar-nav">
+          <button
+            className={`nav-btn ${view === null ? 'active' : ''}`}
+            onClick={() => setView(null)}
+          >
+            <FaHome className="nav-icon" /> Inicio
+          </button>
           <button
             className={`nav-btn ${view === 'add' ? 'active' : ''}`}
             onClick={() => setView('add')}

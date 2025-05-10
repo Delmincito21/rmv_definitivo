@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import './Ventas.css';
+import { useNavigate } from 'react-router-dom';
 import {
-    FaHome,
-    FaShoppingCart,
-    FaPlus,
-    FaMinus,
-    FaArrowLeft,
-    FaCalendarAlt
+  FaHome,
+  FaShoppingCart,
+  FaPlus,
+  FaMinus,
+  FaArrowLeft,
+  FaCalendarAlt,
+  FaSignOutAlt
 } from "react-icons/fa";
 
 const Venta = () => {
@@ -14,7 +16,8 @@ const Venta = () => {
   const [showNewSaleForm, setShowNewSaleForm] = useState(false);
   const [showPaymentForm, setShowPaymentForm] = useState(false);
   const [showShippingForm, setShowShippingForm] = useState(false);
-  
+  const navigate = useNavigate();
+
   // Estado para el formulario de nueva venta
   const [nuevaVenta, setNuevaVenta] = useState({
     id_usuario: '',
@@ -77,29 +80,29 @@ const Venta = () => {
   // Manejar cambios en los detalles de venta (CORRECCIÓN APLICADA AQUÍ)
   const handleDetalleChange = (index, e) => {
     const { name, value } = e.target;
-    
+
     setNuevaVenta(prevState => {
       const newDetalles = [...prevState.detalles];
-      
+
       // Actualizar el campo específico
       newDetalles[index] = {
         ...newDetalles[index],
         [name]: value
       };
-      
+
       // Si es precio o cantidad, recalcular el subtotal
       if (name === 'precio_unitario_detalle_venta' || name === 'cantidad_detalle_venta') {
-        const precio = name === 'precio_unitario_detalle_venta' 
+        const precio = name === 'precio_unitario_detalle_venta'
           ? parseFloat(value) || 0
           : parseFloat(newDetalles[index].precio_unitario_detalle_venta) || 0;
-        
-        const cantidad = name === 'cantidad_detalle_venta' 
+
+        const cantidad = name === 'cantidad_detalle_venta'
           ? parseInt(value) || 0
           : parseInt(newDetalles[index].cantidad_detalle_venta) || 0;
-        
+
         newDetalles[index].subtotal_detalle_venta = (precio * cantidad).toFixed(2);
       }
-      
+
       return {
         ...prevState,
         detalles: newDetalles
@@ -189,6 +192,10 @@ const Venta = () => {
     });
   };
 
+  const handleExit = () => {
+    navigate('/Inicio');
+  };
+
   // Componente de inicio con cards (vacío por ahora)
   const InicioContent = () => (
     <div className="content-container">
@@ -207,43 +214,43 @@ const Venta = () => {
     <div className="form-container">
       <form className="horizontal-product-form">
         <h2 className="form-title">REGISTRAR NUEVA VENTA</h2>
-        
+
         {/* Primera fila del formulario */}
         <div className="form-row">
           <div className="form-field">
             <label htmlFor="id_usuario">ID Usuario</label>
-            <input 
-              type="text" 
-              id="id_usuario" 
-              name="id_usuario" 
-              value={nuevaVenta.id_usuario} 
+            <input
+              type="text"
+              id="id_usuario"
+              name="id_usuario"
+              value={nuevaVenta.id_usuario}
               onChange={handleVentaChange}
               required
               className="input-no-arrows"
             />
           </div>
-          
+
           <div className="form-field">
             <label htmlFor="fecha_venta">Fecha de Venta</label>
             <div className="date-input-container">
-              <input 
-                type="datetime-local" 
-                id="fecha_venta" 
-                name="fecha_venta" 
-                value={nuevaVenta.fecha_venta} 
+              <input
+                type="datetime-local"
+                id="fecha_venta"
+                name="fecha_venta"
+                value={nuevaVenta.fecha_venta}
                 onChange={handleVentaChange}
                 required
               />
               <FaCalendarAlt className="calendar-icon" />
             </div>
           </div>
-          
+
           <div className="form-field">
             <label htmlFor="estado_venta">Estado de Venta</label>
-            <select 
-              id="estado_venta" 
-              name="estado_venta" 
-              value={nuevaVenta.estado_venta} 
+            <select
+              id="estado_venta"
+              name="estado_venta"
+              value={nuevaVenta.estado_venta}
               onChange={handleVentaChange}
               required
             >
@@ -253,67 +260,67 @@ const Venta = () => {
             </select>
           </div>
         </div>
-        
+
         {/* Detalles de venta */}
         {nuevaVenta.detalles.map((detalle, index) => (
           <div key={index} className="detalle-venta-container">
             <div className="form-row">
               <div className="form-field">
                 <label htmlFor={`id_producto_${index}`}>ID Producto</label>
-                <input 
-                  type="text" 
-                  id={`id_producto_${index}`} 
-                  name="id_producto" 
-                  value={detalle.id_producto} 
+                <input
+                  type="text"
+                  id={`id_producto_${index}`}
+                  name="id_producto"
+                  value={detalle.id_producto}
                   onChange={(e) => handleDetalleChange(index, e)}
                   required
                   className="input-no-arrows"
                 />
               </div>
-              
+
               <div className="form-field">
                 <label htmlFor={`cantidad_${index}`}>Cantidad</label>
-                <input 
-                  type="text" 
-                  id={`cantidad_${index}`} 
-                  name="cantidad_detalle_venta" 
-                  value={detalle.cantidad_detalle_venta} 
+                <input
+                  type="text"
+                  id={`cantidad_${index}`}
+                  name="cantidad_detalle_venta"
+                  value={detalle.cantidad_detalle_venta}
                   onChange={(e) => handleDetalleChange(index, e)}
                   required
                   className="input-no-arrows"
                 />
               </div>
-              
+
               <div className="form-field">
                 <label htmlFor={`precio_${index}`}>Precio Unitario</label>
-                <input 
-                  type="text" 
-                  id={`precio_${index}`} 
-                  name="precio_unitario_detalle_venta" 
-                  value={detalle.precio_unitario_detalle_venta} 
+                <input
+                  type="text"
+                  id={`precio_${index}`}
+                  name="precio_unitario_detalle_venta"
+                  value={detalle.precio_unitario_detalle_venta}
                   onChange={(e) => handleDetalleChange(index, e)}
                   required
                   className="input-no-arrows"
                 />
               </div>
-              
+
               <div className="form-field">
                 <label htmlFor={`subtotal_${index}`}>Subtotal</label>
-                <input 
-                  type="text" 
-                  id={`subtotal_${index}`} 
-                  name="subtotal_detalle_venta" 
-                  value={detalle.subtotal_detalle_venta} 
+                <input
+                  type="text"
+                  id={`subtotal_${index}`}
+                  name="subtotal_detalle_venta"
+                  value={detalle.subtotal_detalle_venta}
                   readOnly
                   className="input-no-arrows"
                 />
               </div>
-              
+
               <div className="form-action-buttons">
                 {nuevaVenta.detalles.length > 1 && (
-                  <button 
-                    type="button" 
-                    className="btn-remove" 
+                  <button
+                    type="button"
+                    className="btn-remove"
                     onClick={() => eliminarDetalle(index)}
                   >
                     <FaMinus />
@@ -323,22 +330,22 @@ const Venta = () => {
             </div>
           </div>
         ))}
-        
+
         <div className="add-item-container">
-          <button 
-            type="button" 
-            className="btn-add-item" 
+          <button
+            type="button"
+            className="btn-add-item"
             onClick={agregarDetalle}
           >
             <FaPlus /> Agregar Producto
           </button>
         </div>
-        
+
         <div className="total-container">
           <span className="total-label">Total:</span>
           <span className="total-amount">${calcularTotal()}</span>
         </div>
-        
+
         <div className="form-actions">
           <button type="button" className="cancel-btn" onClick={handleCancelVenta}>
             Cancelar
@@ -364,42 +371,42 @@ const Venta = () => {
           </button>
           <h2 className="form-title">DATOS DE PAGO</h2>
         </div>
-        
+
         <div className="form-row">
           <div className="form-field">
             <label htmlFor="monto_pagado">Monto Pagado</label>
-            <input 
-              type="text" 
-              id="monto_pagado" 
-              name="monto_pagado" 
-              value={pago.monto_pagado} 
+            <input
+              type="text"
+              id="monto_pagado"
+              name="monto_pagado"
+              value={pago.monto_pagado}
               onChange={handlePagoChange}
               required
               className="input-no-arrows"
             />
           </div>
-          
+
           <div className="form-field">
             <label htmlFor="fecha_pago">Fecha de Pago</label>
             <div className="date-input-container">
-              <input 
-                type="datetime-local" 
-                id="fecha_pago" 
-                name="fecha_pago" 
-                value={pago.fecha_pago} 
+              <input
+                type="datetime-local"
+                id="fecha_pago"
+                name="fecha_pago"
+                value={pago.fecha_pago}
                 onChange={handlePagoChange}
                 required
               />
               <FaCalendarAlt className="calendar-icon" />
             </div>
           </div>
-          
+
           <div className="form-field">
             <label htmlFor="metodo_pago">Método de Pago</label>
-            <select 
-              id="metodo_pago" 
-              name="metodo_pago" 
-              value={pago.metodo_pago} 
+            <select
+              id="metodo_pago"
+              name="metodo_pago"
+              value={pago.metodo_pago}
               onChange={handlePagoChange}
               required
             >
@@ -407,40 +414,40 @@ const Venta = () => {
             </select>
           </div>
         </div>
-        
+
         <div className="form-row">
           <div className="form-field">
             <label htmlFor="referencia">Número de Referencia</label>
-            <input 
-              type="text" 
-              id="referencia" 
-              name="referencia" 
-              value={pago.referencia} 
+            <input
+              type="text"
+              id="referencia"
+              name="referencia"
+              value={pago.referencia}
               onChange={handlePagoChange}
               required
               placeholder="Ej: 12345678"
             />
           </div>
-          
+
           <div className="form-field">
             <label htmlFor="banco_emisor">Banco Emisor</label>
-            <input 
-              type="text" 
-              id="banco_emisor" 
-              name="banco_emisor" 
-              value={pago.banco_emisor} 
+            <input
+              type="text"
+              id="banco_emisor"
+              name="banco_emisor"
+              value={pago.banco_emisor}
               onChange={handlePagoChange}
               required
               placeholder="Ej: Banco Nacional"
             />
           </div>
-          
+
           <div className="form-field">
             <label htmlFor="estado">Estado</label>
-            <select 
-              id="estado" 
-              name="estado" 
-              value={pago.estado} 
+            <select
+              id="estado"
+              name="estado"
+              value={pago.estado}
               onChange={handlePagoChange}
               required
             >
@@ -450,7 +457,7 @@ const Venta = () => {
             </select>
           </div>
         </div>
-        
+
         <div className="form-actions">
           <button type="button" className="cancel-btn" onClick={handleCancelVenta}>
             Cancelar
@@ -476,16 +483,16 @@ const Venta = () => {
           </button>
           <h2 className="form-title">DATOS DE ENVÍO</h2>
         </div>
-        
+
         <div className="form-row">
           <div className="form-field">
             <label htmlFor="fecha_recepcion">Fecha de Recepción</label>
             <div className="date-input-container">
-              <input 
-                type="datetime-local" 
-                id="fecha_recepcion" 
-                name="fecha_recepcion" 
-                value={envio.fecha_recepcion} 
+              <input
+                type="datetime-local"
+                id="fecha_recepcion"
+                name="fecha_recepcion"
+                value={envio.fecha_recepcion}
                 onChange={handleEnvioChange}
                 required
               />
@@ -493,21 +500,21 @@ const Venta = () => {
             </div>
           </div>
         </div>
-        
+
         <div className="form-row">
           <div className="form-field wide">
             <label htmlFor="direccion">Dirección de Envío</label>
-            <textarea 
-              id="direccion" 
-              name="direccion" 
-              value={envio.direccion} 
+            <textarea
+              id="direccion"
+              name="direccion"
+              value={envio.direccion}
               onChange={handleEnvioChange}
               required
               placeholder="Ingrese la dirección completa de envío"
             ></textarea>
           </div>
         </div>
-        
+
         <div className="form-actions">
           <button type="button" className="cancel-btn" onClick={handleCancelVenta}>
             Cancelar
@@ -524,11 +531,11 @@ const Venta = () => {
   const VentasContent = () => (
     <div className="content-container">
       <h1 className="page-title">Gestión de Ventas</h1>
-      
+
       <div className="action-bar">
         <button className="btn-nueva-venta" onClick={handleNuevaVenta}>Nueva Venta</button>
       </div>
-      
+
       {showNewSaleForm && !showPaymentForm && !showShippingForm && <NuevaVentaForm />}
       {showPaymentForm && !showShippingForm && <PagoForm />}
       {showShippingForm && <EnvioForm />}
@@ -542,12 +549,12 @@ const Venta = () => {
         <div className="sidebar-header">
           <h2>Panel de Administración</h2>
         </div>
-        
+
         <nav className="sidebar-nav">
           <ul>
             <li>
-              <button 
-                className={`nav-item ${activePage === 'inicio' ? 'active' : ''}`} 
+              <button
+                className={`nav-item ${activePage === 'inicio' ? 'active' : ''}`}
                 onClick={() => navigateTo('inicio')}
               >
                 <FaHome className="nav-icon" />
@@ -555,8 +562,8 @@ const Venta = () => {
               </button>
             </li>
             <li>
-              <button 
-                className={`nav-item ${activePage === 'ventas' ? 'active' : ''}`} 
+              <button
+                className={`nav-item ${activePage === 'ventas' ? 'active' : ''}`}
                 onClick={() => navigateTo('ventas')}
               >
                 <FaShoppingCart className="nav-icon" />
@@ -565,6 +572,13 @@ const Venta = () => {
             </li>
           </ul>
         </nav>
+
+        <div className="sidebar-footer">
+          <button onClick={handleExit} className="exit-btn">
+            <FaSignOutAlt className="exit-icon" />
+            <span>Salir del Panel</span>
+          </button>
+        </div>
       </div>
 
       {/* Main Content */}

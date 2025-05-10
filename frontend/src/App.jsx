@@ -6,22 +6,39 @@ import ProductAdmi from './ProductAdmi';
 import Venta from './Ventas';
 import AdminDashboard from './AdminDashboard';
 import Clientes from './Clientes';
+import Inicio from './Inicio';
 
 function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Navigate to="/Bienvenido" />} />
-        <Route path="/ProductAdmi" element={<ProductAdmi />} />
-        <Route path="/Ventas" element={<Venta />} />
-        <Route path="/AdminDashboard" element={<AdminDashboard />} />
-        <Route path="/Clientes" element={<Clientes />} />
+        <Route path="/" element={<Navigate to="/Bienvenido" replace />} />
         <Route path="/Bienvenido" element={<Bienvenido />} />
+        <Route path="/AdminDashboard" element={<AdminDashboard />} />
         <Route path="/loginCliente" element={<LoginCliente />} />
         <Route path="/registrate" element={<RegistroCliente />} />
+
+        {/* Rutas CON sidebar */}
+        <Route element={<LayoutWithSidebar />}>
+          <Route path="/Inicio" element={<Inicio />} />
+          <Route path="/Clientes" element={<Clientes />} />
+        </Route>
+
+        {/* Rutas SIN sidebar */}
+        <Route path="/ProductAdmi" element={<ProductAdmi />} />
+        <Route path="/Ventas" element={<Venta />} />
       </Routes>
     </Router>
   );
 }
-
+const LayoutWithSidebar = ({ children }) => {
+  return (
+    <div className="admin-layout">
+      <AdminDashboard />
+      <div className="main-content-with-sidebar">
+        {children}
+      </div>
+    </div>
+  );
+};
 export default App;

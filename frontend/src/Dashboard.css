@@ -1275,66 +1275,100 @@ html {
 /* Estilos para el formulario horizontal */
 .horizontal-product-form {
     background: white;
-    padding: 15px;
+    padding: 25px;
+    border-radius: 6px;
+    box-shadow: none;
+    margin: 0;
+    width: 100%;
+    max-width: 100%;
 }
 
 .form-title {
     color: #2c3e50;
-    margin-bottom: 15px;
+    margin-bottom: 25px;
     font-size: 1.3rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
 }
 
 .form-row {
     display: flex;
-    gap: 10px;
-    margin-bottom: 10px;
+    gap: 15px;
+    margin-bottom: 20px;
     align-items: flex-start;
 }
 
 .form-field {
     flex: 1;
+    min-width: 180px;
 }
 
 .form-field.wide {
     flex: 2;
+    min-width: 260px;
 }
 
 .form-field label {
     display: block;
-    margin-bottom: 4px;
+    margin-bottom: 6px;
     color: #2c3e50;
     font-weight: 500;
-    font-size: 0.85rem;
+    font-size: 0.9rem;
 }
 
 .form-field input,
 .form-field select,
 .form-field textarea {
     width: 100%;
-    padding: 6px 8px;
+    padding: 10px 12px;
     border: 1px solid #ddd;
     border-radius: 4px;
-    font-size: 0.9rem;
+    font-size: 0.95rem;
+    background-color: #fff;
 }
 
 .form-field textarea {
-    height: 50px;
+    min-height: 60px;
     resize: vertical;
 }
 
 .form-actions {
     display: flex;
-    gap: 8px;
+    gap: 12px;
     justify-content: flex-end;
-    margin-top: 15px;
+    margin-top: 25px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
 }
 
-.cancel-btn,
-.submit-btn {
-    padding: 6px 15px;
+.cancel-btn {
+    background-color: #f0f0f0;
+    color: #333;
+    padding: 10px 20px;
     border-radius: 4px;
     cursor: pointer;
-    font-size: 0.9rem;
+    font-size: 0.95rem;
+    border: none;
+    transition: background-color 0.2s;
+}
+
+.submit-btn {
+    background-color: #3498db;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    border: none;
+    transition: background-color 0.2s;
+}
+
+.cancel-btn:hover {
+    background-color: #e0e0e0;
+}
+
+.submit-btn:hover {
+    background-color: #2980b9;
 }
 
 /* Estilos para la lista de productos horizontal */
@@ -1463,4 +1497,114 @@ html {
     .horizontal-product-card {
         min-width: 160px;
     }
+}
+
+/* Estilo tipo Ventas para ProductAdmi */
+.form-container {
+    margin-bottom: 20px;
+    background: white;
+    border-radius: 6px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    padding: 25px;
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+}
+
+.horizontal-product-form {
+    background: white;
+    padding: 25px;
+    border-radius: 6px;
+    box-shadow: none;
+    margin: 0;
+    width: 100%;
+    max-width: 100%;
+}
+
+.form-title {
+    color: #2c3e50;
+    margin-bottom: 25px;
+    font-size: 1.3rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.form-row {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+    align-items: flex-start;
+}
+
+.form-field {
+    flex: 1;
+    min-width: 180px;
+}
+
+.form-field.wide {
+    flex: 2;
+    min-width: 260px;
+}
+
+.form-field label {
+    display: block;
+    margin-bottom: 6px;
+    color: #2c3e50;
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.form-field input,
+.form-field select,
+.form-field textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 0.95rem;
+    background-color: #fff;
+}
+
+.form-field textarea {
+    min-height: 60px;
+    resize: vertical;
+}
+
+.form-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    margin-top: 25px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+}
+
+.cancel-btn {
+    background-color: #f0f0f0;
+    color: #333;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    border: none;
+    transition: background-color 0.2s;
+}
+
+.submit-btn {
+    background-color: #3498db;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    border: none;
+    transition: background-color 0.2s;
+}
+
+.cancel-btn:hover {
+    background-color: #e0e0e0;
+}
+
+.submit-btn:hover {
+    background-color: #2980b9;
 }

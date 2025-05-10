@@ -6,98 +6,100 @@ import { useState } from 'react';
 
 function AgregarProductoForm({ onCancel }) {
   return (
-    <div className="horizontal-product-form">
-      <h2 className="form-title">Agregar Producto</h2>
+    <div className="form-container">
+      <form className="horizontal-product-form">
+        <h2 className="form-title">Agregar Producto</h2>
 
-      {/* Primera fila horizontal */}
-      <div className="form-row">
-        <div className="form-field">
-          <label>Nombre del Producto</label>
-          <input type="text" placeholder="Ej: Aire Inverter" />
+        {/* Primera fila horizontal */}
+        <div className="form-row">
+          <div className="form-field">
+            <label>Nombre del Producto</label>
+            <input type="text" placeholder="Ej: Aire Inverter" />
+          </div>
+
+          <div className="form-field">
+            <label>Marca</label>
+            <input type="text" placeholder="Ej: Samsung" />
+          </div>
+
+          <div className="form-field">
+            <label>Modelo</label>
+            <input type="text" placeholder="Ej: AR12TXCAAWK" />
+          </div>
         </div>
 
-        <div className="form-field">
-          <label>Marca</label>
-          <input type="text" placeholder="Ej: Samsung" />
+        {/* Segunda fila horizontal */}
+        <div className="form-row">
+          <div className="form-field">
+            <label>Precio ($DOP)</label>
+            <input type="number" step="0.01" placeholder="0.00" />
+          </div>
+
+          <div className="form-field">
+            <label>Precio Compra ($DOP)</label>
+            <input type="number" step="0.01" placeholder="0.00" />
+          </div>
+
+          <div className="form-field">
+            <label>Tipo de Garantía </label>
+            <input type="text" />
+          </div>
         </div>
 
-        <div className="form-field">
-          <label>Modelo</label>
-          <input type="text" placeholder="Ej: AR12TXCAAWK" />
-        </div>
-      </div>
+        {/* Tercera fila horizontal */}
+        <div className="form-row">
+          <div className="form-field">
+            <label>Categoría</label>
+            <select>
+              <option value="" style={{ color: '#000000' }}>Seleccionar categoría</option>
+              <option value="Aire Acondicionado">Aire Acondicionado</option>
+              <option value="Refrigerador">Refrigerador</option>
+              <option value="Estufa">Estufa</option>
+            </select>
+          </div>
 
-      {/* Segunda fila horizontal */}
-      <div className="form-row">
-        <div className="form-field">
-          <label>Precio ($DOP)</label>
-          <input type="number" step="0.01" placeholder="0.00" />
-        </div>
+          <div className="form-field">
+            <label>Stock</label>
+            <input type="number" placeholder="0" />
+          </div>
 
-        <div className="form-field">
-          <label>Precio Compra ($DOP)</label>
-          <input type="number" step="0.01" placeholder="0.00" />
-        </div>
-
-        <div className="form-field">
-          <label>Tipo de Garantía </label>
-          <input type="text" />
-        </div>
-      </div>
-
-      {/* Tercera fila horizontal */}
-      <div className="form-row">
-        <div className="form-field">
-          <label>Categoría</label>
-          <select>
-            <option value="" style={{ color: '#000000' }}>Seleccionar categoría</option>
-            <option value="Aire Acondicionado">Aire Acondicionado</option>
-            <option value="Refrigerador">Refrigerador</option>
-            <option value="Estufa">Estufa</option>
-          </select>
+          <div className="form-field">
+            <label>Colores</label>
+            <input type="text" placeholder="Ej: Blanco, Negro" />
+          </div>
         </div>
 
-        <div className="form-field">
-          <label>Stock</label>
-          <input type="number" placeholder="0" />
+        {/* Cuarta fila horizontal */}
+        <div className="form-row">
+          <div className="form-field wide">
+            <label>Descripción</label>
+            <textarea placeholder="Descripción detallada..." rows="2"></textarea>
+          </div>
+
+          <div className="form-field">
+            <label>Suplidor (opcional)</label>
+            <input type="text" placeholder="Nombre del suplidor" />
+          </div>
         </div>
 
-        <div className="form-field">
-          <label>Colores</label>
-          <input type="text" placeholder="Ej: Blanco, Negro" />
-        </div>
-      </div>
-
-      {/* Cuarta fila horizontal */}
-      <div className="form-row">
-        <div className="form-field wide">
-          <label>Descripción</label>
-          <textarea placeholder="Descripción detallada..." rows="2"></textarea>
+        {/* Quinta fila horizontal */}
+        <div className="form-row">
+          <div className="form-field wide">
+            <label>Imagen (URL)</label>
+            <input type="url" placeholder="https://ejemplo.com/imagen.jpg" />
+          </div>
         </div>
 
-        <div className="form-field">
-          <label>Suplidor (opcional)</label>
-          <input type="text" placeholder="Nombre del suplidor" />
+        {/* Botones de acción */}
+        <div className="form-actions">
+          <button type="button" className="cancel-btn" onClick={onCancel}>
+            Cancelar
+          </button>
+          <button type="submit" className="submit-btn">
+            Guardar Producto
+          </button>
         </div>
-      </div>
-
-      {/* Quinta fila horizontal */}
-      <div className="form-row">
-        <div className="form-field wide">
-          <label>Imagen (URL)</label>
-          <input type="url" placeholder="https://ejemplo.com/imagen.jpg" />
-        </div>
-      </div>
-
-      {/* Botones de acción */}
-      <div className="form-actions">
-        <button type="button" className="cancel-btn" onClick={onCancel}>
-          Cancelar
-        </button>
-        <button type="submit" className="submit-btn">
-          Guardar Producto
-        </button>
-      </div>
+      </form>
     </div>
   );
 }

@@ -42,13 +42,41 @@ app.get('/clientes', (req, res) => {
 });
 
 // Ruta de ejemplo
+// app.get('/Ventas', (req, res) => {
+//     db.query('SELECT * FROM venta', (err, results) => {
+//         if (err) throw err;
+//         res.json(results);
+//     });
+// });
+
 app.get('/venta', (req, res) => {
-    db.query('SELECT * FROM venta', (err, results) => {
-        if (err) throw err;
+    const query = `
+        SELECT v.id_venta, v.fecha_venta, c.nombre_clientes AS cliente, v.total,  v.estado_venta
+        FROM venta v
+        JOIN clientes c ON v.id_cliente = c.id_clientes
+    `;
+
+    db.query(query, (err, results) => {
+        if (err) {
+            console.error('Error al obtener las ventas:', err);
+            return res.status(500).json({ error: 'Error al obtener las ventas' });
+        }
+        console.log('Ventas obtenidas:', results); // Verifica los datos aquí
         res.json(results);
     });
-
 });
+
+app.get('/productos', (req, res) => {
+    db.query('SELECT * FROM productos', (err, results) => {
+        if (err) {
+            console.error('Error al obtener productos:', err);
+            return res.status(500).json({ error: 'Error al obtener productos' });
+        }
+        console.log('Productos obtenidos:', results); // Verifica los datos aquí
+        res.json(results);
+    });
+});
+
 
 
 // Inicia el servidor

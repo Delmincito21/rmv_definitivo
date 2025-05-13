@@ -1,8 +1,8 @@
 import React from 'react';
 import './Dashboard.css';
 import { useNavigate } from "react-router-dom";
-import { FaSignOutAlt, FaPlusCircle, FaEdit, FaEye, FaHome, FaSnowflake, FaFire, FaTemperatureHigh, FaWind, FaBars } from "react-icons/fa";
-import { useState } from 'react';
+import { FaSignOutAlt, FaPlusCircle, FaEdit, FaEye, FaHome, FaSnowflake, FaFire, FaTemperatureHigh, FaWind, FaBars, FaSearch, FaBoxOpen, FaTrash } from "react-icons/fa";
+import { useState, useEffect } from 'react';
 
 function AgregarProductoForm({ onCancel }) {
   return (
@@ -134,37 +134,134 @@ const ProductosDisponiblesList = () => {
 };
 
 // Componente para modificar productos
-const ModificarProductoList = () => {
-  const [productos] = useState([
-    { id: 1, nombre: 'Aire inverter', precio: 29.99, stock: 15, imagen: 'https://via.placeholder.com/150' },
-    { id: 2, nombre: 'Aire industrial', precio: 89.50, stock: 8, imagen: 'https://via.placeholder.com/150' },
-    { id: 3, nombre: 'Nevera Samsung', precio: 599.99, stock: 22, imagen: 'https://via.placeholder.com/150' },
-    { id: 4, nombre: 'Aire TGM', precio: 15.00, stock: 0, imagen: 'https://via.placeholder.com/150' },
-  ]);
+function ModificarProductoList() {
+  const [productos, setProductos] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [busqueda, setBusqueda] = useState("");
+
+  useEffect(() => {
+    fetch('http://localhost:3000/productos')
+      .then(res => res.json())
+      .then(data => {
+        setProductos(data);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, []);
+
+  const handleEditar = (producto) => {
+    alert(`Editar producto: ${producto.nombre_producto}`);
+  };
+
+  const handleEliminar = (id) => {
+    if (window.confirm('¿Seguro que deseas eliminar este producto?')) {
+      fetch(`http://localhost:3000/productos/${id}`, { method: 'DELETE' })
+        .then(res => {
+          if (res.ok) {
+            setProductos(productos.filter(p => p.id_producto !== id));
+          }
+        });
+    }
+  };
+
+  const total = productos.length;
+  const enStock = productos.filter(p => p.stock_producto > 0).length;
+  const sinStock = productos.filter(p => p.stock_producto === 0).length;
+
+  const productosFiltrados = productos.filter(producto =>
+    producto.nombre_producto.toLowerCase().includes(busqueda.toLowerCase()) ||
+    producto.marca_producto.toLowerCase().includes(busqueda.toLowerCase())
+  );
+
+  if (loading) return <div className="loading-container"><div className="spinner"></div>Cargando productos...</div>;
 
   return (
     <div className="content-card">
-      <h3 style={{ color: '#000000' }}>Gestionar Productos</h3>
-      <div className="horizontal-products-container">
-        {productos.map(producto => (
-          <div key={producto.id} className="horizontal-product-card">
-            <div className="horizontal-product-content">
-              <h4>{producto.nombre}</h4>
-              <p className="horizontal-product-price">${producto.precio.toFixed(2)}</p>
-              <div className="horizontal-product-stock">
-                <span className={`stock-indicator ${producto.stock > 0 ? 'in-stock' : 'out-of-stock'}`}></span>
-                {producto.stock > 0 ? `${producto.stock} disponibles` : 'Sin stock'}
-              </div>
-              <button className="edit-btn">
-                <FaEdit /> Editar
-              </button>
-            </div>
-          </div>
-        ))}
+      <h3 style={{
+        color: '#2c3e50',
+        marginBottom: '1.5rem',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 10,
+        fontSize: '1.6rem'
+      }}>
+        <FaBoxOpen style={{ color: "#3182ce", fontSize: "2.1rem" }} />
+        Gestionar Productos
+      </h3>
+      <div className="stats-cards">
+        <div className="stat-card">
+          <h3>Total Productos</h3>
+          <p>{total}</p>
+        </div>
+        <div className="stat-card">
+          <h3>En Stock</h3>
+          <p>{enStock}</p>
+        </div>
+        <div className="stat-card">
+          <h3>Sin Stock</h3>
+          <p>{sinStock}</p>
+        </div>
+      </div>
+      <div className="table-header" style={{ marginBottom: 20, display: "flex", justifyContent: "flex-end" }}>
+        <div className="search-bar" style={{ width: "100%", maxWidth: 350, position: "relative" }}>
+          <FaSearch className="search-icon" style={{ left: 10, top: 13, position: "absolute" }} />
+          <input
+            type="text"
+            placeholder="Buscar producto o marca..."
+            value={busqueda}
+            onChange={e => setBusqueda(e.target.value)}
+            style={{ paddingLeft: 35, width: "100%" }}
+          />
+        </div>
+      </div>
+      <div className="table-container" style={{ overflowX: "auto", width: "100%" }}>
+        <table className="data-table" style={{ minWidth: 600 }}>
+
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Nombre</th>
+              <th>Marca</th>
+              <th>Precio</th>
+              <th>Stock</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {productosFiltrados.map(producto => (
+              <tr key={producto.id_producto}>
+                <td>#{producto.id_producto}</td>
+                <td>{producto.nombre_producto}</td>
+                <td>{producto.marca_producto}</td>
+                <td>${producto.precio_producto}</td>
+                <td>{producto.stock_producto}</td>
+                <td>
+                  <span className={`status-badge ${producto.estado === 'activo' ? 'active' : 'inactive'}`}>
+                    {producto.estado === 'activo' ? 'Activo' : 'Inactivo'}
+                  </span>
+                </td>
+                <td className="actions-cell">
+                  <button className="action-button edit" onClick={() => handleEditar(producto)}>
+                    <FaEdit style={{ marginRight: 4 }} /> Editar
+                  </button>
+                  <button className="action-button delete" onClick={() => handleEliminar(producto.id_producto)}>
+                    <FaTrash style={{ marginRight: 4 }} /> Eliminar
+                  </button>
+                </td>
+              </tr>
+            ))}
+            {productosFiltrados.length === 0 && (
+              <tr>
+                <td colSpan="7" className="empty-data">No hay productos registrados.</td>
+              </tr>
+            )}
+          </tbody>
+        </table>
       </div>
     </div>
   );
-};
+}
 
 // Dashboard de Categorías (sin cambios)
 function DashboardCategorias() {
@@ -213,7 +310,7 @@ export default function ProductAdmin() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const navigate = useNavigate();
 
- 
+
   // const handleExit = () => {
   //   navigate("/AdminDashboard");
   // };
@@ -291,7 +388,7 @@ export default function ProductAdmin() {
           >
             <FaEdit className="nav-icon" /> <span>Gestionar Productos</span>
           </button>
-          <button
+          {/* <button
             className={`nav-btn ${view === 'view' ? 'active' : ''}`}
             onClick={() => {
               setView('view');
@@ -299,7 +396,7 @@ export default function ProductAdmin() {
             }}
           >
             <FaEye className="nav-icon" /> <span>Ver Productos</span>
-          </button>
+          </button> */}
         </nav>
 
         <div className="sidebar-footer">

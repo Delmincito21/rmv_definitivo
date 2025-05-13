@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FaCalendarAlt, FaMinus, FaPlus, FaArrowLeft, FaCreditCard, FaTruck } from 'react-icons/fa';
 import './Ventas.css';
 
@@ -17,11 +17,11 @@ const PagoForm = ({ total, onSubmit, setPaso }) => {
 
   const validarPago = () => {
     const nuevosErrores = {};
-    
+
     if (!datosPago.monto) {
       nuevosErrores.monto = 'El monto es requerido';
     }
-    
+
     if (!datosPago.referencia) {
       nuevosErrores.referencia = 'La referencia es requerida';
     }
@@ -51,7 +51,7 @@ const PagoForm = ({ total, onSubmit, setPaso }) => {
         <FaArrowLeft /> Volver
       </button>
       <h3 className="section-subtitle">Información de Pago</h3>
-      
+
       <div className="form-row">
         <div className={`form-field ${errores.monto ? 'error' : ''}`}>
           <label>Monto</label>
@@ -142,11 +142,11 @@ const EnvioForm = ({ onSubmit, setPaso }) => {
 
   const validarEnvio = () => {
     const nuevosErrores = {};
-    
+
     if (!datosEnvio.fecha_entrega) {
       nuevosErrores.fecha_entrega = 'La fecha de entrega es requerida';
     }
-    
+
     if (!datosEnvio.direccion.trim()) {
       nuevosErrores.direccion = 'La dirección es requerida';
     }
@@ -172,7 +172,7 @@ const EnvioForm = ({ onSubmit, setPaso }) => {
         <FaArrowLeft /> Volver
       </button>
       <h3 className="section-subtitle">Información de Envío</h3>
-      
+
       <div className="form-row">
         <div className={`form-field ${errores.fecha_entrega ? 'error' : ''}`}>
           <label>Fecha de Entrega</label>
@@ -228,6 +228,24 @@ const Ventas = () => {
 
   const [paso, setPaso] = useState('venta'); // 'venta', 'pago', 'envio'
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
+  const [ventas, setVentas] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    fetch('http://localhost:3000/venta') // Asegúrate de que esta ruta esté configurada en tu backend
+      .then(res => res.json())
+      .then(data => {
+        console.log('Ventas obtenidas del backend:', data); // Verifica los datos aquí
+        setVentas(data); // Guarda las ventas en el estado
+        setLoading(false); // Indica que la carga ha terminado
+      })
+      .catch(err => {
+        console.error('Error al cargar las ventas:', err); // Muestra el error en la consola
+        setError('No se pudo cargar la lista de ventas'); // Muestra un mensaje de error
+        setLoading(false); // Indica que la carga ha terminado
+      });
+  }, []);
 
   const calcularSubtotal = (detalle) => {
     const cantidad = parseFloat(detalle.cantidad) || 0;
@@ -246,7 +264,7 @@ const Ventas = () => {
       [campo]: valor
     };
     nuevosDetalles[index].subtotal = calcularSubtotal(nuevosDetalles[index]);
-    
+
     setDetalles(nuevosDetalles);
     setDatosVenta(prev => ({
       ...prev,
@@ -277,7 +295,7 @@ const Ventas = () => {
   const eliminarDetalle = (index) => {
     const nuevosDetalles = detalles.filter((_, i) => i !== index);
     setDetalles(nuevosDetalles);
-    
+
     const nuevosErrores = {
       ...errores,
       detalles: errores.detalles.filter((_, i) => i !== index)
@@ -353,7 +371,7 @@ const Ventas = () => {
     <div className="ventas-container">
       <div className="dashboard-header">
         <h1 className="page-title">Gestión de Ventas</h1>
-        <button 
+        <button
           className="add-button"
           onClick={() => setMostrarFormulario(true)}
         >
@@ -427,7 +445,7 @@ const Ventas = () => {
               </div>
 
               <h3 className="section-subtitle">Detalles de la Venta</h3>
-              
+
               {detalles.map((detalle, index) => (
                 <div key={index} className="detalle-venta-container">
                   <div className="form-row">
@@ -548,19 +566,35 @@ const Ventas = () => {
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td>#1</td>
-                <td>2024-03-15</td>
-                <td>Juan Pérez</td>
-                <td>$25,000</td>
-                <td>
-                  <span className="estado completada">Completada</span>
-                </td>
-                <td className="actions-cell">
-                  <button className="action-button view">Ver Detalles</button>
-                  <button className="action-button edit">Editar</button>
-                </td>
-              </tr>
+              {loading ? (
+                <tr>
+                  <td colSpan="6">Cargando...</td>
+                </tr>
+              ) : error ? (
+                <tr>
+                  <td colSpan="6">{error}</td>
+                </tr>
+              ) : ventas.length > 0 ? (
+                ventas.map((venta, index) => (
+                  <tr key={index}>
+                    <td>{venta.id}</td>
+                    <td>{venta.fecha}</td>
+                    <td>{venta.cliente}</td>
+                    <td>${venta.total}</td>
+                    <td>
+                      <span className={`estado ${venta.estado}`}>{venta.estado}</span>
+                    </td>
+                    <td className="actions-cell">
+                      <button className="action-button view">Ver Detalles</button>
+                      <button className="action-button edit">Editar</button>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="6">No hay ventas disponibles</td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>

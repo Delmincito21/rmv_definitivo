@@ -30,6 +30,16 @@ db.connect(err => {
 app.get('/', (req, res) => {
     res.send('Bienvenido al servidor de RMV');
 });
+app.get('/clientes', (req, res) => {
+    db.query('SELECT * FROM clientes', (err, results) => {
+        if (err) {
+            console.error('Error al obtener clientes:', err);
+            return res.status(500).json({ error: 'Error al obtener clientes' });
+        }
+        console.log('Clientes obtenidos:', results); // Verifica los datos aquí
+        res.json(results);
+    });
+});
 
 // Ruta de ejemplo
 app.get('/venta', (req, res) => {
@@ -37,7 +47,9 @@ app.get('/venta', (req, res) => {
         if (err) throw err;
         res.json(results);
     });
+
 });
+
 
 // Inicia el servidor
 app.listen(PORT, () => {

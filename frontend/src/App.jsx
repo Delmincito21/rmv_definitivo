@@ -7,6 +7,7 @@ import Ventas from './Ventas';
 import AdminDashboard from './AdminDashboard';
 import Clientes from './Clientes';
 import Inicio from './Inicio';
+import InicioCli from './dashboardCliente/InicioCli';
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
         <Route path="/Bienvenido" element={<Bienvenido />} />
         <Route path="/loginCliente" element={<LoginCliente />} />
         <Route path="/registrate" element={<RegistroCliente />} />
+        <Route path="/InicioCli" element={<InicioCli />} />
 
         {/* Rutas con sidebar */}
         <Route element={<LayoutWithSidebar />}>

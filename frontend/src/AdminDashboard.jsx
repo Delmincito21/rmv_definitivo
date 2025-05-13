@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Outlet, NavLink, useLocation } from "react-router-dom";
+import { Outlet, NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
     FaHome,
     FaBox,
@@ -8,13 +8,15 @@ import {
     FaFileInvoiceDollar,
     FaCashRegister,
     FaMoneyBillWave,
-    FaCog
+    FaCog,
+    FaSignOutAlt
 } from "react-icons/fa";
 import "./Dashboard.css";
 
 const AdminDashboard = () => {
     const [sidebarOpen, setSidebarOpen] = useState(true);
     const location = useLocation();
+    const navigate = useNavigate();
 
     // Verificar si estamos en la ruta base del dashboard
     const showWelcome = location.pathname === "/admin" || location.pathname === "/admin/";
@@ -76,10 +78,13 @@ const AdminDashboard = () => {
                 </nav>
 
                 <div className="sidebar-footer">
-                    <NavLink to="/admin/config" className={({ isActive }) => isActive ? "config-link active" : "config-link"}>
-                        <FaCog className="icon" />
-                        <span>Configuración</span>
-                    </NavLink>
+                    <button
+                        onClick={() => navigate('/Bienvenido')} // Redirige a la página de Bienvenido
+                        className="exit-btn"
+                    >
+                        <FaSignOutAlt className="icon" />
+                        <span>Cerrar Sesión</span>
+                    </button>
                 </div>
             </aside>
 

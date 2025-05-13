@@ -117,25 +117,41 @@
 
 /* Footer del sidebar */
 .sidebar-footer {
+    margin-top: auto;
     padding: 1rem;
-    border-top: 1px solid #34495e;
+    background-color: #2c3e50; /* Fondo oscuro */
+    text-align: center;
 }
 
-.config-link {
+/* Botón de cerrar sesión */
+.exit-btn {
     display: flex;
     align-items: center;
-    color: #bdc3c7;
-    text-decoration: none;
-    padding: 0.8rem;
-    transition: all 0.2s;
+    justify-content: center;
+    gap: 0.5rem;
+    background-color: #e74c3c; /* Rojo para indicar acción de salida */
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    padding: 0.8rem 1.2rem;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
 }
 
-.config-link:hover {
-    color: white;
+/* Icono dentro del botón */
+.exit-btn .icon {
+    font-size: 1.2rem;
 }
 
-.config-link .icon {
-    margin-right: 0.8rem;
+/* Hover y enfoque */
+.exit-btn:hover {
+    background-color: #c0392b; /* Rojo más oscuro al pasar el cursor */
+}
+
+.exit-btn:focus {
+    outline: none;
+    box-shadow: 0 0 5px 2px rgba(231, 76, 60, 0.5);
 }
 
 /* Contenido principal - Ocupa TODO el espacio restante */
@@ -1956,4 +1972,24 @@ html {
     .actions-cell {
         flex-direction: column;
     }
+}
+
+/* Estilos para el badge de estado */
+.status-badge {
+    display: inline-block;
+    padding: 0.3rem 0.6rem;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    font-weight: bold;
+    text-align: center;
+}
+
+.status-badge.active {
+    background-color: #27ae60; /* Verde */
+    color: #fff;
+}
+
+.status-badge.inactive {
+    background-color: #e74c3c; /* Rojo */
+    color: #fff;
 }

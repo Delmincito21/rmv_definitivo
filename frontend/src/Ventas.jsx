@@ -1,592 +1,572 @@
 import React, { useState } from 'react';
+import { FaCalendarAlt, FaMinus, FaPlus, FaArrowLeft, FaCreditCard, FaTruck } from 'react-icons/fa';
 import './Ventas.css';
-import { useNavigate } from 'react-router-dom';
-import {
-  FaHome,
-  FaShoppingCart,
-  FaPlus,
-  FaMinus,
-  FaArrowLeft,
-  FaCalendarAlt,
-  FaSignOutAlt
-} from "react-icons/fa";
 
-const Venta = () => {
-  const [activePage, setActivePage] = useState('ventas');
-  const [showNewSaleForm, setShowNewSaleForm] = useState(false);
-  const [showPaymentForm, setShowPaymentForm] = useState(false);
-  const [showShippingForm, setShowShippingForm] = useState(false);
-  const navigate = useNavigate();
-
-  // Estado para el formulario de nueva venta
-  const [nuevaVenta, setNuevaVenta] = useState({
-    id_usuario: '',
-    fecha_venta: new Date().toISOString().slice(0, 16),
-    estado_venta: 'pendiente',
-    detalles: [
-      {
-        id_producto: '',
-        cantidad_detalle_venta: 1,
-        precio_unitario_detalle_venta: 0,
-        subtotal_detalle_venta: 0
-      }
-    ]
-  });
-
-  // Estado para el formulario de pago
-  const [pago, setPago] = useState({
-    monto_pagado: 0,
+// Componente de Pago
+const PagoForm = ({ total, onSubmit, setPaso }) => {
+  const [datosPago, setDatosPago] = useState({
+    monto: total || 0,
     fecha_pago: new Date().toISOString().slice(0, 16),
     metodo_pago: 'transferencia',
     referencia: '',
     banco_emisor: '',
-    estado: 'pendiente'
+    estado_pago: 'pendiente'
   });
 
-  // Estado para el formulario de envío
-  const [envio, setEnvio] = useState({
-    fecha_recepcion: new Date().toISOString().slice(0, 16),
-    direccion: ''
-  });
+  const [errores, setErrores] = useState({});
 
-  // Función para cambiar entre páginas
-  const navigateTo = (page) => {
-    setActivePage(page);
+  const validarPago = () => {
+    const nuevosErrores = {};
+    
+    if (!datosPago.monto) {
+      nuevosErrores.monto = 'El monto es requerido';
+    }
+    
+    if (!datosPago.referencia) {
+      nuevosErrores.referencia = 'La referencia es requerida';
+    }
+
+    if (!datosPago.banco_emisor) {
+      nuevosErrores.banco_emisor = 'El banco emisor es requerido';
+    }
+
+    setErrores(nuevosErrores);
+    return Object.keys(nuevosErrores).length === 0;
   };
 
-  // Abrir formulario de nueva venta
-  const handleNuevaVenta = () => {
-    setShowNewSaleForm(true);
-    setShowPaymentForm(false);
-    setShowShippingForm(false);
-  };
-
-  // Cerrar formulario de nueva venta
-  const handleCancelVenta = () => {
-    setShowNewSaleForm(false);
-    setShowPaymentForm(false);
-    setShowShippingForm(false);
-  };
-
-  // Manejar cambios en el formulario principal
-  const handleVentaChange = (e) => {
-    const { name, value } = e.target;
-    setNuevaVenta({
-      ...nuevaVenta,
-      [name]: value
-    });
-  };
-
-  // Manejar cambios en los detalles de venta (CORRECCIÓN APLICADA AQUÍ)
-  const handleDetalleChange = (index, e) => {
-    const { name, value } = e.target;
-
-    setNuevaVenta(prevState => {
-      const newDetalles = [...prevState.detalles];
-
-      // Actualizar el campo específico
-      newDetalles[index] = {
-        ...newDetalles[index],
-        [name]: value
-      };
-
-      // Si es precio o cantidad, recalcular el subtotal
-      if (name === 'precio_unitario_detalle_venta' || name === 'cantidad_detalle_venta') {
-        const precio = name === 'precio_unitario_detalle_venta'
-          ? parseFloat(value) || 0
-          : parseFloat(newDetalles[index].precio_unitario_detalle_venta) || 0;
-
-        const cantidad = name === 'cantidad_detalle_venta'
-          ? parseInt(value) || 0
-          : parseInt(newDetalles[index].cantidad_detalle_venta) || 0;
-
-        newDetalles[index].subtotal_detalle_venta = (precio * cantidad).toFixed(2);
-      }
-
-      return {
-        ...prevState,
-        detalles: newDetalles
-      };
-    });
-  };
-
-  // Agregar un nuevo detalle de venta
-  const agregarDetalle = () => {
-    setNuevaVenta({
-      ...nuevaVenta,
-      detalles: [
-        ...nuevaVenta.detalles,
-        {
-          id_producto: '',
-          cantidad_detalle_venta: 1,
-          precio_unitario_detalle_venta: 0,
-          subtotal_detalle_venta: 0
-        }
-      ]
-    });
-  };
-
-  // Eliminar un detalle de venta
-  const eliminarDetalle = (index) => {
-    if (nuevaVenta.detalles.length > 1) {
-      const newDetalles = nuevaVenta.detalles.filter((_, i) => i !== index);
-      setNuevaVenta({
-        ...nuevaVenta,
-        detalles: newDetalles
-      });
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (validarPago()) {
+      onSubmit(datosPago);
     }
   };
 
-  // Calcular el total de la venta
-  const calcularTotal = () => {
-    return nuevaVenta.detalles.reduce((total, detalle) => {
-      return total + parseFloat(detalle.subtotal_detalle_venta || 0);
-    }, 0).toFixed(2);
+  const handleVolver = () => {
+    setPaso('venta');
   };
-
-  // Ir al formulario de pago
-  const handleProcederPago = () => {
-    // Actualizar el monto pagado con el total de la venta
-    setPago({
-      ...pago,
-      monto_pagado: calcularTotal(),
-      fecha_pago: nuevaVenta.fecha_venta
-    });
-    setShowPaymentForm(true);
-    setShowShippingForm(false);
-  };
-
-  // Volver al formulario de venta desde pago
-  const handleVolverVenta = () => {
-    setShowPaymentForm(false);
-    setShowShippingForm(false);
-  };
-
-  // Ir al formulario de envío
-  const handleProcederEnvio = () => {
-    setShowShippingForm(true);
-    setShowPaymentForm(false);
-  };
-
-  // Volver al formulario de pago desde envío
-  const handleVolverPago = () => {
-    setShowPaymentForm(true);
-    setShowShippingForm(false);
-  };
-
-  // Manejar cambios en el formulario de pago
-  const handlePagoChange = (e) => {
-    const { name, value } = e.target;
-    setPago({
-      ...pago,
-      [name]: value
-    });
-  };
-
-  // Manejar cambios en el formulario de envío
-  const handleEnvioChange = (e) => {
-    const { name, value } = e.target;
-    setEnvio({
-      ...envio,
-      [name]: value
-    });
-  };
-
-  const handleExit = () => {
-    navigate('/Inicio');
-  };
-
-  // Componente de inicio con cards (vacío por ahora)
-  const InicioContent = () => (
-    <div className="content-container">
-      <h1 className="page-title">Dashboard</h1>
-      <div className="cards-container">
-        {/* Aquí irán los cards del dashboard */}
-        <div className="empty-message">
-          El contenido de los cards del dashboard se añadirá más adelante
-        </div>
-      </div>
-    </div>
-  );
-
-  // Componente del formulario de nueva venta
-  const NuevaVentaForm = () => (
-    <div className="form-container">
-      <form className="horizontal-product-form">
-        <h2 className="form-title">REGISTRAR NUEVA VENTA</h2>
-
-        {/* Primera fila del formulario */}
-        <div className="form-row">
-          <div className="form-field">
-            <label htmlFor="id_usuario">ID Usuario</label>
-            <input
-              type="text"
-              id="id_usuario"
-              name="id_usuario"
-              value={nuevaVenta.id_usuario}
-              onChange={handleVentaChange}
-              required
-              className="input-no-arrows"
-            />
-          </div>
-
-          <div className="form-field">
-            <label htmlFor="fecha_venta">Fecha de Venta</label>
-            <div className="date-input-container">
-              <input
-                type="datetime-local"
-                id="fecha_venta"
-                name="fecha_venta"
-                value={nuevaVenta.fecha_venta}
-                onChange={handleVentaChange}
-                required
-              />
-              <FaCalendarAlt className="calendar-icon" />
-            </div>
-          </div>
-
-          <div className="form-field">
-            <label htmlFor="estado_venta">Estado de Venta</label>
-            <select
-              id="estado_venta"
-              name="estado_venta"
-              value={nuevaVenta.estado_venta}
-              onChange={handleVentaChange}
-              required
-            >
-              <option value="pendiente">Pendiente</option>
-              <option value="completa">Completa</option>
-              <option value="cancelada">Cancelada</option>
-            </select>
-          </div>
-        </div>
-
-        {/* Detalles de venta */}
-        {nuevaVenta.detalles.map((detalle, index) => (
-          <div key={index} className="detalle-venta-container">
-            <div className="form-row">
-              <div className="form-field">
-                <label htmlFor={`id_producto_${index}`}>ID Producto</label>
-                <input
-                  type="text"
-                  id={`id_producto_${index}`}
-                  name="id_producto"
-                  value={detalle.id_producto}
-                  onChange={(e) => handleDetalleChange(index, e)}
-                  required
-                  className="input-no-arrows"
-                />
-              </div>
-
-              <div className="form-field">
-                <label htmlFor={`cantidad_${index}`}>Cantidad</label>
-                <input
-                  type="text"
-                  id={`cantidad_${index}`}
-                  name="cantidad_detalle_venta"
-                  value={detalle.cantidad_detalle_venta}
-                  onChange={(e) => handleDetalleChange(index, e)}
-                  required
-                  className="input-no-arrows"
-                />
-              </div>
-
-              <div className="form-field">
-                <label htmlFor={`precio_${index}`}>Precio Unitario</label>
-                <input
-                  type="text"
-                  id={`precio_${index}`}
-                  name="precio_unitario_detalle_venta"
-                  value={detalle.precio_unitario_detalle_venta}
-                  onChange={(e) => handleDetalleChange(index, e)}
-                  required
-                  className="input-no-arrows"
-                />
-              </div>
-
-              <div className="form-field">
-                <label htmlFor={`subtotal_${index}`}>Subtotal</label>
-                <input
-                  type="text"
-                  id={`subtotal_${index}`}
-                  name="subtotal_detalle_venta"
-                  value={detalle.subtotal_detalle_venta}
-                  readOnly
-                  className="input-no-arrows"
-                />
-              </div>
-
-              <div className="form-action-buttons">
-                {nuevaVenta.detalles.length > 1 && (
-                  <button
-                    type="button"
-                    className="btn-remove"
-                    onClick={() => eliminarDetalle(index)}
-                  >
-                    <FaMinus />
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
-        ))}
-
-        <div className="add-item-container">
-          <button
-            type="button"
-            className="btn-add-item"
-            onClick={agregarDetalle}
-          >
-            <FaPlus /> Agregar Producto
-          </button>
-        </div>
-
-        <div className="total-container">
-          <span className="total-label">Total:</span>
-          <span className="total-amount">${calcularTotal()}</span>
-        </div>
-
-        <div className="form-actions">
-          <button type="button" className="cancel-btn" onClick={handleCancelVenta}>
-            Cancelar
-          </button>
-          <button type="button" className="submit-btn" onClick={() => console.log("Guardar venta")}>
-            Guardar Venta
-          </button>
-          <button type="button" className="payment-btn" onClick={handleProcederPago}>
-            Proceder a Pagar
-          </button>
-        </div>
-      </form>
-    </div>
-  );
-
-  // Componente del formulario de pago
-  const PagoForm = () => (
-    <div className="form-container">
-      <form className="horizontal-product-form">
-        <div className="form-header">
-          <button type="button" className="back-btn" onClick={handleVolverVenta}>
-            <FaArrowLeft /> Volver a Venta
-          </button>
-          <h2 className="form-title">DATOS DE PAGO</h2>
-        </div>
-
-        <div className="form-row">
-          <div className="form-field">
-            <label htmlFor="monto_pagado">Monto Pagado</label>
-            <input
-              type="text"
-              id="monto_pagado"
-              name="monto_pagado"
-              value={pago.monto_pagado}
-              onChange={handlePagoChange}
-              required
-              className="input-no-arrows"
-            />
-          </div>
-
-          <div className="form-field">
-            <label htmlFor="fecha_pago">Fecha de Pago</label>
-            <div className="date-input-container">
-              <input
-                type="datetime-local"
-                id="fecha_pago"
-                name="fecha_pago"
-                value={pago.fecha_pago}
-                onChange={handlePagoChange}
-                required
-              />
-              <FaCalendarAlt className="calendar-icon" />
-            </div>
-          </div>
-
-          <div className="form-field">
-            <label htmlFor="metodo_pago">Método de Pago</label>
-            <select
-              id="metodo_pago"
-              name="metodo_pago"
-              value={pago.metodo_pago}
-              onChange={handlePagoChange}
-              required
-            >
-              <option value="transferencia">Transferencia</option>
-            </select>
-          </div>
-        </div>
-
-        <div className="form-row">
-          <div className="form-field">
-            <label htmlFor="referencia">Número de Referencia</label>
-            <input
-              type="text"
-              id="referencia"
-              name="referencia"
-              value={pago.referencia}
-              onChange={handlePagoChange}
-              required
-              placeholder="Ej: 12345678"
-            />
-          </div>
-
-          <div className="form-field">
-            <label htmlFor="banco_emisor">Banco Emisor</label>
-            <input
-              type="text"
-              id="banco_emisor"
-              name="banco_emisor"
-              value={pago.banco_emisor}
-              onChange={handlePagoChange}
-              required
-              placeholder="Ej: Banco Nacional"
-            />
-          </div>
-
-          <div className="form-field">
-            <label htmlFor="estado">Estado</label>
-            <select
-              id="estado"
-              name="estado"
-              value={pago.estado}
-              onChange={handlePagoChange}
-              required
-            >
-              <option value="pendiente">Pendiente</option>
-              <option value="confirmado">Confirmado</option>
-              <option value="anulado">Anulado</option>
-            </select>
-          </div>
-        </div>
-
-        <div className="form-actions">
-          <button type="button" className="cancel-btn" onClick={handleCancelVenta}>
-            Cancelar
-          </button>
-          <button type="button" className="submit-btn" onClick={() => console.log("Guardar pago")}>
-            Guardar Pago
-          </button>
-          <button type="button" className="payment-btn" onClick={handleProcederEnvio}>
-            Proceder a Envío
-          </button>
-        </div>
-      </form>
-    </div>
-  );
-
-  // Componente del formulario de envío
-  const EnvioForm = () => (
-    <div className="form-container">
-      <form className="horizontal-product-form">
-        <div className="form-header">
-          <button type="button" className="back-btn" onClick={handleVolverPago}>
-            <FaArrowLeft /> Volver a Pago
-          </button>
-          <h2 className="form-title">DATOS DE ENVÍO</h2>
-        </div>
-
-        <div className="form-row">
-          <div className="form-field">
-            <label htmlFor="fecha_recepcion">Fecha de Recepción</label>
-            <div className="date-input-container">
-              <input
-                type="datetime-local"
-                id="fecha_recepcion"
-                name="fecha_recepcion"
-                value={envio.fecha_recepcion}
-                onChange={handleEnvioChange}
-                required
-              />
-              <FaCalendarAlt className="calendar-icon" />
-            </div>
-          </div>
-        </div>
-
-        <div className="form-row">
-          <div className="form-field wide">
-            <label htmlFor="direccion">Dirección de Envío</label>
-            <textarea
-              id="direccion"
-              name="direccion"
-              value={envio.direccion}
-              onChange={handleEnvioChange}
-              required
-              placeholder="Ingrese la dirección completa de envío"
-            ></textarea>
-          </div>
-        </div>
-
-        <div className="form-actions">
-          <button type="button" className="cancel-btn" onClick={handleCancelVenta}>
-            Cancelar
-          </button>
-          <button type="button" className="submit-btn" onClick={() => console.log("Guardar envío")}>
-            Completar Pedido
-          </button>
-        </div>
-      </form>
-    </div>
-  );
-
-  // Componente de ventas simplificado sin tablas
-  const VentasContent = () => (
-    <div className="content-container">
-      <h1 className="page-title">Gestión de Ventas</h1>
-
-      <div className="action-bar">
-        <button className="btn-nueva-venta" onClick={handleNuevaVenta}>Nueva Venta</button>
-      </div>
-
-      {showNewSaleForm && !showPaymentForm && !showShippingForm && <NuevaVentaForm />}
-      {showPaymentForm && !showShippingForm && <PagoForm />}
-      {showShippingForm && <EnvioForm />}
-    </div>
-  );
 
   return (
-    <div className="dashboard-container">
-      {/* Sidebar */}
-      <div className="sidebar">
-        <div className="sidebar-header">
-          <h2>Panel de Administración</h2>
+    <form onSubmit={handleSubmit} className="pago-form">
+      <button type="button" className="back-btn" onClick={handleVolver}>
+        <FaArrowLeft /> Volver
+      </button>
+      <h3 className="section-subtitle">Información de Pago</h3>
+      
+      <div className="form-row">
+        <div className={`form-field ${errores.monto ? 'error' : ''}`}>
+          <label>Monto</label>
+          <input
+            type="number"
+            value={datosPago.monto}
+            onChange={(e) => setDatosPago({ ...datosPago, monto: e.target.value })}
+            placeholder="0.00"
+            step="0.01"
+          />
+          {errores.monto && <div className="error-message">{errores.monto}</div>}
         </div>
 
-        <nav className="sidebar-nav">
-          <ul>
-            <li>
-              <button
-                className={`nav-item ${activePage === 'inicio' ? 'active' : ''}`}
-                onClick={() => navigateTo('inicio')}
-              >
-                <FaHome className="nav-icon" />
-                Inicio
-              </button>
-            </li>
-            <li>
-              <button
-                className={`nav-item ${activePage === 'ventas' ? 'active' : ''}`}
-                onClick={() => navigateTo('ventas')}
-              >
-                <FaShoppingCart className="nav-icon" />
-                Ventas
-              </button>
-            </li>
-          </ul>
-        </nav>
-
-        <div className="sidebar-footer">
-          <button onClick={handleExit} className="exit-btn">
-            <FaSignOutAlt className="exit-icon" />
-            <span>Salir del Panel</span>
-          </button>
+        <div className="form-field">
+          <label>Fecha de Pago</label>
+          <input
+            type="datetime-local"
+            value={datosPago.fecha_pago}
+            onChange={(e) => setDatosPago({ ...datosPago, fecha_pago: e.target.value })}
+          />
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="main-content">
-        {activePage === 'inicio' ? <InicioContent /> : <VentasContent />}
+      <div className="form-row">
+        <div className="form-field">
+          <label>Método de Pago</label>
+          <input
+            type="text"
+            value="Transferencia"
+            readOnly
+          />
+        </div>
+
+        <div className={`form-field ${errores.referencia ? 'error' : ''}`}>
+          <label>Número de Referencia</label>
+          <input
+            type="text"
+            value={datosPago.referencia}
+            onChange={(e) => setDatosPago({ ...datosPago, referencia: e.target.value })}
+            placeholder="Número de referencia"
+          />
+          {errores.referencia && <div className="error-message">{errores.referencia}</div>}
+        </div>
       </div>
+
+      <div className="form-row">
+        <div className={`form-field ${errores.banco_emisor ? 'error' : ''}`}>
+          <label>Banco Emisor</label>
+          <input
+            type="text"
+            value={datosPago.banco_emisor}
+            onChange={(e) => setDatosPago({ ...datosPago, banco_emisor: e.target.value })}
+            placeholder="Nombre del banco"
+          />
+          {errores.banco_emisor && <div className="error-message">{errores.banco_emisor}</div>}
+        </div>
+
+        <div className="form-field">
+          <label>Estado del Pago</label>
+          <select
+            value={datosPago.estado_pago}
+            onChange={(e) => setDatosPago({ ...datosPago, estado_pago: e.target.value })}
+          >
+            <option value="pendiente">Pendiente</option>
+            <option value="confirmado">Confirmado</option>
+            <option value="anulado">Anulado</option>
+          </select>
+        </div>
+      </div>
+
+      <div className="form-actions">
+        <button type="submit" className="submit-btn">
+          <FaCreditCard /> Procesar Pago
+        </button>
+      </div>
+    </form>
+  );
+};
+
+// Componente de Envío
+const EnvioForm = ({ onSubmit, setPaso }) => {
+  const [datosEnvio, setDatosEnvio] = useState({
+    fecha_entrega: '',
+    direccion: ''
+  });
+
+  const [errores, setErrores] = useState({});
+
+  const validarEnvio = () => {
+    const nuevosErrores = {};
+    
+    if (!datosEnvio.fecha_entrega) {
+      nuevosErrores.fecha_entrega = 'La fecha de entrega es requerida';
+    }
+    
+    if (!datosEnvio.direccion.trim()) {
+      nuevosErrores.direccion = 'La dirección es requerida';
+    }
+
+    setErrores(nuevosErrores);
+    return Object.keys(nuevosErrores).length === 0;
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (validarEnvio()) {
+      onSubmit(datosEnvio);
+    }
+  };
+
+  const handleVolver = () => {
+    setPaso('pago');
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="envio-form">
+      <button type="button" className="back-btn" onClick={handleVolver}>
+        <FaArrowLeft /> Volver
+      </button>
+      <h3 className="section-subtitle">Información de Envío</h3>
+      
+      <div className="form-row">
+        <div className={`form-field ${errores.fecha_entrega ? 'error' : ''}`}>
+          <label>Fecha de Entrega</label>
+          <input
+            type="datetime-local"
+            value={datosEnvio.fecha_entrega}
+            onChange={(e) => setDatosEnvio({ ...datosEnvio, fecha_entrega: e.target.value })}
+          />
+          {errores.fecha_entrega && <div className="error-message">{errores.fecha_entrega}</div>}
+        </div>
+
+        <div className={`form-field ${errores.direccion ? 'error' : ''}`}>
+          <label>Dirección</label>
+          <input
+            type="text"
+            value={datosEnvio.direccion}
+            onChange={(e) => setDatosEnvio({ ...datosEnvio, direccion: e.target.value })}
+            placeholder="Dirección de entrega"
+          />
+          {errores.direccion && <div className="error-message">{errores.direccion}</div>}
+        </div>
+      </div>
+
+      <div className="form-actions">
+        <button type="submit" className="submit-btn">
+          <FaTruck /> Confirmar Envío
+        </button>
+      </div>
+    </form>
+  );
+};
+
+// Componente Principal de Ventas
+const Ventas = () => {
+  const [datosVenta, setDatosVenta] = useState({
+    id_usuario: '',
+    fecha_venta: new Date().toISOString().slice(0, 16),
+    estado_venta: 'pendiente',
+    total: 0
+  });
+
+  const [detalles, setDetalles] = useState([{
+    id_producto: '',
+    cantidad: '',
+    precio: '',
+    subtotal: 0
+  }]);
+
+  const [errores, setErrores] = useState({
+    datosVenta: {},
+    detalles: [{}]
+  });
+
+  const [paso, setPaso] = useState('venta'); // 'venta', 'pago', 'envio'
+  const [mostrarFormulario, setMostrarFormulario] = useState(false);
+
+  const calcularSubtotal = (detalle) => {
+    const cantidad = parseFloat(detalle.cantidad) || 0;
+    const precio = parseFloat(detalle.precio) || 0;
+    return Number((cantidad * precio).toFixed(2));
+  };
+
+  const calcularTotal = () => {
+    return detalles.reduce((total, detalle) => total + calcularSubtotal(detalle), 0);
+  };
+
+  const handleDetalleChange = (index, campo, valor) => {
+    const nuevosDetalles = [...detalles];
+    nuevosDetalles[index] = {
+      ...nuevosDetalles[index],
+      [campo]: valor
+    };
+    nuevosDetalles[index].subtotal = calcularSubtotal(nuevosDetalles[index]);
+    
+    setDetalles(nuevosDetalles);
+    setDatosVenta(prev => ({
+      ...prev,
+      total: calcularTotal()
+    }));
+
+    // Limpiar error específico
+    const nuevosErrores = { ...errores };
+    if (nuevosErrores.detalles[index] && nuevosErrores.detalles[index][campo]) {
+      delete nuevosErrores.detalles[index][campo];
+      setErrores(nuevosErrores);
+    }
+  };
+
+  const agregarDetalle = () => {
+    setDetalles([...detalles, {
+      id_producto: '',
+      cantidad: '',
+      precio: '',
+      subtotal: 0
+    }]);
+    setErrores(prev => ({
+      ...prev,
+      detalles: [...prev.detalles, {}]
+    }));
+  };
+
+  const eliminarDetalle = (index) => {
+    const nuevosDetalles = detalles.filter((_, i) => i !== index);
+    setDetalles(nuevosDetalles);
+    
+    const nuevosErrores = {
+      ...errores,
+      detalles: errores.detalles.filter((_, i) => i !== index)
+    };
+    setErrores(nuevosErrores);
+
+    setDatosVenta(prev => ({
+      ...prev,
+      total: nuevosDetalles.reduce((total, detalle) => total + calcularSubtotal(detalle), 0)
+    }));
+  };
+
+  const validarFormulario = () => {
+    const nuevosErrores = {
+      datosVenta: {},
+      detalles: detalles.map(() => ({}))
+    };
+    let esValido = true;
+
+    if (!datosVenta.id_usuario.trim()) {
+      nuevosErrores.datosVenta.id_usuario = 'El ID de usuario es requerido';
+      esValido = false;
+    }
+
+    if (!datosVenta.fecha_venta) {
+      nuevosErrores.datosVenta.fecha_venta = 'La fecha de venta es requerida';
+      esValido = false;
+    }
+
+    detalles.forEach((detalle, index) => {
+      if (!detalle.id_producto.trim()) {
+        nuevosErrores.detalles[index].id_producto = 'El ID del producto es requerido';
+        esValido = false;
+      }
+
+      if (!detalle.cantidad || detalle.cantidad <= 0) {
+        nuevosErrores.detalles[index].cantidad = 'La cantidad debe ser mayor a 0';
+        esValido = false;
+      }
+
+      if (!detalle.precio || detalle.precio <= 0) {
+        nuevosErrores.detalles[index].precio = 'El precio debe ser mayor a 0';
+        esValido = false;
+      }
+    });
+
+    setErrores(nuevosErrores);
+    return esValido;
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (validarFormulario()) {
+      setPaso('pago');
+    }
+  };
+
+  const handlePagoSubmit = (datosPago) => {
+    console.log('Datos de pago:', datosPago);
+    setPaso('envio');
+  };
+
+  const handleEnvioSubmit = (datosEnvio) => {
+    console.log('Datos de envío:', datosEnvio);
+  };
+
+  const handleVolverAVenta = () => {
+    setPaso('venta');
+    setMostrarFormulario(true);
+  };
+
+  return (
+    <div className="ventas-container">
+      <div className="dashboard-header">
+        <h1 className="page-title">Gestión de Ventas</h1>
+        <button 
+          className="add-button"
+          onClick={() => setMostrarFormulario(true)}
+        >
+          <FaPlus /> Nueva Venta
+        </button>
+      </div>
+
+      {mostrarFormulario ? (
+        <div className="venta-container">
+          {paso === 'venta' && (
+            <form onSubmit={handleSubmit} className="horizontal-product-form">
+              <div className="form-header">
+                <button type="button" className="back-btn" onClick={() => setMostrarFormulario(false)}>
+                  <FaArrowLeft /> Volver
+                </button>
+                <h2 className="form-title">Nueva Venta</h2>
+              </div>
+
+              <div className="form-row">
+                <div className={`form-field ${errores.datosVenta?.id_usuario ? 'error' : ''}`}>
+                  <label>ID Usuario</label>
+                  <input
+                    type="text"
+                    value={datosVenta.id_usuario}
+                    onChange={(e) => {
+                      setDatosVenta({ ...datosVenta, id_usuario: e.target.value });
+                      setErrores({
+                        ...errores,
+                        datosVenta: { ...errores.datosVenta, id_usuario: '' }
+                      });
+                    }}
+                    placeholder="Ingrese ID de usuario"
+                  />
+                  {errores.datosVenta?.id_usuario && (
+                    <div className="error-message">{errores.datosVenta.id_usuario}</div>
+                  )}
+                </div>
+
+                <div className={`form-field ${errores.datosVenta?.fecha_venta ? 'error' : ''}`}>
+                  <label>Fecha de Venta</label>
+                  <div className="date-input-container">
+                    <input
+                      type="datetime-local"
+                      value={datosVenta.fecha_venta}
+                      onChange={(e) => {
+                        setDatosVenta({ ...datosVenta, fecha_venta: e.target.value });
+                        setErrores({
+                          ...errores,
+                          datosVenta: { ...errores.datosVenta, fecha_venta: '' }
+                        });
+                      }}
+                    />
+                    <FaCalendarAlt className="calendar-icon" />
+                  </div>
+                  {errores.datosVenta?.fecha_venta && (
+                    <div className="error-message">{errores.datosVenta.fecha_venta}</div>
+                  )}
+                </div>
+
+                <div className="form-field optional">
+                  <label>Estado de Venta</label>
+                  <select
+                    value={datosVenta.estado_venta}
+                    onChange={(e) => setDatosVenta({ ...datosVenta, estado_venta: e.target.value })}
+                  >
+                    <option value="pendiente">Pendiente</option>
+                    <option value="completa">Completa</option>
+                    <option value="cancelada">Cancelada</option>
+                  </select>
+                </div>
+              </div>
+
+              <h3 className="section-subtitle">Detalles de la Venta</h3>
+              
+              {detalles.map((detalle, index) => (
+                <div key={index} className="detalle-venta-container">
+                  <div className="form-row">
+                    <div className={`form-field ${errores.detalles[index]?.id_producto ? 'error' : ''}`}>
+                      <label>ID Producto</label>
+                      <input
+                        type="text"
+                        value={detalle.id_producto}
+                        onChange={(e) => handleDetalleChange(index, 'id_producto', e.target.value)}
+                        placeholder="Ingrese ID del producto"
+                      />
+                      {errores.detalles[index]?.id_producto && (
+                        <div className="error-message">{errores.detalles[index].id_producto}</div>
+                      )}
+                    </div>
+
+                    <div className={`form-field ${errores.detalles[index]?.cantidad ? 'error' : ''}`}>
+                      <label>Cantidad</label>
+                      <input
+                        type="number"
+                        value={detalle.cantidad}
+                        onChange={(e) => handleDetalleChange(index, 'cantidad', e.target.value)}
+                        placeholder="0"
+                        min="0"
+                      />
+                      {errores.detalles[index]?.cantidad && (
+                        <div className="error-message">{errores.detalles[index].cantidad}</div>
+                      )}
+                    </div>
+
+                    <div className={`form-field ${errores.detalles[index]?.precio ? 'error' : ''}`}>
+                      <label>Precio Unitario</label>
+                      <input
+                        type="number"
+                        value={detalle.precio}
+                        onChange={(e) => handleDetalleChange(index, 'precio', e.target.value)}
+                        placeholder="0.00"
+                        step="0.01"
+                        min="0"
+                      />
+                      {errores.detalles[index]?.precio && (
+                        <div className="error-message">{errores.detalles[index].precio}</div>
+                      )}
+                    </div>
+
+                    <div className="form-field subtotal">
+                      <label>Subtotal</label>
+                      <input
+                        type="text"
+                        value={detalle.subtotal.toFixed(2)}
+                        readOnly
+                        placeholder="0.00"
+                      />
+                    </div>
+
+                    {detalles.length > 1 && (
+                      <button
+                        type="button"
+                        className="btn-remove"
+                        onClick={() => eliminarDetalle(index)}
+                      >
+                        <FaMinus />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+
+              <div className="add-item-container">
+                <button
+                  type="button"
+                  className="btn-add-item"
+                  onClick={agregarDetalle}
+                >
+                  <FaPlus /> Agregar Producto
+                </button>
+              </div>
+
+              <div className="total-container">
+                <h3>Total: ${Number(calcularTotal()).toFixed(2)}</h3>
+              </div>
+
+              <div className="form-actions">
+                <button type="button" className="cancel-btn" onClick={() => setMostrarFormulario(false)}>
+                  Cancelar
+                </button>
+                <button type="submit" className="submit-btn">Continuar al Pago</button>
+              </div>
+            </form>
+          )}
+
+          {paso === 'pago' && (
+            <PagoForm
+              total={calcularTotal()}
+              onSubmit={handlePagoSubmit}
+              setPaso={handleVolverAVenta}
+            />
+          )}
+
+          {paso === 'envio' && (
+            <EnvioForm
+              onSubmit={handleEnvioSubmit}
+              setPaso={setPaso}
+            />
+          )}
+        </div>
+      ) : (
+        <div className="table-container">
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Fecha</th>
+                <th>Cliente</th>
+                <th>Total</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>#1</td>
+                <td>2024-03-15</td>
+                <td>Juan Pérez</td>
+                <td>$25,000</td>
+                <td>
+                  <span className="estado completada">Completada</span>
+                </td>
+                <td className="actions-cell">
+                  <button className="action-button view">Ver Detalles</button>
+                  <button className="action-button edit">Editar</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 };
 
-export default Venta;
+export default Ventas;

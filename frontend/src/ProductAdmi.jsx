@@ -213,9 +213,7 @@ export default function ProductAdmin() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const navigate = useNavigate();
 
-  const handleExit = () => {
-    navigate("/AdminDashboard");
-  };
+ 
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);

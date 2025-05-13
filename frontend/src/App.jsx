@@ -3,7 +3,7 @@ import Bienvenido from './Bienvenido';
 import LoginCliente from './loginCliente';
 import RegistroCliente from './Registrate';
 import ProductAdmi from './ProductAdmi';
-import Venta from './Ventas';
+import Ventas from './Ventas';
 import AdminDashboard from './AdminDashboard';
 import Clientes from './Clientes';
 import Inicio from './Inicio';
@@ -13,24 +13,25 @@ function App() {
     <Router>
       <Routes>
         <Route path="/" element={<Navigate to="/Bienvenido" replace />} />
-        <Route path="/Bienvenido" element={<Bienvenido />} />
         <Route path="/AdminDashboard" element={<AdminDashboard />} />
+        <Route path="/Bienvenido" element={<Bienvenido />} />
         <Route path="/loginCliente" element={<LoginCliente />} />
         <Route path="/registrate" element={<RegistroCliente />} />
 
-        {/* Rutas CON sidebar */}
+        {/* Rutas con sidebar */}
         <Route element={<LayoutWithSidebar />}>
           <Route path="/Inicio" element={<Inicio />} />
           <Route path="/Clientes" element={<Clientes />} />
+          <Route path="/Ventas" element={<Ventas />} />
         </Route>
 
-        {/* Rutas SIN sidebar */}
+        {/* Rutas sin sidebar */}
         <Route path="/ProductAdmi" element={<ProductAdmi />} />
-        <Route path="/Ventas" element={<Venta />} />
       </Routes>
     </Router>
   );
 }
+
 const LayoutWithSidebar = ({ children }) => {
   return (
     <div className="admin-layout">
@@ -41,4 +42,5 @@ const LayoutWithSidebar = ({ children }) => {
     </div>
   );
 };
+
 export default App;

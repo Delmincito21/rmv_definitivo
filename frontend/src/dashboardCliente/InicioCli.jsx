@@ -1,7 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import './InicioCli.css';
+<<<<<<< Updated upstream
 import { useNavigate } from "react-router-dom";
 import { FaSignOutAlt } from "react-icons/fa";
+=======
+import { useNavigate, NavLink } from "react-router-dom";
+import {
+    FaHome,
+    FaSignOutAlt,
+    FaShoppingCart,
+    FaShoppingBag
+ } from "react-icons/fa";
+ import { FaShop } from "react-icons/fa6";
+>>>>>>> Stashed changes
 
 const InicioCli = () => {
     const [productos, setProductos] = useState([]);
@@ -21,6 +32,7 @@ const InicioCli = () => {
     return (
         <div className="dashboard-container">
             {/* Barra lateral */}
+<<<<<<< Updated upstream
             <aside className="sidebar">
                 <h2>Menú</h2>
                 <ul>
@@ -34,6 +46,44 @@ const InicioCli = () => {
                             <span>Cerrar Sesión</span>
                         </button>
                     </div>
+=======
+            <aside className={`sidebar ${isCollapsed ? 'collapsed' : ''}`}>
+                <div className="sidebar-header">
+                    <h2 className="menu-title">Menú</h2>
+                    <span 
+                        className={`collapse-arrow ${isCollapsed ? 'rotated' : ''}`}
+                        onClick={toggleSidebar}
+                    >
+                        ◄
+                    </span>
+                </div>
+                <ul className="menu-items">
+                    <li>
+                 <NavLink to="/Tienda" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>
+                        <FaHome  className="nav-icon"/>
+                         <span className="menu-text">Inicio</span>
+                    </NavLink>  
+                    </li>
+                    <li>
+                 <NavLink to="/Tienda" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>
+                        <FaShop  className="nav-icon"/> 
+                         <span className="menu-text">Tienda</span>
+                    </NavLink>
+                    </li>
+                    <li>
+                  <NavLink to="/Carrito" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>
+                        <FaShoppingCart  className="nav-icon"/> 
+                         <span className="menu-text">Carrito</span>
+                    </NavLink>
+                    </li>
+                    <li>
+                        <NavLink to="/Pedidos" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>
+                        < FaShoppingBag className="nav-icon"/> 
+                        <span className="menu-text">Mis pedidos</span>
+                        </NavLink>
+                    </li>
+                    
+>>>>>>> Stashed changes
                 </ul>
             </aside>
 

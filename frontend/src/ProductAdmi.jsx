@@ -22,6 +22,7 @@ function AgregarProductoForm({ onCancel }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [categorias, setCategorias] = useState([]);
+  const [mostrarSuplidores, setMostrarSuplidores] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -210,14 +211,32 @@ function AgregarProductoForm({ onCancel }) {
 
           <div className="form-field">
             <label>ID Suplidor</label>
-            <input
-              type="number"
-              name="id_suplidor"
-              value={formData.id_suplidor}
-              onChange={handleChange}
-            />
+            <div style={{ display: 'flex', gap: 8 }}>
+              <input
+                type="number"
+                name="id_suplidor"
+                value={formData.id_suplidor}
+                onChange={handleChange}
+              />
+              <button
+                type="button"
+                onClick={() => setMostrarSuplidores(!mostrarSuplidores)}
+                style={{ padding: '4px 8px', fontSize: 13 }}
+              >
+                {mostrarSuplidores ? 'Ocultar' : 'Ver Suplidores'}
+              </button>
+            </div>
           </div>
         </div>
+
+        {mostrarSuplidores && (
+          <TablaSuplidores
+            onSelect={id => {
+              setFormData(prev => ({ ...prev, id_suplidor: id }));
+              setMostrarSuplidores(false);
+            }}
+          />
+        )}
 
         {/* Quinta fila horizontal */}
         <div className="form-row">
@@ -252,6 +271,59 @@ function AgregarProductoForm({ onCancel }) {
           </button>
         </div>
       </form>
+    </div>
+  );
+}
+
+function TablaSuplidores({ onSelect }) {
+  const [suplidores, setSuplidores] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch('http://localhost:3000/suplidores')
+      .then(res => res.json())
+      .then(data => {
+        setSuplidores(data);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, []);
+
+  if (loading) return <div>Cargando suplidores...</div>;
+
+  return (
+    <div className="content-card" style={{ marginTop: 20 }}>
+      <h4>Suplidores</h4>
+      <table className="data-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Teléfono</th>
+            <th>Dirección</th>
+            <th>Correo</th>
+            <th>Estado</th>
+            <th>Seleccionar</th>
+          </tr>
+        </thead>
+        <tbody>
+          {suplidores.map(suplidor => (
+            <tr key={suplidor.id_suplidor}>
+              <td>{suplidor.id_suplidor}</td>
+              <td>{suplidor.nombre_suplidor}</td>
+              <td>{suplidor.telefono_suplidor}</td>
+              <td>{suplidor.direccion_suplidor}</td>
+              <td>{suplidor.correo_suplidor}</td>
+              <td>{suplidor.estado}</td>
+              <td>
+                <button type="button" onClick={() => onSelect(suplidor.id_suplidor)}>
+                  Seleccionar
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }

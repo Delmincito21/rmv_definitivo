@@ -1,18 +1,21 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './LogiAdmin.css';
 import logo from './imagenes/lgo.png';
 
 const RegistroCliente = () => {
   const [cliente, setCliente] = useState({
-    nombre_cliente: '',
-    apellido_cliente: '',
-    cedula_cliente: '',
-    telefono_cliente: '',
-    direccion_cliente: '',
-    Usuario: '',
-    contrasena: '',
-    confirmar_contrasena: ''
+    nombre_clientes: '',
+    telefono_clientes: '',
+    direccion_clientes: '',
+    correo_clientes: '',
+    nombre_usuario: '',
+    pin_usuario: '',
+    rol: 'cliente',
+    estado: 'activo'
   });
+
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -22,14 +25,32 @@ const RegistroCliente = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (cliente.contrasena !== cliente.confirmar_contrasena) {
-      alert('Las contraseñas no coinciden');
+    // Validación básica
+    if (!cliente.pin_usuario || !cliente.nombre_usuario) {
+      alert('El usuario y la contraseña son obligatorios');
       return;
     }
-    console.log('Cliente registrado:', cliente);
-    alert('Cliente registrado con éxito!');
+    try {
+      const response = await fetch('http://localhost:3000/clientes', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(cliente)
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Error al registrar el cliente');
+      }
+
+      alert('Cliente registrado con éxito!');
+      navigate('/InicioCli');
+    } catch (error) {
+      alert('Error al registrar el cliente: ' + error.message);
+    }
   };
 
   return (
@@ -45,15 +66,13 @@ const RegistroCliente = () => {
       {/* Panel derecho con formulario */}
       <div className="form-panel enhanced-form-panel">
         <div className="form-content">
-
-
           <form onSubmit={handleSubmit} className="horizontal-form">
             <div className="enhanced-form-grid">
               <div className="form-row">
                 <input
                   type="text"
-                  name="nombre_cliente"
-                  value={cliente.nombre_cliente}
+                  name="nombre_clientes"
+                  value={cliente.nombre_clientes}
                   onChange={handleChange}
                   placeholder="Nombre"
                   required
@@ -61,55 +80,23 @@ const RegistroCliente = () => {
                   className="input-field"
                 />
               </div>
-
-              <div className="form-row">
-                <input
-                  type="text"
-                  name="apellido_cliente"
-                  value={cliente.apellido_cliente}
-                  onChange={handleChange}
-                  placeholder="Apellido"
-                  required
-                  maxLength="50"
-                  className="input-field"
-                />
-              </div>
-
-              <div className="form-row">
-                <input
-                  type="text"
-                  name="cedula_cliente"
-                  value={cliente.cedula_cliente}
-                  onChange={handleChange}
-                  placeholder="Cédula (13 dígitos)"
-                  required
-                  pattern="[0-9]{13}"
-                  title="La cédula debe tener 13 dígitos"
-                  maxLength="13"
-                  className="input-field"
-                />
-              </div>
-
               <div className="form-row">
                 <input
                   type="tel"
-                  name="telefono_cliente"
-                  value={cliente.telefono_cliente}
+                  name="telefono_clientes"
+                  value={cliente.telefono_clientes}
                   onChange={handleChange}
-                  placeholder="Teléfono (12 dígitos)"
+                  placeholder="Teléfono"
                   required
-                  pattern="[0-9]{12}"
-                  title="El teléfono debe tener 12 dígitos"
                   maxLength="12"
                   className="input-field"
                 />
               </div>
-
               <div className="form-row">
                 <input
                   type="text"
-                  name="direccion_cliente"
-                  value={cliente.direccion_cliente}
+                  name="direccion_clientes"
+                  value={cliente.direccion_clientes}
                   onChange={handleChange}
                   placeholder="Dirección"
                   required
@@ -117,25 +104,33 @@ const RegistroCliente = () => {
                   rows="3"
                 />
               </div>
-
+              <div className="form-row">
+                <input
+                  type="email"
+                  name="correo_clientes"
+                  value={cliente.correo_clientes}
+                  onChange={handleChange}
+                  placeholder="Correo electrónico"
+                  required
+                  className="input-field"
+                />
+              </div>
               <div className="form-row">
                 <input
                   type="text"
-                  name="Usuario"
-                  value={cliente.Usuario}
+                  name="nombre_usuario"
+                  value={cliente.nombre_usuario}
                   onChange={handleChange}
                   placeholder="Usuario"
                   required
-                  className="input-field enhanced-textarea"
-                  rows="3"
+                  className="input-field"
                 />
               </div>
-
               <div className="form-row">
                 <input
                   type="password"
-                  name="contrasena"
-                  value={cliente.contrasena}
+                  name="pin_usuario"
+                  value={cliente.pin_usuario}
                   onChange={handleChange}
                   placeholder="Contraseña"
                   required
@@ -143,21 +138,7 @@ const RegistroCliente = () => {
                   className="input-field"
                 />
               </div>
-
-              <div className="form-row">
-                <input
-                  type="password"
-                  name="confirmar_contrasena"
-                  value={cliente.confirmar_contrasena}
-                  onChange={handleChange}
-                  placeholder="Confirmar Contraseña"
-                  required
-                  minLength="8"
-                  className="input-field"
-                />
-              </div>
             </div>
-
             <div className="form-actions">
               <button type="submit" className="submit-button enhanced-register-button">
                 REGISTRARME

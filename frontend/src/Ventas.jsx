@@ -1,16 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { FaCalendarAlt, FaMinus, FaPlus, FaArrowLeft, FaCreditCard, FaTruck } from 'react-icons/fa';
+import { FaCalendarAlt, FaMinus, FaPlus, FaArrowLeft, FaCreditCard, FaTruck, FaEye } from 'react-icons/fa';
 import './Ventas.css';
 import EditarVentaModal from './components/EditarVentaModal';
+import Factura from './Factura';
+import { useNavigate } from 'react-router-dom';
 
 // Componente de Pago
 const PagoForm = ({ total, onSubmit, setPaso, id_venta }) => {
   const [datosPago, setDatosPago] = useState({
-    monto_pago: total || 0,
+    monto: total || 0,
     fecha_pago: new Date().toISOString().slice(0, 16),
     metodo_pago: 'transferencia',
     referencia: '',
-    banco_emisor: '',
+    banco_emisor: '', 
     estado_pago: 'pendiente',
     id_venta: id_venta
   });
@@ -20,8 +22,8 @@ const PagoForm = ({ total, onSubmit, setPaso, id_venta }) => {
   const validarPago = () => {
     const nuevosErrores = {};
 
-    if (!datosPago.monto_pago) {
-      nuevosErrores.monto_pago = 'El monto es requerido';
+    if (!datosPago.monto) {
+      nuevosErrores.monto = 'El monto es requerido';
     }
 
     if (!datosPago.referencia) {
@@ -48,89 +50,91 @@ const PagoForm = ({ total, onSubmit, setPaso, id_venta }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="pago-form">
-      <button type="button" className="back-btn" onClick={handleVolver}>
-        <FaArrowLeft /> Volver
-      </button>
-      <h3 className="section-subtitle">Información de Pago</h3>
-
-      <div className="form-row">
-        <div className={`form-field ${errores.monto_pago ? 'error' : ''}`}>
-          <label>Monto</label>
-          <input
-            type="number"
-            value={datosPago.monto_pago}
-            onChange={(e) => setDatosPago({ ...datosPago, monto_pago: e.target.value })}
-            placeholder="0.00"
-            step="0.01"
-          />
-          {errores.monto_pago && <div className="error-message">{errores.monto_pago}</div>}
-        </div>
-
-        <div className="form-field">
-          <label>Fecha de Pago</label>
-          <input
-            type="datetime-local"
-            value={datosPago.fecha_pago}
-            onChange={(e) => setDatosPago({ ...datosPago, fecha_pago: e.target.value })}
-          />
-        </div>
-      </div>
-
-      <div className="form-row">
-        <div className="form-field">
-          <label>Método de Pago</label>
-          <input
-            type="text"
-            value="Transferencia"
-            readOnly
-          />
-        </div>
-
-        <div className={`form-field ${errores.referencia ? 'error' : ''}`}>
-          <label>Número de Referencia</label>
-          <input
-            type="text"
-            value={datosPago.referencia}
-            onChange={(e) => setDatosPago({ ...datosPago, referencia: e.target.value })}
-            placeholder="Número de referencia"
-          />
-          {errores.referencia && <div className="error-message">{errores.referencia}</div>}
-        </div>
-      </div>
-
-      <div className="form-row">
-        <div className={`form-field ${errores.banco_emisor ? 'error' : ''}`}>
-          <label>Banco Emisor</label>
-          <input
-            type="text"
-            value={datosPago.banco_emisor}
-            onChange={(e) => setDatosPago({ ...datosPago, banco_emisor: e.target.value })}
-            placeholder="Nombre del banco"
-          />
-          {errores.banco_emisor && <div className="error-message">{errores.banco_emisor}</div>}
-        </div>
-
-        <div className="form-field">
-          <label>Estado del Pago</label>
-          <select
-            value={datosPago.estado_pago}
-            onChange={(e) => setDatosPago({ ...datosPago, estado_pago: e.target.value })}
-          >
-            <option value="pendiente">Pendiente</option>
-            <option value="completado">Completado</option>
-            <option value="fallido">Fallido</option>
-            <option value="reembolsado">Reembolsado</option>
-          </select>
-        </div>
-      </div>
-
-      <div className="form-actions">
-        <button type="submit" className="submit-btn">
-          <FaCreditCard /> Procesar Pago
+    <div className="pago-form-container">
+      <form onSubmit={handleSubmit} className="pago-form">
+        <button type="button" className="back-btn" onClick={handleVolver}>
+          <FaArrowLeft /> Volver
         </button>
-      </div>
-    </form>
+        <h3 className="section-subtitle">Información de Pago</h3>
+
+        <div className="form-row">
+          <div className={`form-field ${errores.monto ? 'error' : ''}`}>
+            <label>Monto</label>
+            <input
+              type="number"
+              value={datosPago.monto}
+              onChange={(e) => setDatosPago({ ...datosPago, monto: e.target.value })}
+              placeholder="0.00"
+              step="0.01"
+            />
+            {errores.monto && <div className="error-message">{errores.monto}</div>}
+          </div>
+
+          <div className="form-field">
+            <label>Fecha de Pago</label>
+            <input
+              type="datetime-local"
+              value={datosPago.fecha_pago}
+              onChange={(e) => setDatosPago({ ...datosPago, fecha_pago: e.target.value })}
+            />
+          </div>
+        </div>
+
+        <div className="form-row">
+          <div className="form-field">
+            <label>Método de Pago</label>
+            <input
+              type="text"
+              value="Transferencia"
+              readOnly
+            />
+          </div>
+
+          <div className={`form-field ${errores.referencia ? 'error' : ''}`}>
+            <label>Número de Referencia</label>
+            <input
+              type="text"
+              value={datosPago.referencia}
+              onChange={(e) => setDatosPago({ ...datosPago, referencia: e.target.value })}
+              placeholder="Número de referencia"
+            />
+            {errores.referencia && <div className="error-message">{errores.referencia}</div>}
+          </div>
+        </div>
+
+        <div className="form-row">
+          <div className={`form-field ${errores.banco_emisor ? 'error' : ''}`}>
+            <label>Banco Emisor</label>
+            <input
+              type="text"
+              value={datosPago.banco_emisor}
+              onChange={(e) => setDatosPago({ ...datosPago, banco_emisor: e.target.value })}
+              placeholder="Nombre del banco"
+            />
+            {errores.banco_emisor && <div className="error-message">{errores.banco_emisor}</div>}
+          </div>
+
+          <div className="form-field">
+            <label>Estado del Pago</label>
+            <select
+              value={datosPago.estado_pago}
+              onChange={(e) => setDatosPago({ ...datosPago, estado_pago: e.target.value })}
+            >
+              <option value="pendiente">Pendiente</option>
+              <option value="completado">Completado</option>
+              <option value="fallido">Fallido</option>
+              <option value="reembolsado">Reembolsado</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="form-actions">
+          <button type="submit" className="submit-btn">
+            <FaCreditCard /> Procesar Pago
+          </button>
+        </div>
+      </form>
+    </div>
   );
 };
 
@@ -173,41 +177,43 @@ const EnvioForm = ({ onSubmit, setPaso, id_orden }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="envio-form">
-      <button type="button" className="back-btn" onClick={handleVolver}>
-        <FaArrowLeft /> Volver
-      </button>
-      <h3 className="section-subtitle">Información de Envío</h3>
-
-      <div className="form-row">
-        <div className={`form-field ${errores.fecha_estimada_envio ? 'error' : ''}`}>
-          <label>Fecha de Entrega</label>
-          <input
-            type="datetime-local"
-            value={datosEnvio.fecha_estimada_envio}
-            onChange={(e) => setDatosEnvio({ ...datosEnvio, fecha_estimada_envio: e.target.value })}
-          />
-          {errores.fecha_estimada_envio && <div className="error-message">{errores.fecha_estimada_envio}</div>}
-        </div>
-
-        <div className={`form-field ${errores.direccion_entrega_envio ? 'error' : ''}`}>
-          <label>Dirección</label>
-          <input
-            type="text"
-            value={datosEnvio.direccion_entrega_envio}
-            onChange={(e) => setDatosEnvio({ ...datosEnvio, direccion_entrega_envio: e.target.value })}
-            placeholder="Dirección de entrega"
-          />
-          {errores.direccion_entrega_envio && <div className="error-message">{errores.direccion_entrega_envio}</div>}
-        </div>
-      </div>
-
-      <div className="form-actions">
-        <button type="submit" className="submit-btn">
-          <FaTruck /> Confirmar Envío
+    <div className="envio-form-container">
+      <form onSubmit={handleSubmit} className="envio-form">
+        <button type="button" className="back-btn" onClick={handleVolver}>
+          <FaArrowLeft /> Volver
         </button>
-      </div>
-    </form>
+        <h3 className="section-subtitle">Información de Envío</h3>
+
+        <div className="form-row">
+          <div className={`form-field ${errores.fecha_estimada_envio ? 'error' : ''}`}>
+            <label>Fecha de Entrega</label>
+            <input
+              type="datetime-local"
+              value={datosEnvio.fecha_estimada_envio}
+              onChange={(e) => setDatosEnvio({ ...datosEnvio, fecha_estimada_envio: e.target.value })}
+            />
+            {errores.fecha_estimada_envio && <div className="error-message">{errores.fecha_estimada_envio}</div>}
+          </div>
+
+          <div className={`form-field ${errores.direccion_entrega_envio ? 'error' : ''}`}>
+            <label>Dirección</label>
+            <input
+              type="text"
+              value={datosEnvio.direccion_entrega_envio}
+              onChange={(e) => setDatosEnvio({ ...datosEnvio, direccion_entrega_envio: e.target.value })}
+              placeholder="Dirección de entrega"
+            />
+            {errores.direccion_entrega_envio && <div className="error-message">{errores.direccion_entrega_envio}</div>}
+          </div>
+        </div>
+
+        <div className="form-actions">
+          <button type="submit" className="submit-btn">
+            <FaTruck /> Confirmar Envío
+          </button>
+        </div>
+      </form>
+    </div>
   );
 };
 
@@ -218,8 +224,7 @@ const Ventas = () => {
     fecha_venta: new Date().toISOString().slice(0, 16),
     estado_venta: 'pendiente',
     estado: 'activo',
-    total: 0,
-    id_venta: null
+    total: 0
   });
 
   const [detalles, setDetalles] = useState([{
@@ -244,7 +249,8 @@ const Ventas = () => {
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [selectedVentaId, setSelectedVentaId] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [datosPagoActual, setDatosPagoActual] = useState(null);
+  const [selectedVenta, setSelectedVenta] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetch('http://localhost:3000/ventas')
@@ -290,28 +296,12 @@ const Ventas = () => {
     return detalles.reduce((total, detalle) => total + calcularSubtotal(detalle), 0);
   };
 
-  const handleDetalleChange = async (index, campo, valor) => {
+  const handleDetalleChange = (index, campo, valor) => {
     const nuevosDetalles = [...detalles];
     nuevosDetalles[index] = {
       ...nuevosDetalles[index],
       [campo]: valor
     };
-
-    // Si el campo que cambió es id_producto, obtener el precio automáticamente
-    if (campo === 'id_producto' && valor) {
-      try {
-        const response = await fetch(`http://localhost:3000/productos/${valor}/precio`);
-        if (response.ok) {
-          const data = await response.json();
-          nuevosDetalles[index].precio = data.precio;
-        } else {
-          console.error('Error al obtener el precio del producto');
-        }
-      } catch (error) {
-        console.error('Error al obtener el precio:', error);
-      }
-    }
-
     nuevosDetalles[index].subtotal = calcularSubtotal(nuevosDetalles[index]);
 
     setDetalles(nuevosDetalles);
@@ -407,139 +397,121 @@ const Ventas = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (validarFormulario()) {
-        try {
-            let idVenta = datosVenta.id_venta;
+      try {
+        // Preparar los datos de la venta
+        const ventaParaEnviar = {
+          id_usuario: parseInt(datosVenta.id_usuario),
+          fecha_venta: datosVenta.fecha_venta,
+          estado_venta: datosVenta.estado_venta,
+          estado: 'activo'
+        };
 
-            if (!idVenta) {
-                // Si no hay ID de venta, crear una nueva
-                const ventaParaEnviar = {
-                    id_usuario: parseInt(datosVenta.id_usuario),
-                    fecha_venta: datosVenta.fecha_venta,
-                    estado_venta: datosVenta.estado_venta,
-                    estado: 'activo'
-                };
+        console.log('Datos de venta a enviar:', ventaParaEnviar);
 
-                const ventaResponse = await fetch('http://localhost:3000/ventas', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(ventaParaEnviar)
-                });
+        // Crear la venta
+        const ventaResponse = await fetch('http://localhost:3000/ventas', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(ventaParaEnviar)
+        });
 
-                const responseData = await ventaResponse.json();
-                if (!ventaResponse.ok) {
-                    throw new Error(responseData.error || 'Error al crear la venta');
-                }
-                idVenta = responseData.id || responseData.insertId;
-            }
+        console.log('Respuesta del servidor:', ventaResponse.status);
+        
+        const responseData = await ventaResponse.json();
+        console.log('Datos de respuesta:', responseData);
 
-            // Obtener detalles existentes
-            const detallesResponse = await fetch(`http://localhost:3000/detalle-ventas/venta/${idVenta}`);
-            const detallesExistentes = await detallesResponse.json();
-            
-            // Crear un mapa de detalles existentes por id_producto
-            const detallesMap = new Map(
-                detallesExistentes.map(detalle => [detalle.id_producto, detalle])
-            );
-
-            // Procesar cada detalle
-            for (const detalle of detalles) {
-                const detalleParaEnviar = {
-                    id_venta: idVenta,
-                    id_producto: parseInt(detalle.id_producto),
-                    cantidad_detalle_venta: parseInt(detalle.cantidad),
-                    precio_unitario_detalle_venta: parseFloat(detalle.precio),
-                    subtotal_detalle_venta: parseFloat(detalle.subtotal),
-                    estado: 'activo'
-                };
-
-                if (detallesMap.has(parseInt(detalle.id_producto))) {
-                    // Si el detalle existe, actualizarlo
-                    await fetch(`http://localhost:3000/detalle-ventas/${idVenta}/${detalle.id_producto}`, {
-                        method: 'PUT',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify(detalleParaEnviar)
-                    });
-                } else {
-                    // Si el detalle no existe, crearlo
-                    await fetch('http://localhost:3000/detalle-ventas', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify(detalleParaEnviar)
-                    });
-                }
-            }
-
-            // Eliminar detalles que ya no están en la lista actual
-            const productosActuales = new Set(detalles.map(d => parseInt(d.id_producto)));
-            for (const detalleExistente of detallesExistentes) {
-                if (!productosActuales.has(detalleExistente.id_producto)) {
-                    await fetch(`http://localhost:3000/detalle-ventas/${idVenta}/${detalleExistente.id_producto}`, {
-                        method: 'DELETE'
-                    });
-                }
-            }
-
-            setDatosVenta(prev => ({ ...prev, id_venta: idVenta }));
-            setPaso('pago');
-        } catch (error) {
-            console.error('Error completo:', error);
-            alert('Error al procesar la venta: ' + error.message);
+        if (!ventaResponse.ok) {
+          throw new Error(responseData.error || 'Error al crear la venta');
         }
+
+        // Obtener el ID de la venta desde insertId
+        const idVenta = responseData.id || responseData.insertId;
+        if (!idVenta) {
+          throw new Error('No se pudo obtener el ID de la venta creada');
+        }
+        console.log('ID de venta creada:', idVenta);
+
+        // Crear los detalles de venta
+        for (const detalle of detalles) {
+          const detalleParaEnviar = {
+            id_venta: idVenta,
+            id_producto: parseInt(detalle.id_producto),
+            cantidad_detalle_venta: parseInt(detalle.cantidad),
+            precio_unitario_detalle_venta: parseFloat(detalle.precio),
+            subtotal_detalle_venta: parseFloat(detalle.subtotal),
+            estado: 'activo'
+          };
+
+          console.log('Detalle a enviar:', detalleParaEnviar);
+
+          const detalleResponse = await fetch('http://localhost:3000/detalle-ventas', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(detalleParaEnviar)
+          });
+
+          if (!detalleResponse.ok) {
+            const errorDetalleData = await detalleResponse.json();
+            throw new Error(errorDetalleData.error || 'Error al crear el detalle de venta');
+          }
+        }
+
+        // Guardar el ID de la venta en el estado
+        setDatosVenta(prev => ({ ...prev, id_venta: idVenta }));
+        setPaso('pago');
+
+        // Recargar la lista de ventas
+        const ventasResponse = await fetch('http://localhost:3000/ventas');
+        const ventasData = await ventasResponse.json();
+        setVentas(ventasData);
+        setVentasFiltradas(ventasData);
+        setMostrarFormulario(false);
+        setPaso('venta');
+      } catch (error) {
+        console.error('Error completo:', error);
+        alert('Error al procesar la venta: ' + error.message);
+      }
     }
   };
 
   const handlePagoSubmit = async (datosPago) => {
     try {
-      let idPago = datosPagoActual?.id_pago;
+      // Procesar el pago
+      console.log('Enviando datos de pago:', datosPago);
+      const response = await fetch('http://localhost:3000/pagos', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(datosPago)
+      });
 
-      if (!idPago) {
-        // Crear nuevo pago
-        const response = await fetch('http://localhost:3000/pagos', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(datosPago)
-        });
-
-        if (!response.ok) {
-          throw new Error('Error al procesar el pago');
-        }
-
-        const pagoResponse = await response.json();
-        idPago = pagoResponse.id;
-        setDatosPagoActual({ ...datosPago, id_pago: idPago });
-      } else {
-        // Actualizar pago existente
-        const response = await fetch(`http://localhost:3000/pagos/${idPago}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(datosPago)
-        });
-
-        if (!response.ok) {
-          throw new Error('Error al actualizar el pago');
-        }
+      if (!response.ok) {
+        let errorMsg = 'Error al procesar el pago';
+        try {
+          const errorData = await response.json();
+          errorMsg = errorData.error || errorMsg;
+          if (errorData.details) errorMsg += ' - ' + errorData.details;
+          if (errorData.sqlMessage) errorMsg += ' - ' + errorData.sqlMessage;
+        } catch (e) {}
+        throw new Error(errorMsg);
       }
 
-      // Crear la orden con estado "completada"
+      // Crear la orden
       const ordenData = {
         id_usuario: parseInt(datosVenta.id_usuario),
         id_venta: datosVenta.id_venta,
-        total_orden: datosPago.monto_pago,
-        estado_orden: 'completada',
+        total_orden: datosPago.monto,
+        estado_orden: 'pendiente',
         fecha_orden: datosVenta.fecha_venta,
         estado: 'activo'
       };
 
+      console.log('Enviando datos de orden:', ordenData);
       const ordenResponse = await fetch('http://localhost:3000/orden', {
         method: 'POST',
         headers: {
@@ -553,8 +525,17 @@ const Ventas = () => {
       }
 
       const ordenResult = await ordenResponse.json();
-      setOrdenId(ordenResult.id);
+      console.log('Orden creada exitosamente:', ordenResult);
+      setOrdenId(ordenResult.id); // Guardamos el ID de la orden
       setPaso('envio');
+
+      // Recargar la lista de ventas
+      const ventasResponse = await fetch('http://localhost:3000/ventas');
+      const ventasData = await ventasResponse.json();
+      setVentas(ventasData);
+      setVentasFiltradas(ventasData);
+      setMostrarFormulario(false);
+      setPaso('venta');
 
     } catch (error) {
       console.error('Error:', error);
@@ -584,6 +565,7 @@ const Ventas = () => {
       const ventasResponse = await fetch('http://localhost:3000/ventas');
       const ventasData = await ventasResponse.json();
       setVentas(ventasData);
+      setVentasFiltradas(ventasData);
     } catch (error) {
       console.error('Error:', error);
       alert('Error al procesar el envío: ' + error.message);
@@ -592,6 +574,7 @@ const Ventas = () => {
 
   const handleVolverAVenta = () => {
     setPaso('venta');
+    setMostrarFormulario(true);
   };
 
   const handleDelete = async (id_venta) => {
@@ -614,6 +597,7 @@ const Ventas = () => {
         const ventasResponse = await fetch('http://localhost:3000/ventas');
         const ventasData = await ventasResponse.json();
         setVentas(ventasData);
+        setVentasFiltradas(ventasData);
       } catch (error) {
         console.error('Error:', error);
         alert('Error al cambiar el estado de la venta: ' + error.message);
@@ -634,10 +618,66 @@ const Ventas = () => {
       .then(res => res.json())
       .then(data => {
         setVentas(data);
+        setVentasFiltradas(data);
       })
       .catch(err => {
         console.error('Error al recargar las ventas:', err);
       });
+  };
+
+  const handleVerDetalles = async (ventaId) => {
+    try {
+      // Obtener los detalles de la venta
+      const ventaResponse = await fetch(`http://localhost:3000/ventas/${ventaId}`);
+      if (!ventaResponse.ok) {
+        throw new Error('Error al obtener los detalles de la venta');
+      }
+      const ventaData = await ventaResponse.json();
+      // Obtener los detalles de los productos
+      const detallesResponse = await fetch(`http://localhost:3000/detalle-ventas/venta/${ventaId}`);
+      if (!detallesResponse.ok) {
+        throw new Error('Error al obtener los detalles de los productos');
+      }
+      const detallesData = await detallesResponse.json();
+      let clienteData = null;
+      if (ventaData.id_usuario) {
+        try {
+          const usuarioResponse = await fetch(`http://localhost:3000/usuarios/${ventaData.id_usuario}`);
+          if (usuarioResponse.ok) {
+            const usuarioData = await usuarioResponse.json();
+            clienteData = {
+              nombre_clientes: usuarioData.nombre_usuario || 'No especificado',
+              direccion_clientes: usuarioData.direccion || 'No especificada',
+              telefono_clientes: usuarioData.telefono || 'No especificado',
+              correo_clientes: usuarioData.correo || 'No especificado'
+            };
+          }
+        } catch (error) {
+          console.error('Error al obtener la información del usuario:', error);
+        }
+      }
+      const ventaCompleta = {
+        ...ventaData,
+        cliente: clienteData || {
+          nombre_clientes: 'No especificado',
+          direccion_clientes: 'No especificada',
+          telefono_clientes: 'No especificado',
+          correo_clientes: 'No especificado'
+        },
+        detalles: detallesData.map(detalle => ({
+          ...detalle,
+          producto: {
+            nombre: detalle.nombre_producto || 'Producto no especificado',
+            precio: detalle.precio_unitario_detalle_venta
+          }
+        }))
+      };
+      localStorage.setItem('facturaData', JSON.stringify(ventaCompleta));
+      navigate('/factura');
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Error al obtener los detalles de la venta: ' + error.message);
+    }
   };
 
   return (
@@ -666,159 +706,161 @@ const Ventas = () => {
       {mostrarFormulario ? (
         <div className="venta-container">
           {paso === 'venta' && (
-            <form onSubmit={handleSubmit} className="horizontal-product-form">
-              <div className="form-header">
-                <button type="button" className="back-btn" onClick={() => setMostrarFormulario(false)}>
-                  <FaArrowLeft /> Volver
-                </button>
-                <h2 className="form-title">Nueva Venta</h2>
-              </div>
-
-              <div className="form-row">
-                <div className={`form-field ${errores.datosVenta?.id_usuario ? 'error' : ''}`}>
-                  <label>ID Usuario</label>
-                  <input
-                    type="text"
-                    value={datosVenta.id_usuario}
-                    onChange={(e) => {
-                      setDatosVenta({ ...datosVenta, id_usuario: e.target.value });
-                      setErrores({
-                        ...errores,
-                        datosVenta: { ...errores.datosVenta, id_usuario: '' }
-                      });
-                    }}
-                    placeholder="Ingrese ID de usuario"
-                  />
-                  {errores.datosVenta?.id_usuario && (
-                    <div className="error-message">{errores.datosVenta.id_usuario}</div>
-                  )}
+            <div className="venta-form-container">
+              <form onSubmit={handleSubmit} className="horizontal-product-form">
+                <div className="form-header">
+                  <button type="button" className="back-btn" onClick={() => setMostrarFormulario(false)}>
+                    <FaArrowLeft /> Volver
+                  </button>
+                  <h2 className="form-title">Nueva Venta</h2>
                 </div>
 
-                <div className={`form-field ${errores.datosVenta?.fecha_venta ? 'error' : ''}`}>
-                  <label>Fecha de Venta</label>
-                  <div className="date-input-container">
+                <div className="form-row">
+                  <div className={`form-field ${errores.datosVenta?.id_usuario ? 'error' : ''}`}>
+                    <label>ID Usuario</label>
                     <input
-                      type="datetime-local"
-                      value={datosVenta.fecha_venta}
+                      type="text"
+                      value={datosVenta.id_usuario}
                       onChange={(e) => {
-                        setDatosVenta({ ...datosVenta, fecha_venta: e.target.value });
+                        setDatosVenta({ ...datosVenta, id_usuario: e.target.value });
                         setErrores({
                           ...errores,
-                          datosVenta: { ...errores.datosVenta, fecha_venta: '' }
+                          datosVenta: { ...errores.datosVenta, id_usuario: '' }
                         });
                       }}
+                      placeholder="Ingrese ID de usuario"
                     />
-                    <FaCalendarAlt className="calendar-icon" />
-                  </div>
-                  {errores.datosVenta?.fecha_venta && (
-                    <div className="error-message">{errores.datosVenta.fecha_venta}</div>
-                  )}
-                </div>
-
-                <div className="form-field optional">
-                  <label>Estado de Venta</label>
-                  <select
-                    value={datosVenta.estado_venta}
-                    onChange={(e) => setDatosVenta({ ...datosVenta, estado_venta: e.target.value })}
-                  >
-                    <option value="pendiente">Pendiente</option>
-                    <option value="completa">Completa</option>
-                    <option value="cancelada">Cancelada</option>
-                  </select>
-                </div>
-              </div>
-
-              <h3 className="section-subtitle">Detalles de la Venta</h3>
-
-              {detalles.map((detalle, index) => (
-                <div key={index} className="detalle-venta-container">
-                  <div className="form-row">
-                    <div className={`form-field ${errores.detalles[index]?.id_producto ? 'error' : ''}`}>
-                      <label>ID Producto</label>
-                      <input
-                        type="text"
-                        value={detalle.id_producto}
-                        onChange={(e) => handleDetalleChange(index, 'id_producto', e.target.value)}
-                        placeholder="Ingrese ID del producto"
-                      />
-                      {errores.detalles[index]?.id_producto && (
-                        <div className="error-message">{errores.detalles[index].id_producto}</div>
-                      )}
-                    </div>
-
-                    <div className={`form-field ${errores.detalles[index]?.cantidad ? 'error' : ''}`}>
-                      <label>Cantidad</label>
-                      <input
-                        type="number"
-                        value={detalle.cantidad}
-                        onChange={(e) => handleDetalleChange(index, 'cantidad', e.target.value)}
-                        placeholder="0"
-                        min="0"
-                      />
-                      {errores.detalles[index]?.cantidad && (
-                        <div className="error-message">{errores.detalles[index].cantidad}</div>
-                      )}
-                    </div>
-
-                    <div className={`form-field ${errores.detalles[index]?.precio ? 'error' : ''}`}>
-                      <label>Precio Unitario</label>
-                      <input
-                        type="number"
-                        value={detalle.precio}
-                        onChange={(e) => handleDetalleChange(index, 'precio', e.target.value)}
-                        placeholder="0.00"
-                        step="0.01"
-                        min="0"
-                      />
-                      {errores.detalles[index]?.precio && (
-                        <div className="error-message">{errores.detalles[index].precio}</div>
-                      )}
-                    </div>
-
-                    <div className="form-field subtotal">
-                      <label>Subtotal</label>
-                      <input
-                        type="text"
-                        value={detalle.subtotal.toFixed(2)}
-                        readOnly
-                        placeholder="0.00"
-                      />
-                    </div>
-
-                    {detalles.length > 1 && (
-                      <button
-                        type="button"
-                        className="btn-remove"
-                        onClick={() => eliminarDetalle(index)}
-                      >
-                        <FaMinus />
-                      </button>
+                    {errores.datosVenta?.id_usuario && (
+                      <div className="error-message">{errores.datosVenta.id_usuario}</div>
                     )}
                   </div>
+
+                  <div className={`form-field ${errores.datosVenta?.fecha_venta ? 'error' : ''}`}>
+                    <label>Fecha de Venta</label>
+                    <div className="date-input-container">
+                      <input
+                        type="datetime-local"
+                        value={datosVenta.fecha_venta}
+                        onChange={(e) => {
+                          setDatosVenta({ ...datosVenta, fecha_venta: e.target.value });
+                          setErrores({
+                            ...errores,
+                            datosVenta: { ...errores.datosVenta, fecha_venta: '' }
+                          });
+                        }}
+                      />
+                      <FaCalendarAlt className="calendar-icon" />
+                    </div>
+                    {errores.datosVenta?.fecha_venta && (
+                      <div className="error-message">{errores.datosVenta.fecha_venta}</div>
+                    )}
+                  </div>
+
+                  <div className="form-field optional">
+                    <label>Estado de Venta</label>
+                    <select
+                      value={datosVenta.estado_venta}
+                      onChange={(e) => setDatosVenta({ ...datosVenta, estado_venta: e.target.value })}
+                    >
+                      <option value="pendiente">Pendiente</option>
+                      <option value="completa">Completa</option>
+                      <option value="cancelada">Cancelada</option>
+                    </select>
+                  </div>
                 </div>
-              ))}
 
-              <div className="add-item-container">
-                <button
-                  type="button"
-                  className="btn-add-item"
-                  onClick={agregarDetalle}
-                >
-                  <FaPlus /> Agregar Producto
-                </button>
-              </div>
+                <h3 className="section-subtitle">Detalles de la Venta</h3>
 
-              <div className="total-container">
-                <h3>Total: ${Number(calcularTotal()).toFixed(2)}</h3>
-              </div>
+                {detalles.map((detalle, index) => (
+                  <div key={index} className="detalle-venta-container">
+                    <div className="form-row">
+                      <div className={`form-field ${errores.detalles[index]?.id_producto ? 'error' : ''}`}>
+                        <label>ID Producto</label>
+                        <input
+                          type="text"
+                          value={detalle.id_producto}
+                          onChange={(e) => handleDetalleChange(index, 'id_producto', e.target.value)}
+                          placeholder="Ingrese ID del producto"
+                        />
+                        {errores.detalles[index]?.id_producto && (
+                          <div className="error-message">{errores.detalles[index].id_producto}</div>
+                        )}
+                      </div>
 
-              <div className="form-actions">
-                <button type="button" className="cancel-btn" onClick={() => setMostrarFormulario(false)}>
-                  Cancelar
-                </button>
-                <button type="submit" className="submit-btn">Continuar al Pago</button>
-              </div>
-            </form>
+                      <div className={`form-field ${errores.detalles[index]?.cantidad ? 'error' : ''}`}>
+                        <label>Cantidad</label>
+                        <input
+                          type="number"
+                          value={detalle.cantidad}
+                          onChange={(e) => handleDetalleChange(index, 'cantidad', e.target.value)}
+                          placeholder="0"
+                          min="0"
+                        />
+                        {errores.detalles[index]?.cantidad && (
+                          <div className="error-message">{errores.detalles[index].cantidad}</div>
+                        )}
+                      </div>
+
+                      <div className={`form-field ${errores.detalles[index]?.precio ? 'error' : ''}`}>
+                        <label>Precio Unitario</label>
+                        <input
+                          type="number"
+                          value={detalle.precio}
+                          onChange={(e) => handleDetalleChange(index, 'precio', e.target.value)}
+                          placeholder="0.00"
+                          step="0.01"
+                          min="0"
+                        />
+                        {errores.detalles[index]?.precio && (
+                          <div className="error-message">{errores.detalles[index].precio}</div>
+                        )}
+                      </div>
+
+                      <div className="form-field subtotal">
+                        <label>Subtotal</label>
+                        <input
+                          type="text"
+                          value={detalle.subtotal.toFixed(2)}
+                          readOnly
+                          placeholder="0.00"
+                        />
+                      </div>
+
+                      {detalles.length > 1 && (
+                        <button
+                          type="button"
+                          className="btn-remove"
+                          onClick={() => eliminarDetalle(index)}
+                        >
+                          <FaMinus />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+
+                <div className="add-item-container">
+                  <button
+                    type="button"
+                    className="btn-add-item"
+                    onClick={agregarDetalle}
+                  >
+                    <FaPlus /> Agregar Producto
+                  </button>
+                </div>
+
+                <div className="total-container">
+                  <h3>Total: ${Number(calcularTotal()).toFixed(2)}</h3>
+                </div>
+
+                <div className="form-actions">
+                  <button type="button" className="cancel-btn" onClick={() => setMostrarFormulario(false)}>
+                    Cancelar
+                  </button>
+                  <button type="submit" className="submit-btn">Continuar al Pago</button>
+                </div>
+              </form>
+            </div>
           )}
 
           {paso === 'pago' && (
@@ -871,18 +913,22 @@ const Ventas = () => {
                       <span className={`estado ${venta.estado_venta}`}>{venta.estado_venta}</span>
                     </td>
                     <td className="actions-cell">
-                      <button className="action-button view">Ver Detalles</button>
+                      <button className="action-button view" onClick={() => handleVerDetalles(venta.id_venta)} title="Ver detalles">
+                        <FaEye />
+                      </button>
                       <button 
                         className="action-button edit"
                         onClick={() => handleEdit(venta.id_venta)}
+                        title="Editar"
                       >
-                        Editar
+                        <FaPlus />
                       </button>
                       <button 
                         className="action-button delete"
                         onClick={() => handleDelete(venta.id_venta)}
+                        title="Eliminar"
                       >
-                        Eliminar
+                        <FaMinus />
                       </button>
                     </td>
                   </tr>

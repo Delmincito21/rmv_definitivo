@@ -1,3 +1,4 @@
+ventas.css
 /* Estilos generales */
 * {
     margin: 0;
@@ -842,4 +843,73 @@
   .search-input::placeholder {
     color: #999;
   }
-   
+/*   
+  .action-buttons {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+  }
+  
+  .action-button {
+    padding: 0.5rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s, transform 0.1s;
+  }
+  
+  .action-button:hover {
+    transform: translateY(-1px);
+  }
+  
+  .action-button.view {
+    background-color: #17a2b8;
+    color: white;
+  }
+  
+  .action-button.view:hover {
+    background-color: #138496;
+  }
+  
+  .action-button.edit {
+    background-color: #28a745;
+    color: white;
+  }
+  
+  .action-button.edit:hover {
+    background-color: #218838;
+  }
+  
+  .action-button.delete {
+    background-color: #dc3545;
+    color: white;
+  }
+  
+  .action-button.delete:hover {
+    background-color: #c82333;
+  }
+  
+  .estado-badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
+  
+  .estado-badge.pendiente {
+    background-color: #ffc107;
+    color: #000;
+  }
+  
+  .estado-badge.completa {
+    background-color: #28a745;
+    color: white;
+  }
+  
+  .estado-badge.cancelada {
+    background-color: #dc3545;
+    color: white;
+  } */

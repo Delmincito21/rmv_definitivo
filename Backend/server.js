@@ -442,16 +442,36 @@ app.post('/ventas', async (req, res) => {
 
 app.get('/ventas/:id', async (req, res) => {
     try {
-        const venta = await Venta.getById(req.params.id);
-        if (!venta) {
+        const [rows] = await db.query(
+            `SELECT 
+                v.id_venta, 
+                v.fecha_venta, 
+                v.estado_venta,
+                v.estado,
+                v.origen,
+                v.id_usuario,
+                u.nombre_usuario,
+                c.nombre_clientes,
+                c.direccion_clientes,
+                c.telefono_clientes,
+                c.correo_clientes
+            FROM venta v
+            LEFT JOIN usuarios u ON v.id_usuario = u.id_usuario
+            LEFT JOIN clientes c ON c.id_usuario = v.id_usuario
+            WHERE v.id_venta = ?`,
+            [req.params.id]
+        );
+        if (rows.length === 0) {
             return res.status(404).json({ error: 'Venta no encontrada' });
         }
-        res.json(venta);
+        res.json(rows[0]);
     } catch (error) {
         console.error('Error al obtener la venta:', error);
         res.status(500).json({ error: 'Error al obtener la venta' });
     }
-});
+}); 
+
+
 
 app.put('/ventas/:id', async (req, res) => {
     try {
@@ -591,10 +611,12 @@ app.post('/detalle-ventas', async (req, res) => {
 
 app.get('/detalle-ventas/venta/:id', async (req, res) => {
     try {
+        console.log('Buscando detalles para venta:', req.params.id);
         const [rows] = await db.query(
-            'SELECT * FROM detalle_venta WHERE id_venta = ? AND estado = "activo"',
+            'SELECT * FROM detalle_venta WHERE id_venta = ? AND LOWER(estado) = "activo"',
             [req.params.id]
         );
+        console.log('Detalles encontrados:', rows);
         res.json(rows); // Devolvemos todos los detalles encontrados
     } catch (error) {
         console.error('Error al obtener los detalles de venta:', error);

@@ -24,44 +24,26 @@ const LoginCliente = () => {
     setError(''); // Limpiar errores previos
 
     try {
-      // Simular autenticación (reemplazar con tu lógica real)
-      const response = await simulateLogin(credenciales.usuario, credenciales.contraseña);
+      const response = await fetch('http://localhost:3000/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nombre_usuario: credenciales.usuario, pin_usuario: credenciales.contraseña })
+      });
 
-      if (response.success) {
-        // Guardar el token o estado de autenticación
-        localStorage.setItem('authToken', response.token);
-        localStorage.setItem('userRole', 'admin');
-
-        // Redirigir al dashboard de inicio
-        navigate('/Inicio');
-      } else {
-        setError(response.message || 'Credenciales incorrectas');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Error al iniciar sesión');
       }
-    } catch (err) {
-      setError('Error al conectar con el servidor');
-      console.error('Error de login:', err);
-    }
-  };
 
-  // Función de ejemplo para simular autenticación
-  const simulateLogin = (usuario, contraseña) => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        // Aquí debes reemplazar con tu lógica real de autenticación
-        if (usuario === 'admin' && contraseña === 'admin123') {
-          resolve({
-            success: true,
-            token: 'fake-jwt-token',
-            user: { nombre: 'Administrador', rol: 'admin' }
-          });
-        } else {
-          resolve({
-            success: false,
-            message: 'Usuario o contraseña incorrectos'
-          });
-        }
-      }, 500); // Simular retardo de red
-    });
+      const data = await response.json();
+      if (data.rol === 'admin') {
+        navigate('/AdminDashboard');
+      } else {
+        navigate('/InicioCli');
+      }
+    } catch (error) {
+      setError('Error al iniciar sesión: ' + error.message);
+    }
   };
 
   const irARegistro = () => {

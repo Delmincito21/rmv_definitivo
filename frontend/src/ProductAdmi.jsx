@@ -5,26 +5,129 @@ import { FaSignOutAlt, FaPlusCircle, FaEdit, FaEye, FaHome, FaSnowflake, FaFire,
 import { useState, useEffect } from 'react';
 
 function AgregarProductoForm({ onCancel }) {
+  const [formData, setFormData] = useState({
+    nombre_producto: '',
+    descripcion_producto: '',
+    marca_producto: '',
+    precio_producto: '',
+    stock_producto: '',
+    modelo: '',
+    color: '',
+    garantia: '',
+    id_categoria: '',
+    id_suplidor: '',
+    estado: 'activo'
+  });
+
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [categorias, setCategorias] = useState([]);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+
+    const dataToSend = {
+      ...formData,
+      id_categoria: formData.id_categoria,
+      id_suplidor: formData.id_suplidor
+    };
+
+    try {
+      const response = await fetch('http://localhost:3000/productos', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(dataToSend)
+      });
+
+      if (!response.ok) {
+        throw new Error('Error al crear el producto');
+      }
+
+      const data = await response.json();
+      alert('Producto creado exitosamente');
+      onCancel(); // Cierra el formulario después de crear
+    } catch (err) {
+      setError(err.message);
+      alert('Error al crear el producto: ' + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const fetchCategorias = async () => {
+      try {
+        console.log('Intentando obtener categorías...');
+        const response = await fetch('http://localhost:3000/categorias_productos');
+        console.log('Respuesta recibida:', response);
+
+        if (!response.ok) {
+          throw new Error('Error al cargar categorías');
+        }
+
+        const data = await response.json();
+        console.log('Datos de categorías:', data);
+        setCategorias(data);
+      } catch (err) {
+        console.error('Error al cargar categorías:', err);
+        setError('Error al cargar las categorías');
+      }
+    };
+
+    fetchCategorias();
+  }, []);
+
   return (
     <div className="form-container">
-      <form className="horizontal-product-form">
+      <form className="horizontal-product-form" onSubmit={handleSubmit}>
         <h2 className="form-title">Agregar Producto</h2>
 
         {/* Primera fila horizontal */}
         <div className="form-row">
           <div className="form-field">
             <label>Nombre del Producto</label>
-            <input type="text" placeholder="Ej: Aire Inverter" />
+            <input
+              type="text"
+              name="nombre_producto"
+              value={formData.nombre_producto}
+              onChange={handleChange}
+              placeholder="Ej: Aire Inverter"
+              required
+            />
           </div>
 
           <div className="form-field">
             <label>Marca</label>
-            <input type="text" placeholder="Ej: Samsung" />
+            <input
+              type="text"
+              name="marca_producto"
+              value={formData.marca_producto}
+              onChange={handleChange}
+              placeholder="Ej: Samsung"
+              required
+            />
           </div>
 
           <div className="form-field">
             <label>Modelo</label>
-            <input type="text" placeholder="Ej: AR12TXCAAWK" />
+            <input
+              type="text"
+              name="modelo"
+              value={formData.modelo}
+              onChange={handleChange}
+            />
           </div>
         </div>
 
@@ -32,40 +135,62 @@ function AgregarProductoForm({ onCancel }) {
         <div className="form-row">
           <div className="form-field">
             <label>Precio ($DOP)</label>
-            <input type="number" step="0.01" placeholder="0.00" />
+            <input
+              type="number"
+              name="precio_producto"
+              value={formData.precio_producto}
+              onChange={handleChange}
+              step="0.01"
+              placeholder="0.00"
+              required
+            />
           </div>
 
           <div className="form-field">
-            <label>Precio Compra ($DOP)</label>
-            <input type="number" step="0.01" placeholder="0.00" />
-          </div>
-
-          <div className="form-field">
-            <label>Tipo de Garantía </label>
-            <input type="text" />
+            <label>Garantía</label>
+            <input
+              type="text"
+              name="garantia"
+              value={formData.garantia}
+              onChange={handleChange}
+            />
           </div>
         </div>
 
         {/* Tercera fila horizontal */}
         <div className="form-row">
           <div className="form-field">
-            <label>Categoría</label>
-            <select>
-              <option value="" style={{ color: '#000000' }}>Seleccionar categoría</option>
-              <option value="Aire Acondicionado">Aire Acondicionado</option>
-              <option value="Refrigerador">Refrigerador</option>
-              <option value="Estufa">Estufa</option>
-            </select>
+            <label>ID Categoría</label>
+            <input
+              type="number"
+              name="id_categoria"
+              value={formData.id_categoria}
+              onChange={handleChange}
+              placeholder="ID de la categoría"
+              required
+            />
           </div>
 
           <div className="form-field">
             <label>Stock</label>
-            <input type="number" placeholder="0" />
+            <input
+              type="number"
+              name="stock_producto"
+              value={formData.stock_producto}
+              onChange={handleChange}
+              placeholder="0"
+              required
+            />
           </div>
 
           <div className="form-field">
-            <label>Colores</label>
-            <input type="text" placeholder="Ej: Blanco, Negro" />
+            <label>Color</label>
+            <input
+              type="text"
+              name="color"
+              value={formData.color}
+              onChange={handleChange}
+            />
           </div>
         </div>
 
@@ -73,30 +198,57 @@ function AgregarProductoForm({ onCancel }) {
         <div className="form-row">
           <div className="form-field wide">
             <label>Descripción</label>
-            <textarea placeholder="Descripción detallada..." rows="2"></textarea>
+            <textarea
+              name="descripcion_producto"
+              value={formData.descripcion_producto}
+              onChange={handleChange}
+              placeholder="Descripción detallada..."
+              rows="2"
+              required
+            ></textarea>
           </div>
 
           <div className="form-field">
-            <label>Suplidor (opcional)</label>
-            <input type="text" placeholder="Nombre del suplidor" />
+            <label>ID Suplidor</label>
+            <input
+              type="number"
+              name="id_suplidor"
+              value={formData.id_suplidor}
+              onChange={handleChange}
+            />
           </div>
         </div>
 
         {/* Quinta fila horizontal */}
         <div className="form-row">
           <div className="form-field wide">
-            <label>Imagen (URL)</label>
-            <input type="url" placeholder="https://ejemplo.com/imagen.jpg" />
+            <label>Imagen del Producto</label>
+            <input
+              type="file"
+              name="imagen_producto"
+              accept="image/*"
+              onChange={handleChange}
+              required
+            />
           </div>
         </div>
 
         {/* Botones de acción */}
         <div className="form-actions">
-          <button type="button" className="cancel-btn" onClick={onCancel}>
+          <button
+            type="button"
+            className="cancel-btn"
+            onClick={onCancel}
+            disabled={loading}
+          >
             Cancelar
           </button>
-          <button type="submit" className="submit-btn">
-            Guardar Producto
+          <button
+            type="submit"
+            className="submit-btn"
+            disabled={loading}
+          >
+            {loading ? 'Guardando...' : 'Guardar Producto'}
           </button>
         </div>
       </form>

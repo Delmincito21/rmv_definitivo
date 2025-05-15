@@ -34,8 +34,13 @@ function AgregarProductoForm({ onCancel }) {
   });
 
   const [loading, setLoading] = useState(false);
+<<<<<<< HEAD
   const [setError] = useState(null);
   const [setCategorias] = useState([]);
+=======
+  const [ setError] = useState(null);
+  const [ setCategorias] = useState([]);
+>>>>>>> b179f98 (add estado in modal)
   const [mostrarSuplidores, setMostrarSuplidores] = useState(false);
 
   const handleChange = (e) => {
@@ -421,6 +426,9 @@ function ModificarProductoList() {
   const handleGuardarEdicion = async () => {
     try {
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> b179f98 (add estado in modal)
       const response = await fetch(`http://localhost:3000/productos/${productoEditando.id_producto}`, {
         method: 'PUT',
         headers: {
@@ -428,6 +436,7 @@ function ModificarProductoList() {
         },
         body: JSON.stringify(productoEditando),
       });
+<<<<<<< HEAD
 
       if (!response.ok) {
         throw new Error('Error al actualizar el producto');
@@ -455,26 +464,33 @@ function ModificarProductoList() {
             },
             body: JSON.stringify(productoEditando),
         });
+=======
+>>>>>>> b179f98 (add estado in modal)
 
-        if (!response.ok) {
-            throw new Error('Error al actualizar el producto');
-        }
+      if (!response.ok) {
+        throw new Error('Error al actualizar el producto');
+      }
 
-        alert('Producto actualizado exitosamente');
+      alert('Producto actualizado exitosamente');
 
-        // Actualiza la lista de productos en el frontend
-        setProductos((prevProductos) =>
-            prevProductos.map((producto) =>
-                producto.id_producto === productoEditando.id_producto ? productoEditando : producto
-            )
-        );
+      // Actualiza la lista de productos en el frontend
+      setProductos((prevProductos) =>
+        prevProductos.map((producto) =>
+          producto.id_producto === productoEditando.id_producto ? productoEditando : producto
+        )
+      );
 
-        // Salir del modo de edición
-        setProductoEditando(null);
+      // Salir del modo de edición
+      setProductoEditando(null);
     } catch (error) {
+<<<<<<< HEAD
         console.error('Error al actualizar el producto:', error);
         alert('Hubo un error al actualizar el producto. Inténtalo de nuevo.');
 >>>>>>> cdbfa28 (funcionar boton eliminar y editar)
+=======
+      console.error('Error al actualizar el producto:', error);
+      alert('Hubo un error al actualizar el producto. Inténtalo de nuevo.');
+>>>>>>> b179f98 (add estado in modal)
     }
   };
 
@@ -611,6 +627,9 @@ function ModificarProductoList() {
                 }
               />
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> b179f98 (add estado in modal)
               <label>Estado:</label>
               <select
                 value={productoEditando.estado}
@@ -621,8 +640,11 @@ function ModificarProductoList() {
                 <option value="activo">Activo</option>
                 <option value="inactivo">Inactivo</option>
               </select>
+<<<<<<< HEAD
 =======
 >>>>>>> cdbfa28 (funcionar boton eliminar y editar)
+=======
+>>>>>>> b179f98 (add estado in modal)
               <div className="form-actions">
                 <button type="button" onClick={() => setProductoEditando(null)}>
                   Cancelar

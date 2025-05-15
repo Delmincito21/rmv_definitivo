@@ -45,14 +45,54 @@ app.get('/clientes', (req, res) => {
     });
 });
 
-// Ruta de ejemplo
-// app.get('/Ventas', (req, res) => {
-//     db.query('SELECT * FROM venta', (err, results) => {
-//         if (err) throw err;
-//         res.json(results);
-//     });
-// });
+app.put('/clientes/:id', async (req, res) => {
+    const { id } = req.params;
+    const { nombre_clientes, telefono_clientes, direccion_clientes, correo_clientes, estado } = req.body;
 
+    try {
+        const [result] = await db.promise().query(
+            `UPDATE clientes SET 
+                nombre_clientes = ?, 
+                telefono_clientes = ?, 
+                direccion_clientes = ?, 
+                correo_clientes = ?, 
+                estado = ? 
+            WHERE id_clientes = ?`,
+            [nombre_clientes, telefono_clientes, direccion_clientes, correo_clientes, estado, id]
+        );
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Cliente no encontrado' });
+        }
+
+        res.json({ message: 'Cliente actualizado exitosamente' });
+    } catch (error) {
+        console.error('Error al actualizar el cliente:', error);
+        res.status(500).json({ error: 'Error al actualizar el cliente', details: error.message });
+    }
+});
+
+app.put('/clientes/:id/inactivar', async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const [result] = await db.promise().query(
+            'UPDATE clientes SET estado = "inactivo" WHERE id_clientes = ?',
+            [id]
+        );
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Cliente no encontrado' });
+        }
+
+        res.json({ message: 'Cliente inactivado exitosamente' });
+    } catch (error) {
+        console.error('Error al inactivar el cliente:', error);
+        res.status(500).json({ error: 'Error al inactivar el cliente', details: error.message });
+    }
+});
+
+// Ruta para obtener todas las ventas
 app.get('/ventas', (req, res) => {
     const query = `
         SELECT 
@@ -254,7 +294,7 @@ app.post('/clientes', async (req, res) => {
                 'activo'
             ]
         );
-        res.status(201).json({ message: 'Cliente y usuario registrados exitosamente', id_cliente: clienteResult.insertId });
+        res.status(201).json({ message: 'Cliente y usuario registrados exitosamente', id_clientes: clienteResult.insertId });
     } catch (error) {
         console.error('Error al registrar cliente y usuario:', error);
         res.status(500).json({ error: 'Error al registrar cliente y usuario', details: error.message });
@@ -401,9 +441,9 @@ app.put('/ventas/:id/estado', async (req, res) => {
         res.json({ message: 'Estados actualizados exitosamente' });
     } catch (error) {
         console.error('Error al actualizar estados:', error);
-        res.status(500).json({ 
+        res.status(500).json({
             error: 'Error al actualizar los estados',
-            details: error.message 
+            details: error.message
         });
     }
 });

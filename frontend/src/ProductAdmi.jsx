@@ -20,8 +20,8 @@ function AgregarProductoForm({ onCancel }) {
   });
 
   const [loading, setLoading] = useState(false);
-  const [ setError] = useState(null);
-  const [ setCategorias] = useState([]);
+  const [setError] = useState(null);
+  const [setCategorias] = useState([]);
   const [mostrarSuplidores, setMostrarSuplidores] = useState(false);
 
   const handleChange = (e) => {

@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
+const path = require('path');
 const db = require('./config/db.config'); // Cambiado a db.config.js
 const Producto = require('./models/productos');
 const bcrypt = require('bcrypt');
@@ -14,6 +15,9 @@ const PORT = 3000;
 // Middleware
 app.use(cors());
 app.use(bodyParser.json());
+
+// Servir archivos estáticos
+app.use('/imagesprods', express.static(path.join(__dirname, 'imagesprods')));
 
 // Prueba de conexión a la base de datos
 db.query('SELECT 1 + 1 AS resultado', (err, results) => {
@@ -39,6 +43,22 @@ app.get('/clientes', (req, res) => {
     });
 });
 
+app.get('/productos', (req, res) => {
+    const query = `
+        SELECT p.*, cp.nombre_categoria_producto
+        FROM productos p
+        LEFT JOIN categorias_productos cp ON p.id_categoria = cp.id_categoria_producto
+        WHERE p.estado = 'activo'
+    `;
+    
+    db.query(query, (err, results) => {
+        if (err) {
+            console.error('Error al obtener productos:', err);
+            return res.status(500).json({ error: 'Error al obtener productos' });
+        }
+        res.json(results);
+    });
+});
 // Ruta de ejemplo
 // app.get('/Ventas', (req, res) => {
 //     db.query('SELECT * FROM venta', (err, results) => {
@@ -64,87 +84,21 @@ app.get('/venta', (req, res) => {
     });
 });
 
-// GET todos los productos
-app.get('/productos', async (req, res) => {
-    try {
-        const productos = await Producto.getAll();
-        res.json(productos);
-    } catch (error) {
-        console.error('Error al obtener productos:', error);
-        res.status(500).json({ error: 'Error al obtener productos' });
-    }
-});
-
-// POST nuevo producto
-app.post('/productos', async (req, res) => {
-    try {
-        const result = await Producto.create(req.body);
-        res.status(201).json({
-            message: 'Producto creado exitosamente',
-            id: result.insertId
-        });
-    } catch (error) {
-        console.error('Error al crear el producto:', error);
-        res.status(500).json({
-            error: 'Error al crear el producto',
-            details: error.message
-        });
-    }
-});
-
-// GET producto por ID
-app.get('/productos/:id', async (req, res) => {
-    try {
-        const producto = await Producto.getById(req.params.id);
-        if (!producto) {
-            return res.status(404).json({ error: 'Producto no encontrado' });
-        }
-        res.json(producto);
-    } catch (error) {
-        console.error('Error al obtener el producto:', error);
-        res.status(500).json({ error: 'Error al obtener el producto' });
-    }
-});
-
-// PUT actualizar producto
-app.put('/productos/:id', async (req, res) => {
-    try {
-        const result = await Producto.update(req.params.id, req.body);
-        if (result.affectedRows === 0) {
-            return res.status(404).json({ error: 'Producto no encontrado' });
-        }
-        res.json({ message: 'Producto actualizado exitosamente' });
-    } catch (error) {
-        console.error('Error al actualizar el producto:', error);
-        res.status(500).json({ error: 'Error al actualizar el producto' });
-    }
-});
-
-// DELETE producto
-app.delete('/productos/:id', async (req, res) => {
-    try {
-        const result = await Producto.delete(req.params.id);
-        if (result.affectedRows === 0) {
-            return res.status(404).json({ error: 'Producto no encontrado' });
-        }
-        res.json({ message: 'Producto eliminado exitosamente' });
-    } catch (error) {
-        console.error('Error al eliminar el producto:', error);
-        res.status(500).json({ error: 'Error al eliminar el producto' });
-    }
-});
-
 // GET categorías productos
-app.get('/categorias_productos', async (req, res) => {
-    try {
-        console.log('Intentando obtener categorías de la base de datos...');
-        const [categorias] = await db.promise().query('SELECT * FROM categorias_productos');
-        console.log('Categorías obtenidas:', categorias);
-        res.json(categorias);
-    } catch (error) {
-        console.error('Error al obtener categorías:', error);
-        res.status(500).json({ error: 'Error al obtener categorías' });
-    }
+app.get('/categorias_productos', (req, res) => {
+    const query = `
+        SELECT *
+        FROM categorias_productos
+        WHERE estado = 'activo'
+    `;
+    
+    db.query(query, (err, results) => {
+        if (err) {
+            console.error('Error al obtener categorías:', err);
+            return res.status(500).json({ error: 'Error al obtener categorías' });
+        }
+        res.json(results);
+    });
 });
 
 // POST para registrar un nuevo cliente
@@ -216,6 +170,72 @@ app.post('/login', async (req, res) => {
         res.json({ message: 'Login exitoso', rol: usuario.rol });
     } catch (error) {
         res.status(500).json({ error: 'Error en el servidor', details: error.message });
+    }
+});
+
+// POST nuevo producto
+app.post('/productos', async (req, res) => {
+    try {
+        const result = await Producto.create(req.body);
+        res.status(201).json({
+            message: 'Producto creado exitosamente',
+            id: result.insertId
+        });
+    } catch (error) {
+        console.error('Error al crear el producto:', error);
+        res.status(500).json({
+            error: 'Error al crear el producto',
+            details: error.message
+        });
+    }
+});
+
+// GET producto por ID
+app.get('/productos/:id', (req, res) => {
+    const query = `
+        SELECT p.*, cp.nombre_categoria_producto
+        FROM productos p
+        LEFT JOIN categorias_productos cp ON p.id_categoria = cp.id_categoria_producto
+        WHERE p.id_producto = ? AND p.estado = 'activo'
+    `;
+    
+    db.query(query, [req.params.id], (err, results) => {
+        if (err) {
+            console.error('Error al obtener el producto:', err);
+            return res.status(500).json({ error: 'Error al obtener el producto' });
+        }
+        if (results.length === 0) {
+            return res.status(404).json({ error: 'Producto no encontrado' });
+        }
+        res.json(results[0]);
+    });
+});
+
+// PUT actualizar producto
+app.put('/productos/:id', async (req, res) => {
+    try {
+        const result = await Producto.update(req.params.id, req.body);
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Producto no encontrado' });
+        }
+        res.json({ message: 'Producto actualizado exitosamente' });
+    } catch (error) {
+        console.error('Error al actualizar el producto:', error);
+        res.status(500).json({ error: 'Error al actualizar el producto' });
+    }
+});
+
+// DELETE producto
+app.delete('/productos/:id', async (req, res) => {
+    try {
+        const result = await Producto.delete(req.params.id);
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Producto no encontrado' });
+        }
+        res.json({ message: 'Producto eliminado exitosamente' });
+    } catch (error) {
+        console.error('Error al eliminar el producto:', error);
+        res.status(500).json({ error: 'Error al eliminar el producto' });
     }
 });
 

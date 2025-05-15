@@ -362,6 +362,7 @@ function ModificarProductoList() {
   const [productos, setProductos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [busqueda, setBusqueda] = useState("");
+  const [productoEditando, setProductoEditando] = useState(null);
 
   useEffect(() => {
     fetch('http://localhost:3000/productos')
@@ -374,17 +375,63 @@ function ModificarProductoList() {
   }, []);
 
   const handleEditar = (producto) => {
-    alert(`Editar producto: ${producto.nombre_producto}`);
+    setProductoEditando(producto);
   };
 
-  const handleEliminar = (id) => {
-    if (window.confirm('¿Seguro que deseas eliminar este producto?')) {
-      fetch(`http://localhost:3000/productos/${id}`, { method: 'DELETE' })
-        .then(res => {
-          if (res.ok) {
-            setProductos(productos.filter(p => p.id_producto !== id));
-          }
+  const handleEliminar = async (id) => {
+    if (window.confirm('¿Estás seguro de que deseas inactivar este producto?')) {
+      try {
+        const response = await fetch(`http://localhost:3000/productos/${id}/inactivar`, {
+          method: 'PUT',
         });
+
+        if (!response.ok) {
+          throw new Error('Error al inactivar el producto');
+        }
+
+        alert('Producto inactivado exitosamente');
+
+        // Actualiza la lista de productos en el frontend
+        setProductos((prevProductos) =>
+          prevProductos.map((producto) =>
+            producto.id_producto === id ? { ...producto, estado: 'inactivo' } : producto
+          )
+        );
+      } catch (error) {
+        console.error('Error al inactivar el producto:', error);
+        alert('Hubo un error al inactivar el producto. Inténtalo de nuevo.');
+      }
+    }
+  };
+
+  const handleGuardarEdicion = async () => {
+    try {
+        const response = await fetch(`http://localhost:3000/productos/${productoEditando.id_producto}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(productoEditando),
+        });
+
+        if (!response.ok) {
+            throw new Error('Error al actualizar el producto');
+        }
+
+        alert('Producto actualizado exitosamente');
+
+        // Actualiza la lista de productos en el frontend
+        setProductos((prevProductos) =>
+            prevProductos.map((producto) =>
+                producto.id_producto === productoEditando.id_producto ? productoEditando : producto
+            )
+        );
+
+        // Salir del modo de edición
+        setProductoEditando(null);
+    } catch (error) {
+        console.error('Error al actualizar el producto:', error);
+        alert('Hubo un error al actualizar el producto. Inténtalo de nuevo.');
     }
   };
 
@@ -483,6 +530,55 @@ function ModificarProductoList() {
           </tbody>
         </table>
       </div>
+      {productoEditando && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h3>Editar Producto</h3>
+            <form>
+              <label>Nombre:</label>
+              <input
+                type="text"
+                value={productoEditando.nombre_producto}
+                onChange={(e) =>
+                  setProductoEditando((prev) => ({ ...prev, nombre_producto: e.target.value }))
+                }
+              />
+              <label>Marca:</label>
+              <input
+                type="text"
+                value={productoEditando.marca_producto}
+                onChange={(e) =>
+                  setProductoEditando((prev) => ({ ...prev, marca_producto: e.target.value }))
+                }
+              />
+              <label>Precio:</label>
+              <input
+                type="number"
+                value={productoEditando.precio_producto}
+                onChange={(e) =>
+                  setProductoEditando((prev) => ({ ...prev, precio_producto: e.target.value }))
+                }
+              />
+              <label>Stock:</label>
+              <input
+                type="number"
+                value={productoEditando.stock_producto}
+                onChange={(e) =>
+                  setProductoEditando((prev) => ({ ...prev, stock_producto: e.target.value }))
+                }
+              />
+              <div className="form-actions">
+                <button type="button" onClick={() => setProductoEditando(null)}>
+                  Cancelar
+                </button>
+                <button type="button" onClick={handleGuardarEdicion}>
+                  Guardar
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

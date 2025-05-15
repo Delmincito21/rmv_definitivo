@@ -125,29 +125,78 @@ app.get('/productos/:id', async (req, res) => {
 
 // PUT actualizar producto
 app.put('/productos/:id', async (req, res) => {
+    const { id } = req.params;
+    const {
+        nombre_producto,
+        descripcion_producto,
+        marca_producto,
+        precio_producto,
+        stock_producto,
+        modelo,
+        color,
+        garantia,
+        id_categoria,
+        estado,
+    } = req.body;
+
     try {
-        const result = await Producto.update(req.params.id, req.body);
+        const [result] = await db.promise().query(
+            `UPDATE productos SET 
+                nombre_producto = ?, 
+                descripcion_producto = ?, 
+                marca_producto = ?, 
+                precio_producto = ?, 
+                stock_producto = ?, 
+                modelo = ?, 
+                color = ?, 
+                garantia = ?, 
+                id_categoria = ?, 
+                estado = ? 
+            WHERE id_producto = ?`,
+            [
+                nombre_producto,
+                descripcion_producto,
+                marca_producto,
+                precio_producto,
+                stock_producto,
+                modelo,
+                color,
+                garantia,
+                id_categoria,
+                estado,
+                id,
+            ]
+        );
+
         if (result.affectedRows === 0) {
             return res.status(404).json({ error: 'Producto no encontrado' });
         }
+
         res.json({ message: 'Producto actualizado exitosamente' });
     } catch (error) {
         console.error('Error al actualizar el producto:', error);
-        res.status(500).json({ error: 'Error al actualizar el producto' });
+        res.status(500).json({ error: 'Error al actualizar el producto', details: error.message });
     }
 });
 
-// DELETE producto
-app.delete('/productos/:id', async (req, res) => {
+// Cambiar el estado del producto a "inactivo"
+app.put('/productos/:id/inactivar', async (req, res) => {
+    const { id } = req.params;
+
     try {
-        const result = await Producto.delete(req.params.id);
+        const [result] = await db.promise().query(
+            'UPDATE productos SET estado = "inactivo" WHERE id_producto = ?',
+            [id]
+        );
+
         if (result.affectedRows === 0) {
             return res.status(404).json({ error: 'Producto no encontrado' });
         }
-        res.json({ message: 'Producto eliminado exitosamente' });
+
+        res.json({ message: 'Producto inactivado exitosamente' });
     } catch (error) {
-        console.error('Error al eliminar el producto:', error);
-        res.status(500).json({ error: 'Error al eliminar el producto' });
+        console.error('Error al inactivar el producto:', error);
+        res.status(500).json({ error: 'Error al inactivar el producto', details: error.message });
     }
 });
 
@@ -258,7 +307,7 @@ app.post('/ventas', async (req, res) => {
         });
     } catch (error) {
         console.error('Error detallado al crear la venta:', error);
-        res.status(500).json({ 
+        res.status(500).json({
             error: 'Error al crear la venta',
             details: error.message,
             sqlMessage: error.sqlMessage
@@ -319,12 +368,12 @@ app.get('/detalle-ventas', async (req, res) => {
 app.post('/detalle-ventas', async (req, res) => {
     try {
         console.log('Datos recibidos en /detalle-ventas:', req.body);
-        
+
         // Validar que todos los campos requeridos estén presentes
         const { id_venta, id_producto, cantidad_detalle_venta, precio_unitario_detalle_venta, subtotal_detalle_venta } = req.body;
-        
+
         if (!id_venta || !id_producto || !cantidad_detalle_venta || !precio_unitario_detalle_venta) {
-            return res.status(400).json({ 
+            return res.status(400).json({
                 error: 'Faltan datos requeridos',
                 details: 'Todos los campos son obligatorios'
             });
@@ -333,14 +382,14 @@ app.post('/detalle-ventas', async (req, res) => {
         // Intentar crear el detalle de venta
         const result = await DetalleVenta.create(req.body);
         console.log('Resultado de crear detalle venta:', result);
-        
+
         res.status(201).json({
             message: 'Detalle de venta creado exitosamente',
             id: result.insertId
         });
     } catch (error) {
         console.error('Error detallado al crear el detalle de venta:', error);
-        res.status(500).json({ 
+        res.status(500).json({
             error: 'Error al crear el detalle de venta',
             details: error.message,
             sqlMessage: error.sqlMessage
@@ -546,7 +595,7 @@ app.post('/pagos', async (req, res) => {
         });
     } catch (error) {
         console.error('Error detallado al crear el pago:', error);
-        res.status(500).json({ 
+        res.status(500).json({
             error: 'Error al crear el pago',
             details: error.message,
             sqlMessage: error.sqlMessage
@@ -590,6 +639,17 @@ app.delete('/pagos/:id', async (req, res) => {
     } catch (error) {
         console.error('Error al eliminar el pago:', error);
         res.status(500).json({ error: 'Error al eliminar el pago' });
+    }
+});
+
+// GET todos los suplidores
+app.get('/suplidores', async (req, res) => {
+    try {
+        const [suplidores] = await db.promise().query('SELECT * FROM suplidores');
+        res.json(suplidores);
+    } catch (error) {
+        console.error('Error al obtener suplidores:', error);
+        res.status(500).json({ error: 'Error al obtener suplidores' });
     }
 });
 

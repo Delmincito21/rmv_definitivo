@@ -420,6 +420,7 @@ function ModificarProductoList() {
 
   const handleGuardarEdicion = async () => {
     try {
+<<<<<<< HEAD
       const response = await fetch(`http://localhost:3000/productos/${productoEditando.id_producto}`, {
         method: 'PUT',
         headers: {
@@ -446,6 +447,34 @@ function ModificarProductoList() {
     } catch (error) {
       console.error('Error al actualizar el producto:', error);
       alert('Hubo un error al actualizar el producto. Inténtalo de nuevo.');
+=======
+        const response = await fetch(`http://localhost:3000/productos/${productoEditando.id_producto}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(productoEditando),
+        });
+
+        if (!response.ok) {
+            throw new Error('Error al actualizar el producto');
+        }
+
+        alert('Producto actualizado exitosamente');
+
+        // Actualiza la lista de productos en el frontend
+        setProductos((prevProductos) =>
+            prevProductos.map((producto) =>
+                producto.id_producto === productoEditando.id_producto ? productoEditando : producto
+            )
+        );
+
+        // Salir del modo de edición
+        setProductoEditando(null);
+    } catch (error) {
+        console.error('Error al actualizar el producto:', error);
+        alert('Hubo un error al actualizar el producto. Inténtalo de nuevo.');
+>>>>>>> cdbfa28 (funcionar boton eliminar y editar)
     }
   };
 
@@ -581,6 +610,7 @@ function ModificarProductoList() {
                   setProductoEditando((prev) => ({ ...prev, stock_producto: e.target.value }))
                 }
               />
+<<<<<<< HEAD
               <label>Estado:</label>
               <select
                 value={productoEditando.estado}
@@ -591,6 +621,8 @@ function ModificarProductoList() {
                 <option value="activo">Activo</option>
                 <option value="inactivo">Inactivo</option>
               </select>
+=======
+>>>>>>> cdbfa28 (funcionar boton eliminar y editar)
               <div className="form-actions">
                 <button type="button" onClick={() => setProductoEditando(null)}>
                   Cancelar

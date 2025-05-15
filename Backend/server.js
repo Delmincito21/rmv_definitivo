@@ -206,7 +206,11 @@ app.put('/productos/:id', async (req, res) => {
     } = req.body;
 
     try {
+<<<<<<< HEAD
         const [result] = await db.query(
+=======
+        const [result] = await db.promise().query(
+>>>>>>> cdbfa28 (funcionar boton eliminar y editar)
             `UPDATE productos SET 
                 nombre_producto = ?, 
                 descripcion_producto = ?, 
@@ -250,7 +254,11 @@ app.put('/productos/:id/inactivar', async (req, res) => {
     const { id } = req.params;
 
     try {
+<<<<<<< HEAD
         const [result] = await db.query(
+=======
+        const [result] = await db.promise().query(
+>>>>>>> cdbfa28 (funcionar boton eliminar y editar)
             'UPDATE productos SET estado = "inactivo" WHERE id_producto = ?',
             [id]
         );
@@ -390,7 +398,7 @@ app.post('/ventas', async (req, res) => {
         });
     } catch (error) {
         console.error('Error detallado al crear la venta:', error);
-        res.status(500).json({ 
+        res.status(500).json({
             error: 'Error al crear la venta',
             details: error.message,
             sqlMessage: error.sqlMessage
@@ -568,12 +576,12 @@ app.get('/detalle-ventas', async (req, res) => {
 app.post('/detalle-ventas', async (req, res) => {
     try {
         console.log('Datos recibidos en /detalle-ventas:', req.body);
-        
+
         // Validar que todos los campos requeridos estén presentes
         const { id_venta, id_producto, cantidad_detalle_venta, precio_unitario_detalle_venta, subtotal_detalle_venta } = req.body;
-        
+
         if (!id_venta || !id_producto || !cantidad_detalle_venta || !precio_unitario_detalle_venta) {
-            return res.status(400).json({ 
+            return res.status(400).json({
                 error: 'Faltan datos requeridos',
                 details: 'Todos los campos son obligatorios'
             });
@@ -582,6 +590,10 @@ app.post('/detalle-ventas', async (req, res) => {
         // Intentar crear el detalle de venta
         const result = await DetalleVenta.create(req.body);
         console.log('Resultado de crear detalle venta:', result);
+<<<<<<< HEAD
+=======
+
+>>>>>>> cdbfa28 (funcionar boton eliminar y editar)
         res.status(201).json({
             message: 'Detalle de venta creado exitosamente',
             id: result.insertId
@@ -933,10 +945,14 @@ app.post('/pagos', async (req, res) => {
     } catch (error) {
         console.error('Error detallado al crear el pago:', error);
 <<<<<<< HEAD
+<<<<<<< HEAD
         res.status(500).json({
 =======
         res.status(500).json({ 
 >>>>>>> 7bad6dd (add conexion venta)
+=======
+        res.status(500).json({
+>>>>>>> cdbfa28 (funcionar boton eliminar y editar)
             error: 'Error al crear el pago',
             details: error.message,
             sqlMessage: error.sqlMessage
@@ -996,6 +1012,7 @@ app.delete('/pagos/:id', async (req, res) => {
 });
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 // Ruta para obtener pago por ID de venta
 app.get('/pagos/venta/:id', async (req, res) => {
     try {
@@ -1049,6 +1066,12 @@ app.get('/orden/venta/:id', async (req, res) => {
 app.get('/suplidores', async (req, res) => {
     try {
         const [suplidores] = await db.query('SELECT * FROM suplidores');
+=======
+// GET todos los suplidores
+app.get('/suplidores', async (req, res) => {
+    try {
+        const [suplidores] = await db.promise().query('SELECT * FROM suplidores');
+>>>>>>> cdbfa28 (funcionar boton eliminar y editar)
         res.json(suplidores);
     } catch (error) {
         console.error('Error al obtener suplidores:', error);
@@ -1056,6 +1079,7 @@ app.get('/suplidores', async (req, res) => {
     }
 });
 
+<<<<<<< HEAD
 // Ruta para actualizar un detalle de venta
 app.put('/detalle-ventas/:id_venta/:id_producto', async (req, res) => {
     try {
@@ -1619,6 +1643,8 @@ app.delete('/carrito/:userId', async (req, res) => {
 
 =======
 >>>>>>> 7bad6dd (add conexion venta)
+=======
+>>>>>>> cdbfa28 (funcionar boton eliminar y editar)
 // Inicia el servidor
 app.listen(PORT, () => {
     console.log(`Servidor en http://localhost:${PORT}`);

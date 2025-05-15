@@ -100,11 +100,12 @@ app.get('/dashboard/pedidos-por-mes', async (req, res) => {
 app.get('/', (req, res) => {
     res.send('Bienvenido al servidor de RMV');
 });
-
-// Ruta para obtener clientes
-app.get('/clientes', async (req, res) => {
-    try {
-        const [results] = await db.query('SELECT * FROM clientes');
+app.get('/clientes', (req, res) => {
+    db.query('SELECT * FROM clientes', (err, results) => {
+        if (err) {
+            console.error('Error al obtener clientes:', err);
+            return res.status(500).json({ error: 'Error al obtener clientes' });
+        }
         console.log('Clientes obtenidos:', results);
         res.json(results);
     } catch (err) {
@@ -117,70 +118,27 @@ app.put('/clientes/:id', async (req, res) => {
     const { id } = req.params;
     const { nombre_clientes, telefono_clientes, direccion_clientes, correo_clientes, estado } = req.body;
 
-    try {
-        const [result] = await db.query(
-            `UPDATE clientes SET 
-                nombre_clientes = ?, 
-                telefono_clientes = ?, 
-                direccion_clientes = ?, 
-                correo_clientes = ?, 
-                estado = ? 
-            WHERE id_clientes = ?`,
-            [nombre_clientes, telefono_clientes, direccion_clientes, correo_clientes, estado, id]
-        );
+app.get('/ventas', (req, res) => {
+    const query = `
+        SELECT 
+            v.id_venta, 
+            v.fecha_venta, 
+            c.nombre_clientes AS cliente, 
+            v.estado_venta,
+            (
+                SELECT COALESCE(SUM(dv.subtotal_detalle_venta), 0)
+                FROM detalle_venta dv
+                WHERE dv.id_venta = v.id_venta
+            ) as total
+        FROM venta v
+        JOIN usuarios u ON v.id_usuario = u.id_usuario
+        JOIN clientes c ON u.id_usuario = c.id_clientes
+        WHERE v.estado = 'activo'
+    `;
 
         if (result.affectedRows === 0) {
             return res.status(404).json({ error: 'Cliente no encontrado' });
         }
-
-        res.json({ message: 'Cliente actualizado exitosamente' });
-    } catch (error) {
-        console.error('Error al actualizar el cliente:', error);
-        res.status(500).json({ error: 'Error al actualizar el cliente', details: error.message });
-    }
-});
-
-app.put('/clientes/:id/inactivar', async (req, res) => {
-    const { id } = req.params;
-
-    try {
-        const [result] = await db.query(
-            'UPDATE clientes SET estado = "inactivo" WHERE id_clientes = ?',
-            [id]
-        );
-
-        if (result.affectedRows === 0) {
-            return res.status(404).json({ error: 'Cliente no encontrado' });
-        }
-
-        res.json({ message: 'Cliente inactivado exitosamente' });
-    } catch (error) {
-        console.error('Error al inactivar el cliente:', error);
-        res.status(500).json({ error: 'Error al inactivar el cliente', details: error.message });
-    }
-});
-
-// Ruta para obtener todas las ventas
-app.get('/ventas', async (req, res) => {
-    try {
-        const query = `
-            SELECT 
-                v.id_venta, 
-                v.fecha_venta, 
-                c.nombre_clientes AS cliente, 
-                v.estado_venta,
-                (
-                    SELECT COALESCE(SUM(dv.subtotal_detalle_venta), 0)
-                    FROM detalle_venta dv
-                    WHERE dv.id_venta = v.id_venta
-                ) as total
-            FROM venta v
-            JOIN usuarios u ON v.id_usuario = u.id_usuario
-            JOIN clientes c ON u.id_usuario = c.id_clientes
-            WHERE v.estado = 'activo'
-        `;
-
-        const [results] = await db.query(query);
         console.log('Ventas obtenidas:', results);
         res.json(results);
     } catch (err) {
@@ -432,7 +390,7 @@ app.post('/ventas', async (req, res) => {
         });
     } catch (error) {
         console.error('Error detallado al crear la venta:', error);
-        res.status(500).json({
+        res.status(500).json({ 
             error: 'Error al crear la venta',
             details: error.message,
             sqlMessage: error.sqlMessage
@@ -580,12 +538,12 @@ app.get('/detalle-ventas', async (req, res) => {
 app.post('/detalle-ventas', async (req, res) => {
     try {
         console.log('Datos recibidos en /detalle-ventas:', req.body);
-
+        
         // Validar que todos los campos requeridos estén presentes
         const { id_venta, id_producto, cantidad_detalle_venta, precio_unitario_detalle_venta, subtotal_detalle_venta } = req.body;
-
+        
         if (!id_venta || !id_producto || !cantidad_detalle_venta || !precio_unitario_detalle_venta) {
-            return res.status(400).json({
+            return res.status(400).json({ 
                 error: 'Faltan datos requeridos',
                 details: 'Todos los campos son obligatorios'
             });
@@ -594,7 +552,6 @@ app.post('/detalle-ventas', async (req, res) => {
         // Intentar crear el detalle de venta
         const result = await DetalleVenta.create(req.body);
         console.log('Resultado de crear detalle venta:', result);
-
         res.status(201).json({
             message: 'Detalle de venta creado exitosamente',
             id: result.insertId
@@ -673,6 +630,7 @@ app.get('/orden/usuario/:id', async (req, res) => {
 
 app.put('/orden/:id', async (req, res) => {
     try {
+<<<<<<< HEAD
         const [result] = await db.query(
             'UPDATE orden SET ? WHERE id_orden = ?',
             [req.body, req.params.id]
@@ -682,6 +640,12 @@ app.put('/orden/:id', async (req, res) => {
             return res.status(404).json({ error: 'Orden no encontrada' });
         }
 
+=======
+        const result = await Orden.update(req.params.id, req.body);
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Orden no encontrada' });
+        }
+>>>>>>> 7bad6dd (add conexion venta)
         res.json({ message: 'Orden actualizada exitosamente' });
     } catch (error) {
         console.error('Error al actualizar la orden:', error);
@@ -739,6 +703,7 @@ app.get('/envios/:id', async (req, res) => {
     }
 });
 
+<<<<<<< HEAD
 // Ruta para obtener envío por ID de orden
 app.get('/envios/orden/:id', async (req, res) => {
     try {
@@ -766,11 +731,24 @@ app.get('/envios/orden/:id', async (req, res) => {
             details: error.message,
             ordenId: req.params.id
         });
+=======
+app.get('/envios/orden/:id', async (req, res) => {
+    try {
+        const envio = await Envio.getByOrdenId(req.params.id);
+        if (!envio) {
+            return res.status(404).json({ error: 'Envío no encontrado para esta orden' });
+        }
+        res.json(envio);
+    } catch (error) {
+        console.error('Error al obtener el envío:', error);
+        res.status(500).json({ error: 'Error al obtener el envío' });
+>>>>>>> 7bad6dd (add conexion venta)
     }
 });
 
 app.put('/envios/:id', async (req, res) => {
     try {
+<<<<<<< HEAD
         console.log('Datos recibidos para actualizar envío:', {
             id: req.params.id,
             body: req.body
@@ -832,10 +810,21 @@ app.put('/envios/:id', async (req, res) => {
             sqlMessage: error.sqlMessage,
             id: req.params.id
         });
+=======
+        const result = await Envio.update(req.params.id, req.body);
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Envío no encontrado' });
+        }
+        res.json({ message: 'Envío actualizado exitosamente' });
+    } catch (error) {
+        console.error('Error al actualizar el envío:', error);
+        res.status(500).json({ error: 'Error al actualizar el envío' });
+>>>>>>> 7bad6dd (add conexion venta)
     }
 });
 
 app.put('/envios/:id/estado', async (req, res) => {
+<<<<<<< HEAD
     const { id } = req.params;
     const { estado_envio } = req.body;
 
@@ -860,6 +849,21 @@ app.put('/envios/:id/estado', async (req, res) => {
             error: 'Error al actualizar el estado del envío',
             details: error.message
         });
+=======
+    try {
+        const { estado } = req.body;
+        if (!estado) {
+            return res.status(400).json({ error: 'El estado es requerido' });
+        }
+        const result = await Envio.updateEstado(req.params.id, estado);
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Envío no encontrado' });
+        }
+        res.json({ message: 'Estado del envío actualizado exitosamente' });
+    } catch (error) {
+        console.error('Error al actualizar el estado del envío:', error);
+        res.status(500).json({ error: 'Error al actualizar el estado del envío' });
+>>>>>>> 7bad6dd (add conexion venta)
     }
 });
 
@@ -898,7 +902,11 @@ app.post('/pagos', async (req, res) => {
         });
     } catch (error) {
         console.error('Error detallado al crear el pago:', error);
+<<<<<<< HEAD
         res.status(500).json({
+=======
+        res.status(500).json({ 
+>>>>>>> 7bad6dd (add conexion venta)
             error: 'Error al crear el pago',
             details: error.message,
             sqlMessage: error.sqlMessage
@@ -921,6 +929,7 @@ app.get('/pagos/:id', async (req, res) => {
 
 app.put('/pagos/:id', async (req, res) => {
     try {
+<<<<<<< HEAD
         const [result] = await db.query(
             'UPDATE pago SET ? WHERE id_pago = ?',
             [req.body, req.params.id]
@@ -930,6 +939,12 @@ app.put('/pagos/:id', async (req, res) => {
             return res.status(404).json({ error: 'Pago no encontrado' });
         }
 
+=======
+        const result = await Pago.update(req.params.id, req.body);
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Pago no encontrado' });
+        }
+>>>>>>> 7bad6dd (add conexion venta)
         res.json({ message: 'Pago actualizado exitosamente' });
     } catch (error) {
         console.error('Error al actualizar el pago:', error);
@@ -950,6 +965,7 @@ app.delete('/pagos/:id', async (req, res) => {
     }
 });
 
+<<<<<<< HEAD
 // Ruta para obtener pago por ID de venta
 app.get('/pagos/venta/:id', async (req, res) => {
     try {
@@ -1571,6 +1587,8 @@ app.delete('/carrito/:userId', async (req, res) => {
     }
 });
 
+=======
+>>>>>>> 7bad6dd (add conexion venta)
 // Inicia el servidor
 app.listen(PORT, () => {
     console.log(`Servidor en http://localhost:${PORT}`);

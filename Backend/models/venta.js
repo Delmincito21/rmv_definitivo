@@ -3,7 +3,11 @@ const db = require('../config/db.config.js');
 class Venta {
     static async getAll() {
         try {
+<<<<<<< HEAD
             const [rows] = await db.query(`
+=======
+            const [rows] = await db.promise().query(`
+>>>>>>> 7bad6dd (add conexion venta)
                 SELECT 
                     v.id_venta, 
                     v.fecha_venta, 
@@ -40,7 +44,11 @@ class Venta {
 
         try {
             // Verificar que el usuario existe
+<<<<<<< HEAD
             const [usuarios] = await db.query(
+=======
+            const [usuarios] = await db.promise().query(
+>>>>>>> 7bad6dd (add conexion venta)
                 'SELECT id_usuario FROM usuarios WHERE id_usuario = ?',
                 [id_usuario]
             );
@@ -49,7 +57,11 @@ class Venta {
                 throw new Error(`El usuario con ID ${id_usuario} no existe`);
             }
 
+<<<<<<< HEAD
             const [result] = await db.query(
+=======
+            const [result] = await db.promise().query(
+>>>>>>> 7bad6dd (add conexion venta)
                 `INSERT INTO venta (
                     id_usuario,
                     fecha_venta,
@@ -72,7 +84,11 @@ class Venta {
 
     static async getById(id) {
         try {
+<<<<<<< HEAD
             const [rows] = await db.query('SELECT * FROM venta WHERE id_venta = ?', [id]);
+=======
+            const [rows] = await db.promise().query('SELECT * FROM venta WHERE id_venta = ?', [id]);
+>>>>>>> 7bad6dd (add conexion venta)
             return rows[0];
         } catch (error) {
             throw error;
@@ -82,7 +98,11 @@ class Venta {
     static async update(id, ventaData) {
         const { id_venta, ...dataToUpdate } = ventaData;
         try {
+<<<<<<< HEAD
             const [result] = await db.query(
+=======
+            const [result] = await db.promise().query(
+>>>>>>> 7bad6dd (add conexion venta)
                 'UPDATE venta SET ? WHERE id_venta = ?',
                 [dataToUpdate, id]
             );
@@ -94,7 +114,11 @@ class Venta {
 
     static async delete(id) {
         try {
+<<<<<<< HEAD
             const [result] = await db.query('DELETE FROM venta WHERE id_venta = ?', [id]);
+=======
+            const [result] = await db.promise().query('DELETE FROM venta WHERE id_venta = ?', [id]);
+>>>>>>> 7bad6dd (add conexion venta)
             return result;
         } catch (error) {
             throw error;

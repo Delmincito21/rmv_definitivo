@@ -1,11 +1,18 @@
+<<<<<<< HEAD
 import { useState, useEffect } from 'react';
 import './InicioCli.css';
 import { useNavigate } from "react-router-dom";
 import { Outlet } from 'react-router-dom';
+=======
+import  { useState, useEffect } from 'react';
+import './InicioCli.css';
+import { useNavigate } from "react-router-dom";
+>>>>>>> 7bad6dd (add conexion venta)
 import {
     FaHome,
     FaSignOutAlt,
     FaShoppingCart,
+<<<<<<< HEAD
     FaShoppingBag,
     FaHeart,
     FaUser,
@@ -30,6 +37,16 @@ const InicioCli = () => {
     const [mostrarNotificaciones, setMostrarNotificaciones] = useState(false);
     const [modoOscuro, setModoOscuro] = useState(false);
     const navigate = useNavigate();
+=======
+    FaShoppingBag
+ } from "react-icons/fa";
+ import { FaShop } from "react-icons/fa6";
+
+const InicioCli = () => {
+    const [productos, setProductos] = useState([]);
+    const [isCollapsed, setIsCollapsed] = useState(false);
+    const navigate = useNavigate(); // Asegúrate de inicializar useNavigate
+>>>>>>> 7bad6dd (add conexion venta)
 
     // Simulación de datos de productos
     useEffect(() => {
@@ -97,6 +114,7 @@ const InicioCli = () => {
         ]);
     }, []);
 
+<<<<<<< HEAD
     // Filtrar productos por categoría y búsqueda
     const productosFiltrados = productos.filter(producto => {
         const coincideCategoria = categoriaSeleccionada === 'Todos' || producto.categoria === categoriaSeleccionada;
@@ -199,6 +217,46 @@ const InicioCli = () => {
                         </button>
                     </div>
                 </aside>
+=======
+    const toggleSidebar = () => {
+        setIsCollapsed(!isCollapsed);
+    };
+
+    return (
+        <div className="dashboard-container">
+            {/* Barra lateral */}
+            <aside className={`sidebar ${isCollapsed ? 'collapsed' : ''}`}>
+                <div className="sidebar-header">
+                    <h2 className="menu-title">Menú</h2>
+                    <span 
+                        className={`collapse-arrow ${isCollapsed ? 'rotated' : ''}`}
+                        onClick={toggleSidebar}
+                    >
+                        ◄
+                    </span>
+                </div>
+                <ul className="menu-items">
+                    <li>
+                        <span><FaHome/></span> <span className="menu-text">Inicio</span>
+                    </li>
+                    <li>
+                        <span><FaShop/> </span> <span className="menu-text">Tienda</span>
+                    </li>
+                    <li>
+                        <span> <FaShoppingCart/> </span> <span className="menu-text">Carrito</span>
+                    </li>
+                    <li>
+                        <span>< FaShoppingBag /></span> <span className="menu-text">Mis pedidos</span>
+                    </li>
+                </ul>
+                <div className="sidebar-footer">
+                    <button onClick={() => navigate('/Bienvenido')} className="exit-btn">
+                        <FaSignOutAlt className="exit-icon" />
+                        <span>Cerrar Sesión</span>
+                    </button>
+                </div>
+            </aside>
+>>>>>>> 7bad6dd (add conexion venta)
 
                 {/* Contenido principal */}
                 <main className="main-content">

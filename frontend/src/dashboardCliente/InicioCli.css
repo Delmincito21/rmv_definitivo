@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 /* Variables globales */
 :root {
   --primary-color: #2196F3;
@@ -245,6 +246,8 @@ button {
   flex: 1;
 }
 
+=======
+>>>>>>> 7bad6dd (add conexion venta)
 /* Barra lateral */
 .sidebar {
   width: 250px;
@@ -258,6 +261,15 @@ button {
   overflow-y: auto;
   display: flex;
   flex-direction: column;
+<<<<<<< HEAD
+=======
+  gap: 1rem;
+  color: white;
+  height: 100vh;
+  padding: 0;
+  width: 250px;
+  transition: width 0.3s ease;
+>>>>>>> 7bad6dd (add conexion venta)
 }
 
 .user-info {
@@ -269,6 +281,7 @@ button {
   margin-bottom: 1rem;
 }
 
+<<<<<<< HEAD
 .user-avatar {
   width: 80px;
   height: 80px;
@@ -306,6 +319,27 @@ button {
   align-items: center;
   gap: 0.8rem;
   color: var(--text-color);
+=======
+.sidebar.collapsed {
+  width: 60px;
+}
+
+.sidebar ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.sidebar ul li {
+  padding: 0.5rem 0;
+}
+
+.sidebar li {
+  padding: 15px 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+>>>>>>> 7bad6dd (add conexion venta)
   cursor: pointer;
   transition: var(--transition);
   position: relative;
@@ -366,9 +400,38 @@ button {
   color: white;
 }
 
+.sidebar li:hover {
+  background-color: #34495e;
+}
+
+.sidebar li.active {
+  background-color: #3498db;
+}
+
+.sidebar-footer {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  padding: 20px;
+}
+
+.exit-btn {
+  width: 100%;
+  padding: 10px;
+  background-color: #e74c3c;
+  border: none;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
 /* Contenido principal */
 .main-content {
   flex: 1;
+<<<<<<< HEAD
   padding: 1.5rem;
   overflow-y: auto;
 }
@@ -639,6 +702,10 @@ button {
   background-color: var(--bg-color);
   color: var(--text-color);
 }
+=======
+}
+
+>>>>>>> 7bad6dd (add conexion venta)
 
 .buy-now-button {
   background-color: var(--primary-color);
@@ -660,6 +727,7 @@ button {
   cursor: not-allowed;
 }
 
+<<<<<<< HEAD
 /* Sección de recomendaciones */
 .recommendations-section {
   margin-top: 3rem;
@@ -833,3 +901,58 @@ button {
     width: 280px;
   }
 }
+=======
+.sidebar-header {
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #1a2634;
+}
+
+.menu-title {
+    margin: 0;
+    color: white;
+    font-size: 1.5rem;
+    font-weight: 700;
+    font-family: 'Segoe UI', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.collapse-arrow {
+    color: white;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
+
+.collapse-arrow.rotated {
+    transform: rotate(180deg);
+}
+
+.sidebar.collapsed .menu-title {
+    display: none;
+}
+
+.sidebar.collapsed .menu-text {
+    display: none;
+}
+
+.menu-items li {
+    padding: 15px 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    white-space: nowrap;
+}
+
+.sidebar.collapsed .menu-items li {
+    padding: 15px;
+    justify-content: center;
+}
+
+.menu-text {
+    transition: opacity 0.3s ease;
+}
+
+>>>>>>> 7bad6dd (add conexion venta)

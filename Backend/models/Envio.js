@@ -3,7 +3,11 @@ const db = require('../config/db.config.js');
 class Envio {
     static async getAll() {
         try {
+<<<<<<< HEAD
             const [rows] = await db.query('SELECT * FROM envios WHERE estado = "activo"');
+=======
+            const [rows] = await db.promise().query('SELECT * FROM envios WHERE estado = "activo"');
+>>>>>>> 7bad6dd (add conexion venta)
             return rows;
         } catch (error) {
             throw error;
@@ -20,7 +24,7 @@ class Envio {
         } = envioData;
 
         try {
-            const [result] = await db.query(
+            const [result] = await db.promise().query(
                 `INSERT INTO envios (
                     fecha_estimada_envio,
                     direccion_entrega_envio,
@@ -63,7 +67,11 @@ class Envio {
 
     static async update(id, envioData) {
         try {
+<<<<<<< HEAD
             const [result] = await db.query(
+=======
+            const [result] = await db.promise().query(
+>>>>>>> 7bad6dd (add conexion venta)
                 'UPDATE envios SET ? WHERE id_envio = ?',
                 [envioData, id]
             );

@@ -12,7 +12,11 @@ const PagoForm = ({ total, onSubmit, setPaso, id_venta }) => {
     fecha_pago: new Date().toISOString().slice(0, 16),
     metodo_pago: 'transferencia',
     referencia: '',
+<<<<<<< HEAD
     banco_emisor: '', 
+=======
+    banco_emisor: '',
+>>>>>>> 7bad6dd (add conexion venta)
     estado_pago: 'pendiente',
     id_venta: id_venta
   });
@@ -50,10 +54,93 @@ const PagoForm = ({ total, onSubmit, setPaso, id_venta }) => {
   };
 
   return (
+<<<<<<< HEAD
     <div className="pago-form-container">
       <form onSubmit={handleSubmit} className="pago-form">
         <button type="button" className="back-btn" onClick={handleVolver}>
           <FaArrowLeft /> Volver
+=======
+    <form onSubmit={handleSubmit} className="pago-form">
+      <button type="button" className="back-btn" onClick={handleVolver}>
+        <FaArrowLeft /> Volver
+      </button>
+      <h3 className="section-subtitle">Información de Pago</h3>
+
+      <div className="form-row">
+        <div className={`form-field ${errores.monto ? 'error' : ''}`}>
+          <label>Monto</label>
+          <input
+            type="number"
+            value={datosPago.monto}
+            onChange={(e) => setDatosPago({ ...datosPago, monto: e.target.value })}
+            placeholder="0.00"
+            step="0.01"
+          />
+          {errores.monto && <div className="error-message">{errores.monto}</div>}
+        </div>
+
+        <div className="form-field">
+          <label>Fecha de Pago</label>
+          <input
+            type="datetime-local"
+            value={datosPago.fecha_pago}
+            onChange={(e) => setDatosPago({ ...datosPago, fecha_pago: e.target.value })}
+          />
+        </div>
+      </div>
+
+      <div className="form-row">
+        <div className="form-field">
+          <label>Método de Pago</label>
+          <input
+            type="text"
+            value="Transferencia"
+            readOnly
+          />
+        </div>
+
+        <div className={`form-field ${errores.referencia ? 'error' : ''}`}>
+          <label>Número de Referencia</label>
+          <input
+            type="text"
+            value={datosPago.referencia}
+            onChange={(e) => setDatosPago({ ...datosPago, referencia: e.target.value })}
+            placeholder="Número de referencia"
+          />
+          {errores.referencia && <div className="error-message">{errores.referencia}</div>}
+        </div>
+      </div>
+
+      <div className="form-row">
+        <div className={`form-field ${errores.banco_emisor ? 'error' : ''}`}>
+          <label>Banco Emisor</label>
+          <input
+            type="text"
+            value={datosPago.banco_emisor}
+            onChange={(e) => setDatosPago({ ...datosPago, banco_emisor: e.target.value })}
+            placeholder="Nombre del banco"
+          />
+          {errores.banco_emisor && <div className="error-message">{errores.banco_emisor}</div>}
+        </div>
+
+        <div className="form-field">
+          <label>Estado del Pago</label>
+          <select
+            value={datosPago.estado_pago}
+            onChange={(e) => setDatosPago({ ...datosPago, estado_pago: e.target.value })}
+          >
+            <option value="pendiente">Pendiente</option>
+            <option value="completado">Completado</option>
+            <option value="fallido">Fallido</option>
+            <option value="reembolsado">Reembolsado</option>
+          </select>
+        </div>
+      </div>
+
+      <div className="form-actions">
+        <button type="submit" className="submit-btn">
+          <FaCreditCard /> Procesar Pago
+>>>>>>> 7bad6dd (add conexion venta)
         </button>
         <h3 className="section-subtitle">Información de Pago</h3>
 
@@ -177,10 +264,45 @@ const EnvioForm = ({ onSubmit, setPaso, id_orden }) => {
   };
 
   return (
+<<<<<<< HEAD
     <div className="envio-form-container">
       <form onSubmit={handleSubmit} className="envio-form">
         <button type="button" className="back-btn" onClick={handleVolver}>
           <FaArrowLeft /> Volver
+=======
+    <form onSubmit={handleSubmit} className="envio-form">
+      <button type="button" className="back-btn" onClick={handleVolver}>
+        <FaArrowLeft /> Volver
+      </button>
+      <h3 className="section-subtitle">Información de Envío</h3>
+
+      <div className="form-row">
+        <div className={`form-field ${errores.fecha_estimada_envio ? 'error' : ''}`}>
+          <label>Fecha de Entrega</label>
+          <input
+            type="datetime-local"
+            value={datosEnvio.fecha_estimada_envio}
+            onChange={(e) => setDatosEnvio({ ...datosEnvio, fecha_estimada_envio: e.target.value })}
+          />
+          {errores.fecha_estimada_envio && <div className="error-message">{errores.fecha_estimada_envio}</div>}
+        </div>
+
+        <div className={`form-field ${errores.direccion_entrega_envio ? 'error' : ''}`}>
+          <label>Dirección</label>
+          <input
+            type="text"
+            value={datosEnvio.direccion_entrega_envio}
+            onChange={(e) => setDatosEnvio({ ...datosEnvio, direccion_entrega_envio: e.target.value })}
+            placeholder="Dirección de entrega"
+          />
+          {errores.direccion_entrega_envio && <div className="error-message">{errores.direccion_entrega_envio}</div>}
+        </div>
+      </div>
+
+      <div className="form-actions">
+        <button type="submit" className="submit-btn">
+          <FaTruck /> Confirmar Envío
+>>>>>>> 7bad6dd (add conexion venta)
         </button>
         <h3 className="section-subtitle">Información de Envío</h3>
 
@@ -246,11 +368,14 @@ const Ventas = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [ordenId, setOrdenId] = useState(null);
+<<<<<<< HEAD
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [selectedVentaId, setSelectedVentaId] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedVenta, setSelectedVenta] = useState(null);
   const navigate = useNavigate();
+=======
+>>>>>>> 7bad6dd (add conexion venta)
 
   useEffect(() => {
     fetch('http://localhost:3000/ventas')
@@ -258,7 +383,10 @@ const Ventas = () => {
       .then(data => {
         console.log('Ventas obtenidas del backend:', data);
         setVentas(data);
+<<<<<<< HEAD
         setVentasFiltradas(data);
+=======
+>>>>>>> 7bad6dd (add conexion venta)
         setLoading(false);
       })
       .catch(err => {
@@ -463,6 +591,7 @@ const Ventas = () => {
         // Guardar el ID de la venta en el estado
         setDatosVenta(prev => ({ ...prev, id_venta: idVenta }));
         setPaso('pago');
+<<<<<<< HEAD
 
         // Recargar la lista de ventas
         const ventasResponse = await fetch('http://localhost:3000/ventas');
@@ -471,6 +600,8 @@ const Ventas = () => {
         setVentasFiltradas(ventasData);
         setMostrarFormulario(false);
         setPaso('venta');
+=======
+>>>>>>> 7bad6dd (add conexion venta)
       } catch (error) {
         console.error('Error completo:', error);
         alert('Error al procesar la venta: ' + error.message);
@@ -491,6 +622,7 @@ const Ventas = () => {
       });
 
       if (!response.ok) {
+<<<<<<< HEAD
         let errorMsg = 'Error al procesar el pago';
         try {
           const errorData = await response.json();
@@ -499,6 +631,9 @@ const Ventas = () => {
           if (errorData.sqlMessage) errorMsg += ' - ' + errorData.sqlMessage;
         } catch (e) {}
         throw new Error(errorMsg);
+=======
+        throw new Error('Error al procesar el pago');
+>>>>>>> 7bad6dd (add conexion venta)
       }
 
       // Crear la orden
@@ -529,6 +664,7 @@ const Ventas = () => {
       setOrdenId(ordenResult.id); // Guardamos el ID de la orden
       setPaso('envio');
 
+<<<<<<< HEAD
       // Recargar la lista de ventas
       const ventasResponse = await fetch('http://localhost:3000/ventas');
       const ventasData = await ventasResponse.json();
@@ -537,6 +673,8 @@ const Ventas = () => {
       setMostrarFormulario(false);
       setPaso('venta');
 
+=======
+>>>>>>> 7bad6dd (add conexion venta)
     } catch (error) {
       console.error('Error:', error);
       alert('Error al procesar el pago o crear la orden: ' + error.message);
@@ -565,7 +703,10 @@ const Ventas = () => {
       const ventasResponse = await fetch('http://localhost:3000/ventas');
       const ventasData = await ventasResponse.json();
       setVentas(ventasData);
+<<<<<<< HEAD
       setVentasFiltradas(ventasData);
+=======
+>>>>>>> 7bad6dd (add conexion venta)
     } catch (error) {
       console.error('Error:', error);
       alert('Error al procesar el envío: ' + error.message);

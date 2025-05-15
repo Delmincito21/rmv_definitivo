@@ -1,10 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import  { useState, useEffect } from 'react';
 import './InicioCli.css';
-<<<<<<< Updated upstream
 import { useNavigate } from "react-router-dom";
-import { FaSignOutAlt } from "react-icons/fa";
-=======
-import { useNavigate, NavLink } from "react-router-dom";
 import {
     FaHome,
     FaSignOutAlt,
@@ -12,10 +8,10 @@ import {
     FaShoppingBag
  } from "react-icons/fa";
  import { FaShop } from "react-icons/fa6";
->>>>>>> Stashed changes
 
 const InicioCli = () => {
     const [productos, setProductos] = useState([]);
+    const [isCollapsed, setIsCollapsed] = useState(false);
     const navigate = useNavigate(); // Asegúrate de inicializar useNavigate
 
     // Simulación de datos o puedes reemplazar con una llamada a tu API
@@ -29,24 +25,13 @@ const InicioCli = () => {
         ]);
     }, []);
 
+    const toggleSidebar = () => {
+        setIsCollapsed(!isCollapsed);
+    };
+
     return (
         <div className="dashboard-container">
             {/* Barra lateral */}
-<<<<<<< Updated upstream
-            <aside className="sidebar">
-                <h2>Menú</h2>
-                <ul>
-                    <li>Inicio</li>
-                    <li>Productos</li>
-                    <li>Ventas</li>
-                    <li>Perfil</li>
-                    <div className="sidebar-footer">
-                        <button onClick={() => navigate('/Bienvenido')} className="exit-btn">
-                            <FaSignOutAlt className="exit-icon" />
-                            <span>Cerrar Sesión</span>
-                        </button>
-                    </div>
-=======
             <aside className={`sidebar ${isCollapsed ? 'collapsed' : ''}`}>
                 <div className="sidebar-header">
                     <h2 className="menu-title">Menú</h2>
@@ -59,32 +44,24 @@ const InicioCli = () => {
                 </div>
                 <ul className="menu-items">
                     <li>
-                 <NavLink to="/Tienda" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>
-                        <FaHome  className="nav-icon"/>
-                         <span className="menu-text">Inicio</span>
-                    </NavLink>  
+                        <span><FaHome/></span> <span className="menu-text">Inicio</span>
                     </li>
                     <li>
-                 <NavLink to="/Tienda" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>
-                        <FaShop  className="nav-icon"/> 
-                         <span className="menu-text">Tienda</span>
-                    </NavLink>
+                        <span><FaShop/> </span> <span className="menu-text">Tienda</span>
                     </li>
                     <li>
-                  <NavLink to="/Carrito" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>
-                        <FaShoppingCart  className="nav-icon"/> 
-                         <span className="menu-text">Carrito</span>
-                    </NavLink>
+                        <span> <FaShoppingCart/> </span> <span className="menu-text">Carrito</span>
                     </li>
                     <li>
-                        <NavLink to="/Pedidos" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>
-                        < FaShoppingBag className="nav-icon"/> 
-                        <span className="menu-text">Mis pedidos</span>
-                        </NavLink>
+                        <span>< FaShoppingBag /></span> <span className="menu-text">Mis pedidos</span>
                     </li>
-                    
->>>>>>> Stashed changes
                 </ul>
+                <div className="sidebar-footer">
+                    <button onClick={() => navigate('/Bienvenido')} className="exit-btn">
+                        <FaSignOutAlt className="exit-icon" />
+                        <span>Cerrar Sesión</span>
+                    </button>
+                </div>
             </aside>
 
             {/* Contenido principal */}

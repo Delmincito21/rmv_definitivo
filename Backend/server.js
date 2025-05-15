@@ -3,6 +3,11 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const db = require('./config/db.config'); // Cambiado a db.config.js
 const Producto = require('./models/productos');
+const Venta = require('./models/venta');
+const DetalleVenta = require('./models/DetalleVenta.js');
+const Orden = require('./models/Orden.js');
+const Envio = require('./models/Envio');
+const Pago = require('./models/Pago.js');
 const bcrypt = require('bcrypt');
 const clientes = require('./models/clientes');
 // Abre la consola de Node.js con: node
@@ -14,6 +19,7 @@ const PORT = 3000;
 // Middleware
 app.use(cors());
 app.use(bodyParser.json());
+app.use(express.json());
 
 // Prueba de conexión a la base de datos
 db.query('SELECT 1 + 1 AS resultado', (err, results) => {
@@ -34,7 +40,7 @@ app.get('/clientes', (req, res) => {
             console.error('Error al obtener clientes:', err);
             return res.status(500).json({ error: 'Error al obtener clientes' });
         }
-        console.log('Clientes obtenidos:', results); // Verifica los datos aquí
+        console.log('Clientes obtenidos:', results);
         res.json(results);
     });
 });
@@ -47,11 +53,22 @@ app.get('/clientes', (req, res) => {
 //     });
 // });
 
-app.get('/venta', (req, res) => {
+app.get('/ventas', (req, res) => {
     const query = `
-        SELECT v.id_venta, v.fecha_venta, c.nombre_clientes AS cliente, v.total, v.estado_venta
+        SELECT 
+            v.id_venta, 
+            v.fecha_venta, 
+            c.nombre_clientes AS cliente, 
+            v.estado_venta,
+            (
+                SELECT COALESCE(SUM(dv.subtotal_detalle_venta), 0)
+                FROM detalle_venta dv
+                WHERE dv.id_venta = v.id_venta
+            ) as total
         FROM venta v
-        JOIN clientes c ON v.id_cliente = c.id_clientes
+        JOIN usuarios u ON v.id_usuario = u.id_usuario
+        JOIN clientes c ON u.id_usuario = c.id_clientes
+        WHERE v.estado = 'activo'
     `;
 
     db.query(query, (err, results) => {
@@ -59,7 +76,7 @@ app.get('/venta', (req, res) => {
             console.error('Error al obtener las ventas:', err);
             return res.status(500).json({ error: 'Error al obtener las ventas' });
         }
-        console.log('Ventas obtenidas:', results); // Verifica los datos aquí
+        console.log('Ventas obtenidas:', results);
         res.json(results);
     });
 });
@@ -216,6 +233,363 @@ app.post('/login', async (req, res) => {
         res.json({ message: 'Login exitoso', rol: usuario.rol });
     } catch (error) {
         res.status(500).json({ error: 'Error en el servidor', details: error.message });
+    }
+});
+
+// Rutas de Ventas
+app.get('/ventas', async (req, res) => {
+    try {
+        const ventas = await Venta.getAll();
+        res.json(ventas);
+    } catch (error) {
+        console.error('Error al obtener ventas:', error);
+        res.status(500).json({ error: 'Error al obtener ventas' });
+    }
+});
+
+app.post('/ventas', async (req, res) => {
+    try {
+        console.log('Datos recibidos en /ventas:', req.body);
+        const result = await Venta.create(req.body);
+        console.log('Resultado de crear venta:', result);
+        res.status(201).json({
+            message: 'Venta creada exitosamente',
+            id: result.insertId
+        });
+    } catch (error) {
+        console.error('Error detallado al crear la venta:', error);
+        res.status(500).json({ 
+            error: 'Error al crear la venta',
+            details: error.message,
+            sqlMessage: error.sqlMessage
+        });
+    }
+});
+
+app.get('/ventas/:id', async (req, res) => {
+    try {
+        const venta = await Venta.getById(req.params.id);
+        if (!venta) {
+            return res.status(404).json({ error: 'Venta no encontrada' });
+        }
+        res.json(venta);
+    } catch (error) {
+        console.error('Error al obtener la venta:', error);
+        res.status(500).json({ error: 'Error al obtener la venta' });
+    }
+});
+
+app.put('/ventas/:id', async (req, res) => {
+    try {
+        const result = await Venta.update(req.params.id, req.body);
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Venta no encontrada' });
+        }
+        res.json({ message: 'Venta actualizada exitosamente' });
+    } catch (error) {
+        console.error('Error al actualizar la venta:', error);
+        res.status(500).json({ error: 'Error al actualizar la venta' });
+    }
+});
+
+app.delete('/ventas/:id', async (req, res) => {
+    try {
+        const result = await Venta.delete(req.params.id);
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Venta no encontrada' });
+        }
+        res.json({ message: 'Venta eliminada exitosamente' });
+    } catch (error) {
+        console.error('Error al eliminar la venta:', error);
+        res.status(500).json({ error: 'Error al eliminar la venta' });
+    }
+});
+
+// Rutas de Detalle Venta
+app.get('/detalle-ventas', async (req, res) => {
+    try {
+        const detalles = await DetalleVenta.getAll();
+        res.json(detalles);
+    } catch (error) {
+        console.error('Error al obtener detalles de venta:', error);
+        res.status(500).json({ error: 'Error al obtener detalles de venta' });
+    }
+});
+
+app.post('/detalle-ventas', async (req, res) => {
+    try {
+        console.log('Datos recibidos en /detalle-ventas:', req.body);
+        
+        // Validar que todos los campos requeridos estén presentes
+        const { id_venta, id_producto, cantidad_detalle_venta, precio_unitario_detalle_venta, subtotal_detalle_venta } = req.body;
+        
+        if (!id_venta || !id_producto || !cantidad_detalle_venta || !precio_unitario_detalle_venta) {
+            return res.status(400).json({ 
+                error: 'Faltan datos requeridos',
+                details: 'Todos los campos son obligatorios'
+            });
+        }
+
+        // Intentar crear el detalle de venta
+        const result = await DetalleVenta.create(req.body);
+        console.log('Resultado de crear detalle venta:', result);
+        
+        res.status(201).json({
+            message: 'Detalle de venta creado exitosamente',
+            id: result.insertId
+        });
+    } catch (error) {
+        console.error('Error detallado al crear el detalle de venta:', error);
+        res.status(500).json({ 
+            error: 'Error al crear el detalle de venta',
+            details: error.message,
+            sqlMessage: error.sqlMessage
+        });
+    }
+});
+
+app.get('/detalle-ventas/venta/:id', async (req, res) => {
+    try {
+        const detalles = await DetalleVenta.getByVentaId(req.params.id);
+        res.json(detalles);
+    } catch (error) {
+        console.error('Error al obtener detalles de la venta:', error);
+        res.status(500).json({ error: 'Error al obtener detalles de la venta' });
+    }
+});
+
+// Rutas de Órdenes
+app.get('/orden', async (req, res) => {
+    try {
+        const ordenes = await Orden.getAll();
+        res.json(ordenes);
+    } catch (error) {
+        console.error('Error al obtener órdenes:', error);
+        res.status(500).json({ error: 'Error al obtener órdenes' });
+    }
+});
+
+app.post('/orden', async (req, res) => {
+    try {
+        const result = await Orden.create(req.body);
+        res.status(201).json({
+            message: 'Orden creada exitosamente',
+            id: result.insertId
+        });
+    } catch (error) {
+        console.error('Error al crear la orden:', error);
+        res.status(500).json({ error: 'Error al crear la orden' });
+    }
+});
+
+app.get('/orden/:id', async (req, res) => {
+    try {
+        const orden = await Orden.getById(req.params.id);
+        if (!orden) {
+            return res.status(404).json({ error: 'Orden no encontrada' });
+        }
+        res.json(orden);
+    } catch (error) {
+        console.error('Error al obtener la orden:', error);
+        res.status(500).json({ error: 'Error al obtener la orden' });
+    }
+});
+
+app.get('/orden/usuario/:id', async (req, res) => {
+    try {
+        const ordenes = await Orden.getByUsuarioId(req.params.id);
+        res.json(ordenes);
+    } catch (error) {
+        console.error('Error al obtener las órdenes del usuario:', error);
+        res.status(500).json({ error: 'Error al obtener las órdenes del usuario' });
+    }
+});
+
+app.put('/orden/:id', async (req, res) => {
+    try {
+        const result = await Orden.update(req.params.id, req.body);
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Orden no encontrada' });
+        }
+        res.json({ message: 'Orden actualizada exitosamente' });
+    } catch (error) {
+        console.error('Error al actualizar la orden:', error);
+        res.status(500).json({ error: 'Error al actualizar la orden' });
+    }
+});
+
+app.delete('/orden/:id', async (req, res) => {
+    try {
+        const result = await Orden.delete(req.params.id);
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Orden no encontrada' });
+        }
+        res.json({ message: 'Orden eliminada exitosamente' });
+    } catch (error) {
+        console.error('Error al eliminar la orden:', error);
+        res.status(500).json({ error: 'Error al eliminar la orden' });
+    }
+});
+
+// Rutas de Envíos
+app.get('/envios', async (req, res) => {
+    try {
+        const envios = await Envio.getAll();
+        res.json(envios);
+    } catch (error) {
+        console.error('Error al obtener envíos:', error);
+        res.status(500).json({ error: 'Error al obtener envíos' });
+    }
+});
+
+app.post('/envios', async (req, res) => {
+    try {
+        const result = await Envio.create(req.body);
+        res.status(201).json({
+            message: 'Envío creado exitosamente',
+            id: result.insertId
+        });
+    } catch (error) {
+        console.error('Error al crear el envío:', error);
+        res.status(500).json({ error: 'Error al crear el envío' });
+    }
+});
+
+app.get('/envios/:id', async (req, res) => {
+    try {
+        const envio = await Envio.getById(req.params.id);
+        if (!envio) {
+            return res.status(404).json({ error: 'Envío no encontrado' });
+        }
+        res.json(envio);
+    } catch (error) {
+        console.error('Error al obtener el envío:', error);
+        res.status(500).json({ error: 'Error al obtener el envío' });
+    }
+});
+
+app.get('/envios/orden/:id', async (req, res) => {
+    try {
+        const envio = await Envio.getByOrdenId(req.params.id);
+        if (!envio) {
+            return res.status(404).json({ error: 'Envío no encontrado para esta orden' });
+        }
+        res.json(envio);
+    } catch (error) {
+        console.error('Error al obtener el envío:', error);
+        res.status(500).json({ error: 'Error al obtener el envío' });
+    }
+});
+
+app.put('/envios/:id', async (req, res) => {
+    try {
+        const result = await Envio.update(req.params.id, req.body);
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Envío no encontrado' });
+        }
+        res.json({ message: 'Envío actualizado exitosamente' });
+    } catch (error) {
+        console.error('Error al actualizar el envío:', error);
+        res.status(500).json({ error: 'Error al actualizar el envío' });
+    }
+});
+
+app.put('/envios/:id/estado', async (req, res) => {
+    try {
+        const { estado } = req.body;
+        if (!estado) {
+            return res.status(400).json({ error: 'El estado es requerido' });
+        }
+        const result = await Envio.updateEstado(req.params.id, estado);
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Envío no encontrado' });
+        }
+        res.json({ message: 'Estado del envío actualizado exitosamente' });
+    } catch (error) {
+        console.error('Error al actualizar el estado del envío:', error);
+        res.status(500).json({ error: 'Error al actualizar el estado del envío' });
+    }
+});
+
+app.delete('/envios/:id', async (req, res) => {
+    try {
+        const result = await Envio.delete(req.params.id);
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Envío no encontrado' });
+        }
+        res.json({ message: 'Envío eliminado exitosamente' });
+    } catch (error) {
+        console.error('Error al eliminar el envío:', error);
+        res.status(500).json({ error: 'Error al eliminar el envío' });
+    }
+});
+
+// Rutas de Pagos
+app.get('/pagos', async (req, res) => {
+    try {
+        const pagos = await Pago.getAll();
+        res.json(pagos);
+    } catch (error) {
+        console.error('Error al obtener pagos:', error);
+        res.status(500).json({ error: 'Error al obtener pagos' });
+    }
+});
+
+app.post('/pagos', async (req, res) => {
+    try {
+        console.log('Datos recibidos en /pagos:', req.body);
+        const result = await Pago.create(req.body);
+        console.log('Resultado de crear pago:', result);
+        res.status(201).json({
+            message: 'Pago creado exitosamente',
+            id: result.insertId
+        });
+    } catch (error) {
+        console.error('Error detallado al crear el pago:', error);
+        res.status(500).json({ 
+            error: 'Error al crear el pago',
+            details: error.message,
+            sqlMessage: error.sqlMessage
+        });
+    }
+});
+
+app.get('/pagos/:id', async (req, res) => {
+    try {
+        const pago = await Pago.getById(req.params.id);
+        if (!pago) {
+            return res.status(404).json({ error: 'Pago no encontrado' });
+        }
+        res.json(pago);
+    } catch (error) {
+        console.error('Error al obtener el pago:', error);
+        res.status(500).json({ error: 'Error al obtener el pago' });
+    }
+});
+
+app.put('/pagos/:id', async (req, res) => {
+    try {
+        const result = await Pago.update(req.params.id, req.body);
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Pago no encontrado' });
+        }
+        res.json({ message: 'Pago actualizado exitosamente' });
+    } catch (error) {
+        console.error('Error al actualizar el pago:', error);
+        res.status(500).json({ error: 'Error al actualizar el pago' });
+    }
+});
+
+app.delete('/pagos/:id', async (req, res) => {
+    try {
+        const result = await Pago.delete(req.params.id);
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Pago no encontrado' });
+        }
+        res.json({ message: 'Pago eliminado exitosamente' });
+    } catch (error) {
+        console.error('Error al eliminar el pago:', error);
+        res.status(500).json({ error: 'Error al eliminar el pago' });
     }
 });
 

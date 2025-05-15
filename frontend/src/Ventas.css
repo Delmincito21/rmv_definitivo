@@ -591,12 +591,18 @@
   /* Contenedor principal */
   .ventas-container {
     padding: 20px;
-    max-width: 1200px;
-    margin: 0 auto;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
   }
   
   /* Header */
   .dashboard-header {
+    position: sticky;
+    top: 0;
+    background-color: white;
+    padding: 10px 0;
+    z-index: 100;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -717,32 +723,36 @@
   
   /* Tabla */
   .table-container {
-    background: white;
+    flex: 1;
+    overflow-y: auto;
+    margin-top: 20px;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
   }
   
   .data-table {
     width: 100%;
     border-collapse: collapse;
+    background-color: white;
   }
   
-  .data-table th,
-  .data-table td {
-    padding: 12px 15px;
-    text-align: left;
-    border-bottom: 1px solid #eee;
+  .data-table thead {
+    position: sticky;
+    top: 0;
+    background-color: #f8f9fa;
+    z-index: 1;
   }
   
   .data-table th {
-    background-color: #f8f9fa;
-    color: #2c3e50;
-    font-weight: 500;
+    padding: 12px;
+    text-align: left;
+    border-bottom: 2px solid #dee2e6;
+    font-weight: 600;
   }
   
-  .data-table tbody tr:hover {
-    background-color: #f9f9f9;
+  .data-table td {
+    padding: 12px;
+    border-bottom: 1px solid #dee2e6;
   }
   
   .estado {

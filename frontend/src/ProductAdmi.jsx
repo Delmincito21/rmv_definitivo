@@ -35,12 +35,17 @@ function AgregarProductoForm({ onCancel }) {
 
   const [loading, setLoading] = useState(false);
 <<<<<<< HEAD
+<<<<<<< HEAD
   const [setError] = useState(null);
   const [setCategorias] = useState([]);
 =======
   const [ setError] = useState(null);
   const [ setCategorias] = useState([]);
 >>>>>>> b179f98 (add estado in modal)
+=======
+  const [setError] = useState(null);
+  const [setCategorias] = useState([]);
+>>>>>>> bbc236f (boton editar y eliminar clientes)
   const [mostrarSuplidores, setMostrarSuplidores] = useState(false);
 
   const handleChange = (e) => {

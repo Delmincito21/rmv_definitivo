@@ -118,6 +118,50 @@ app.put('/clientes/:id', async (req, res) => {
     const { id } = req.params;
     const { nombre_clientes, telefono_clientes, direccion_clientes, correo_clientes, estado } = req.body;
 
+    try {
+        const [result] = await db.promise().query(
+            `UPDATE clientes SET 
+                nombre_clientes = ?, 
+                telefono_clientes = ?, 
+                direccion_clientes = ?, 
+                correo_clientes = ?, 
+                estado = ? 
+            WHERE id_clientes = ?`,
+            [nombre_clientes, telefono_clientes, direccion_clientes, correo_clientes, estado, id]
+        );
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Cliente no encontrado' });
+        }
+
+        res.json({ message: 'Cliente actualizado exitosamente' });
+    } catch (error) {
+        console.error('Error al actualizar el cliente:', error);
+        res.status(500).json({ error: 'Error al actualizar el cliente', details: error.message });
+    }
+});
+
+app.put('/clientes/:id/inactivar', async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const [result] = await db.promise().query(
+            'UPDATE clientes SET estado = "inactivo" WHERE id_clientes = ?',
+            [id]
+        );
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Cliente no encontrado' });
+        }
+
+        res.json({ message: 'Cliente inactivado exitosamente' });
+    } catch (error) {
+        console.error('Error al inactivar el cliente:', error);
+        res.status(500).json({ error: 'Error al inactivar el cliente', details: error.message });
+    }
+});
+
+// Ruta para obtener todas las ventas
 app.get('/ventas', (req, res) => {
     const query = `
         SELECT 
@@ -550,6 +594,7 @@ app.put('/ventas/:id/estado', async (req, res) => {
     } catch (error) {
         console.error('Error al actualizar estados:', error);
 <<<<<<< HEAD
+<<<<<<< HEAD
         res.status(500).json({
             error: 'Error al actualizar los estados',
             details: error.message
@@ -558,6 +603,11 @@ app.put('/ventas/:id/estado', async (req, res) => {
             error: 'Error al actualizar los estados',
             details: error.message 
 >>>>>>> ba488a2 (add btn delete venta)
+=======
+        res.status(500).json({
+            error: 'Error al actualizar los estados',
+            details: error.message
+>>>>>>> bbc236f (boton editar y eliminar clientes)
         });
     }
 });

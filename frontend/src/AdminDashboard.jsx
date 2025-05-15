@@ -68,7 +68,11 @@ const AdminDashboard = () => {
                                 <span className="nav-text">Ventas</span>
                             </NavLink>
                         </li>
+<<<<<<< HEAD
 
+=======
+                       
+>>>>>>> ba488a2 (add btn delete venta)
                         <li>
                             <NavLink to="/ProductAdmi" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>
                                 <FaBox className="nav-icon" />

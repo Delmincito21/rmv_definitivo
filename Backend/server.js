@@ -477,38 +477,62 @@ app.put('/ventas/:id/estado', async (req, res) => {
         const id_venta = req.params.id;
 
         // Actualizar estado de la venta
+<<<<<<< HEAD
         await db.query(
+=======
+        await db.promise().query(
+>>>>>>> ba488a2 (add btn delete venta)
             'UPDATE venta SET estado = ? WHERE id_venta = ?',
             [estado, id_venta]
         );
 
         // Actualizar estado de los detalles de venta
+<<<<<<< HEAD
         await db.query(
+=======
+        await db.promise().query(
+>>>>>>> ba488a2 (add btn delete venta)
             'UPDATE detalle_venta SET estado = ? WHERE id_venta = ?',
             [estado, id_venta]
         );
 
         // Actualizar estado de los pagos relacionados
+<<<<<<< HEAD
         await db.query(
+=======
+        await db.promise().query(
+>>>>>>> ba488a2 (add btn delete venta)
             'UPDATE pago SET estado = ? WHERE id_venta = ?',
             [estado, id_venta]
         );
 
         // Obtener las órdenes relacionadas con la venta
+<<<<<<< HEAD
         const [ordenes] = await db.query(
+=======
+        const [ordenes] = await db.promise().query(
+>>>>>>> ba488a2 (add btn delete venta)
             'SELECT id_orden FROM orden WHERE id_venta = ?',
             [id_venta]
         );
 
         // Actualizar estado de las órdenes
+<<<<<<< HEAD
         await db.query(
+=======
+        await db.promise().query(
+>>>>>>> ba488a2 (add btn delete venta)
             'UPDATE orden SET estado = ? WHERE id_venta = ?',
             [estado, id_venta]
         );
 
         // Actualizar estado de los envíos relacionados con las órdenes
         for (const orden of ordenes) {
+<<<<<<< HEAD
             await db.query(
+=======
+            await db.promise().query(
+>>>>>>> ba488a2 (add btn delete venta)
                 'UPDATE envios SET estado = ? WHERE id_orden = ?',
                 [estado, orden.id_orden]
             );
@@ -517,9 +541,15 @@ app.put('/ventas/:id/estado', async (req, res) => {
         res.json({ message: 'Estados actualizados exitosamente' });
     } catch (error) {
         console.error('Error al actualizar estados:', error);
+<<<<<<< HEAD
         res.status(500).json({
             error: 'Error al actualizar los estados',
             details: error.message
+=======
+        res.status(500).json({ 
+            error: 'Error al actualizar los estados',
+            details: error.message 
+>>>>>>> ba488a2 (add btn delete venta)
         });
     }
 });

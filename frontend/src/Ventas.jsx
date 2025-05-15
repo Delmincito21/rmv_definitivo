@@ -738,7 +738,10 @@ const Ventas = () => {
         const ventasResponse = await fetch('http://localhost:3000/ventas');
         const ventasData = await ventasResponse.json();
         setVentas(ventasData);
+<<<<<<< HEAD
         setVentasFiltradas(ventasData);
+=======
+>>>>>>> ba488a2 (add btn delete venta)
       } catch (error) {
         console.error('Error:', error);
         alert('Error al cambiar el estado de la venta: ' + error.message);
@@ -746,6 +749,7 @@ const Ventas = () => {
     }
   };
 
+<<<<<<< HEAD
   const handleEdit = (ventaId) => {
     setSelectedVentaId(ventaId);
     setModalIsOpen(true);
@@ -821,6 +825,8 @@ const Ventas = () => {
     }
   };
 
+=======
+>>>>>>> ba488a2 (add btn delete venta)
   return (
     <div className="ventas-container">
       <div className="dashboard-header">
@@ -1054,6 +1060,7 @@ const Ventas = () => {
                       <span className={`estado ${venta.estado_venta}`}>{venta.estado_venta}</span>
                     </td>
                     <td className="actions-cell">
+<<<<<<< HEAD
                       <button className="action-button view" onClick={() => handleVerDetalles(venta.id_venta)} title="Ver detalles">
                         <FaEye />
                       </button>
@@ -1070,6 +1077,15 @@ const Ventas = () => {
                         title="Eliminar"
                       >
                         <FaMinus />
+=======
+                      <button className="action-button view">Ver Detalles</button>
+                      <button className="action-button edit">Editar</button>
+                      <button 
+                        className="action-button delete"
+                        onClick={() => handleDelete(venta.id_venta)}
+                      >
+                        Eliminar
+>>>>>>> ba488a2 (add btn delete venta)
                       </button>
                     </td>
                   </tr>

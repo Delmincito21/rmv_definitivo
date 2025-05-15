@@ -330,14 +330,27 @@ app.get('/ventas/:id', async (req, res) => {
 
 app.put('/ventas/:id', async (req, res) => {
     try {
-        const result = await Venta.update(req.params.id, req.body);
+        const ventaData = { ...req.body };
+        
+        // Formatear la fecha correctamente para MySQL
+        if (ventaData.fecha_venta) {
+            const fecha = new Date(ventaData.fecha_venta);
+            ventaData.fecha_venta = fecha.toISOString().slice(0, 19).replace('T', ' ');
+        }
+
+        const [result] = await db.promise().query(
+            'UPDATE venta SET ? WHERE id_venta = ?',
+            [ventaData, req.params.id]
+        );
+        
         if (result.affectedRows === 0) {
             return res.status(404).json({ error: 'Venta no encontrada' });
         }
+        
         res.json({ message: 'Venta actualizada exitosamente' });
     } catch (error) {
         console.error('Error al actualizar la venta:', error);
-        res.status(500).json({ error: 'Error al actualizar la venta' });
+        res.status(500).json({ error: 'Error al actualizar la venta', details: error.message });
     }
 });
 
@@ -453,11 +466,14 @@ app.post('/detalle-ventas', async (req, res) => {
 
 app.get('/detalle-ventas/venta/:id', async (req, res) => {
     try {
-        const detalles = await DetalleVenta.getByVentaId(req.params.id);
-        res.json(detalles);
+        const [rows] = await db.promise().query(
+            'SELECT * FROM detalle_venta WHERE id_venta = ? AND estado = "activo"',
+            [req.params.id]
+        );
+        res.json(rows); // Devolvemos todos los detalles encontrados
     } catch (error) {
-        console.error('Error al obtener detalles de la venta:', error);
-        res.status(500).json({ error: 'Error al obtener detalles de la venta' });
+        console.error('Error al obtener los detalles de venta:', error);
+        res.status(500).json({ error: 'Error al obtener los detalles de venta' });
     }
 });
 
@@ -510,10 +526,15 @@ app.get('/orden/usuario/:id', async (req, res) => {
 
 app.put('/orden/:id', async (req, res) => {
     try {
-        const result = await Orden.update(req.params.id, req.body);
+        const [result] = await db.promise().query(
+            'UPDATE orden SET ? WHERE id_orden = ?',
+            [req.body, req.params.id]
+        );
+        
         if (result.affectedRows === 0) {
             return res.status(404).json({ error: 'Orden no encontrada' });
         }
+        
         res.json({ message: 'Orden actualizada exitosamente' });
     } catch (error) {
         console.error('Error al actualizar la orden:', error);
@@ -571,29 +592,99 @@ app.get('/envios/:id', async (req, res) => {
     }
 });
 
+// Ruta para obtener envío por ID de orden
 app.get('/envios/orden/:id', async (req, res) => {
     try {
-        const envio = await Envio.getByOrdenId(req.params.id);
-        if (!envio) {
-            return res.status(404).json({ error: 'Envío no encontrado para esta orden' });
+        console.log('Buscando envío para orden:', req.params.id);
+        const [rows] = await db.promise().query(
+            'SELECT * FROM envios WHERE id_orden = ? AND estado = "activo"',
+            [req.params.id]
+        );
+        
+        console.log('Resultado de búsqueda de envío:', rows);
+        
+        if (rows.length === 0) {
+            return res.status(404).json({ 
+                error: 'No se encontró envío para esta orden',
+                ordenId: req.params.id 
+            });
         }
-        res.json(envio);
+        
+        // Devolver el primer envío encontrado
+        res.json(rows[0]);
     } catch (error) {
-        console.error('Error al obtener el envío:', error);
-        res.status(500).json({ error: 'Error al obtener el envío' });
+        console.error('Error al obtener el envío por orden:', error);
+        res.status(500).json({ 
+            error: 'Error al obtener el envío',
+            details: error.message,
+            ordenId: req.params.id
+        });
     }
 });
 
 app.put('/envios/:id', async (req, res) => {
     try {
-        const result = await Envio.update(req.params.id, req.body);
-        if (result.affectedRows === 0) {
-            return res.status(404).json({ error: 'Envío no encontrado' });
+        console.log('Datos recibidos para actualizar envío:', {
+            id: req.params.id,
+            body: req.body
+        });
+        
+        // Verificar si el envío existe antes de actualizar
+        const [existingEnvio] = await db.promise().query(
+            'SELECT id_envio FROM envios WHERE id_envio = ?',
+            [req.params.id]
+        );
+        
+        if (existingEnvio.length === 0) {
+            console.error('Envío no encontrado:', req.params.id);
+            return res.status(404).json({ 
+                error: 'Envío no encontrado',
+                message: 'No se encontró el envío con el ID especificado',
+                id: req.params.id
+            });
         }
-        res.json({ message: 'Envío actualizado exitosamente' });
+
+        const dataToUpdate = {
+            fecha_estimada_envio: req.body.fecha_estimada_envio ? 
+                new Date(req.body.fecha_estimada_envio).toISOString().slice(0, 19).replace('T', ' ') : 
+                null,
+            direccion_entrega_envio: req.body.direccion_entrega_envio,
+            estado_envio: req.body.estado_envio,
+            estado: req.body.estado || 'activo'
+        };
+        
+        console.log('Datos formateados para actualizar:', dataToUpdate);
+        
+        const [result] = await db.promise().query(
+            'UPDATE envios SET ? WHERE id_envio = ?',
+            [dataToUpdate, req.params.id]
+        );
+   
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ 
+                error: 'No se pudo actualizar el envío',
+                message: 'La actualización no afectó ningún registro',
+                id: req.params.id
+            });
+        }
+        
+        res.json({ 
+            message: 'Envío actualizado exitosamente',
+            updatedData: dataToUpdate,
+            id: req.params.id
+        });
     } catch (error) {
-        console.error('Error al actualizar el envío:', error);
-        res.status(500).json({ error: 'Error al actualizar el envío' });
+        console.error('Error detallado al actualizar el envío:', {
+            error: error.message,
+            stack: error.stack,
+            id: req.params.id
+        });
+        res.status(500).json({ 
+            error: 'Error al actualizar el envío',
+            details: error.message,
+            sqlMessage: error.sqlMessage,
+            id: req.params.id
+        });
     }
 });
 
@@ -672,10 +763,15 @@ app.get('/pagos/:id', async (req, res) => {
 
 app.put('/pagos/:id', async (req, res) => {
     try {
-        const result = await Pago.update(req.params.id, req.body);
+        const [result] = await db.promise().query(
+            'UPDATE pago SET ? WHERE id_pago = ?',
+            [req.body, req.params.id]
+        );
+        
         if (result.affectedRows === 0) {
             return res.status(404).json({ error: 'Pago no encontrado' });
         }
+        
         res.json({ message: 'Pago actualizado exitosamente' });
     } catch (error) {
         console.error('Error al actualizar el pago:', error);
@@ -696,6 +792,55 @@ app.delete('/pagos/:id', async (req, res) => {
     }
 });
 
+// Ruta para obtener pago por ID de venta
+app.get('/pagos/venta/:id', async (req, res) => {
+    try {
+        const [rows] = await db.promise().query(
+            'SELECT * FROM pago WHERE id_venta = ? AND estado = "activo"',
+            [req.params.id]
+        );
+        
+        if (rows.length === 0) {
+            return res.json(null); // Devolver null si no hay resultados
+        }
+        
+        res.json(rows[0]); // Devolver el primer pago encontrado
+    } catch (error) {
+        console.error('Error al obtener el pago:', error);
+        res.status(500).json({ error: 'Error al obtener el pago' });
+    }
+});
+
+// Ruta para obtener orden por ID de venta
+app.get('/orden/venta/:id', async (req, res) => {
+    try {
+        console.log('Buscando orden para venta:', req.params.id);
+        const [rows] = await db.promise().query(
+            'SELECT * FROM orden WHERE id_venta = ? AND estado = "activo"',
+            [req.params.id]
+        );
+        
+        console.log('Resultado de búsqueda de orden:', rows);
+        
+        if (rows.length === 0) {
+            return res.status(404).json({ 
+                error: 'No se encontró orden para esta venta',
+                ventaId: req.params.id 
+            });
+        }
+        
+        // Devolver la primera orden encontrada
+        res.json(rows[0]);
+    } catch (error) {
+        console.error('Error al obtener la orden por venta:', error);
+        res.status(500).json({ 
+            error: 'Error al obtener la orden',
+            details: error.message,
+            ventaId: req.params.id
+        });
+    }
+});
+
 // GET todos los suplidores
 app.get('/suplidores', async (req, res) => {
     try {
@@ -704,6 +849,25 @@ app.get('/suplidores', async (req, res) => {
     } catch (error) {
         console.error('Error al obtener suplidores:', error);
         res.status(500).json({ error: 'Error al obtener suplidores' });
+    }
+});
+
+// Ruta para actualizar un detalle de venta
+app.put('/detalle-ventas/:id_venta/:id_producto', async (req, res) => {
+    try {
+        const [result] = await db.promise().query(
+            'UPDATE detalle_venta SET ? WHERE id_venta = ? AND id_producto = ?',
+            [req.body, req.params.id_venta, req.params.id_producto]
+        );
+        
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Detalle de venta no encontrado' });
+        }
+        
+        res.json({ message: 'Detalle de venta actualizado exitosamente' });
+    } catch (error) {
+        console.error('Error al actualizar el detalle de venta:', error);
+        res.status(500).json({ error: 'Error al actualizar el detalle de venta' });
     }
 });
 

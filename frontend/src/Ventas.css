@@ -790,6 +790,15 @@
     color: #689f38;
   }
   
+  .action-button.delete {
+    background-color: #dc3545;
+    color: white;
+  }
+  
+  .action-button.delete:hover {
+    background-color: #c82333;
+  }
+  
   /* Responsive */
   @media (max-width: 768px) {
     .form-field {

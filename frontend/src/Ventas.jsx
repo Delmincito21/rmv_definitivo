@@ -521,6 +521,33 @@ const Ventas = () => {
     setMostrarFormulario(true);
   };
 
+  const handleDelete = async (id_venta) => {
+    if (window.confirm('¿Estás seguro que quieres eliminar esta venta? Se cambiarán a inactivo todos los registros relacionados.')) {
+      try {
+        const response = await fetch(`http://localhost:3000/ventas/${id_venta}/estado`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ estado: 'inactivo' })
+        });
+
+        if (!response.ok) {
+          throw new Error('Error al cambiar el estado de la venta');
+        }
+
+        alert('Se ha cambiado el estado exitosamente');
+        // Recargar la lista de ventas
+        const ventasResponse = await fetch('http://localhost:3000/ventas');
+        const ventasData = await ventasResponse.json();
+        setVentas(ventasData);
+      } catch (error) {
+        console.error('Error:', error);
+        alert('Error al cambiar el estado de la venta: ' + error.message);
+      }
+    }
+  };
+
   return (
     <div className="ventas-container">
       <div className="dashboard-header">
@@ -733,16 +760,22 @@ const Ventas = () => {
               ) : ventas.length > 0 ? (
                 ventas.map((venta, index) => (
                   <tr key={index}>
-                    <td>{venta.id}</td>
-                    <td>{venta.fecha}</td>
+                    <td>{venta.id_venta}</td>
+                    <td>{new Date(venta.fecha_venta).toLocaleString()}</td>
                     <td>{venta.cliente}</td>
                     <td>${venta.total}</td>
                     <td>
-                      <span className={`estado ${venta.estado}`}>{venta.estado}</span>
+                      <span className={`estado ${venta.estado_venta}`}>{venta.estado_venta}</span>
                     </td>
                     <td className="actions-cell">
                       <button className="action-button view">Ver Detalles</button>
                       <button className="action-button edit">Editar</button>
+                      <button 
+                        className="action-button delete"
+                        onClick={() => handleDelete(venta.id_venta)}
+                      >
+                        Eliminar
+                      </button>
                     </td>
                   </tr>
                 ))

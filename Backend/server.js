@@ -305,6 +305,60 @@ app.delete('/ventas/:id', async (req, res) => {
     }
 });
 
+// Ruta para cambiar el estado de una venta y sus registros relacionados
+app.put('/ventas/:id/estado', async (req, res) => {
+    try {
+        const { estado } = req.body;
+        const id_venta = req.params.id;
+
+        // Actualizar estado de la venta
+        await db.promise().query(
+            'UPDATE venta SET estado = ? WHERE id_venta = ?',
+            [estado, id_venta]
+        );
+
+        // Actualizar estado de los detalles de venta
+        await db.promise().query(
+            'UPDATE detalle_venta SET estado = ? WHERE id_venta = ?',
+            [estado, id_venta]
+        );
+
+        // Actualizar estado de los pagos relacionados
+        await db.promise().query(
+            'UPDATE pago SET estado = ? WHERE id_venta = ?',
+            [estado, id_venta]
+        );
+
+        // Obtener las órdenes relacionadas con la venta
+        const [ordenes] = await db.promise().query(
+            'SELECT id_orden FROM orden WHERE id_venta = ?',
+            [id_venta]
+        );
+
+        // Actualizar estado de las órdenes
+        await db.promise().query(
+            'UPDATE orden SET estado = ? WHERE id_venta = ?',
+            [estado, id_venta]
+        );
+
+        // Actualizar estado de los envíos relacionados con las órdenes
+        for (const orden of ordenes) {
+            await db.promise().query(
+                'UPDATE envios SET estado = ? WHERE id_orden = ?',
+                [estado, orden.id_orden]
+            );
+        }
+
+        res.json({ message: 'Estados actualizados exitosamente' });
+    } catch (error) {
+        console.error('Error al actualizar estados:', error);
+        res.status(500).json({ 
+            error: 'Error al actualizar los estados',
+            details: error.message 
+        });
+    }
+});
+
 // Rutas de Detalle Venta
 app.get('/detalle-ventas', async (req, res) => {
     try {

@@ -50,12 +50,7 @@ const AdminDashboard = () => {
                                 <span className="nav-text">Ventas</span>
                             </NavLink>
                         </li>
-                        <li>
-                            <NavLink to="/Pago" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>
-                                <FaMoneyBillWave className="nav-icon" />
-                                <span className="nav-text">Pagos</span>
-                            </NavLink>
-                        </li>
+                       
                         <li>
                             <NavLink to="/ProductAdmi" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>
                                 <FaBox className="nav-icon" />

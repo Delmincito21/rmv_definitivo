@@ -1,18 +1,18 @@
-import  { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import './InicioCli.css';
-import { useNavigate } from "react-router-dom";
+import { NavLink, useNavigate, Outlet } from "react-router-dom";
 import {
     FaHome,
     FaSignOutAlt,
     FaShoppingCart,
-    FaShoppingBag
- } from "react-icons/fa";
- import { FaShop } from "react-icons/fa6";
+    FaShoppingBag,
+} from "react-icons/fa";
+import { FaShop } from "react-icons/fa6";
 
 const InicioCli = () => {
     const [productos, setProductos] = useState([]);
     const [isCollapsed, setIsCollapsed] = useState(false);
-    const navigate = useNavigate(); // Asegúrate de inicializar useNavigate
+    const navigate = useNavigate();
 
     // Simulación de datos o puedes reemplazar con una llamada a tu API
     useEffect(() => {
@@ -35,7 +35,7 @@ const InicioCli = () => {
             <aside className={`sidebar ${isCollapsed ? 'collapsed' : ''}`}>
                 <div className="sidebar-header">
                     <h2 className="menu-title">Menú</h2>
-                    <span 
+                    <span
                         className={`collapse-arrow ${isCollapsed ? 'rotated' : ''}`}
                         onClick={toggleSidebar}
                     >
@@ -44,16 +44,22 @@ const InicioCli = () => {
                 </div>
                 <ul className="menu-items">
                     <li>
-                        <span><FaHome/></span> <span className="menu-text">Inicio</span>
+                        <NavLink to="/" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>
+                            <FaHome className="nav-icon" />
+                            <span className="nav-text">Inicio</span>
+                        </NavLink>
                     </li>
                     <li>
-                        <span><FaShop/> </span> <span className="menu-text">Tienda</span>
+                        <NavLink to="/Tienda" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>
+                            <FaShop className="nav-icon" />
+                            <span className="nav-text">Tienda</span>
+                        </NavLink>
                     </li>
                     <li>
-                        <span> <FaShoppingCart/> </span> <span className="menu-text">Carrito</span>
+                        <span><FaShoppingCart /></span> <span className="menu-text">Carrito</span>
                     </li>
                     <li>
-                        <span>< FaShoppingBag /></span> <span className="menu-text">Mis pedidos</span>
+                        <span><FaShoppingBag /></span> <span className="menu-text">Mis pedidos</span>
                     </li>
                 </ul>
                 <div className="sidebar-footer">
@@ -82,9 +88,12 @@ const InicioCli = () => {
                             <button className="buy-button" disabled={producto.stock === 0}>
                                 Comprar
                             </button>
-                        </div>
+                        </div>  
                     ))}
                 </section>
+
+                {/* Renderiza las rutas hijas */}
+                <Outlet />
             </main>
         </div>
     );

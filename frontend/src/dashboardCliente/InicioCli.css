@@ -10,6 +10,25 @@ body {
   display: flex;
   height: 100vh;
 }
+.nav-link {
+  display: flex;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  color: #bdc3c7;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.nav-link:hover {
+  background-color: #34495e;
+  color: white;
+}
+
+.nav-link.active {
+  background-color: #3498db;
+  color: white;
+}
+
 
 /* Barra lateral */
 .sidebar {
@@ -45,6 +64,10 @@ body {
 
 .sidebar li.active {
   background-color: #3498db;
+}
+.nav-link.active {
+  background-color: #3498db;
+  color: white;
 }
 
 .sidebar-footer {

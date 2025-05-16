@@ -1,18 +1,46 @@
 const mysql = require('mysql2');
 
-const connection = mysql.createConnection({
+const pool = mysql.createPool({
     host: "bonsvukyvr16pz1h7azm-mysql.services.clever-cloud.com",
     user: "unnjmt2frwqemf3m",
     password: "6L3brJ1wrJkRgTMLM42E",
-    database: "bonsvukyvr16pz1h7azm"
+    database: "bonsvukyvr16pz1h7azm",
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0,
+    enableKeepAlive: true,
+    keepAliveInitialDelay: 0
 });
 
-connection.connect(err => {
+// Convertir el pool en promesas
+const promisePool = pool.promise();
+
+// Verificar la conexión inicial
+pool.getConnection((err, connection) => {
     if (err) {
         console.error('Error al conectar a MySQL:', err);
-        return;
+        if (err.code === 'PROTOCOL_CONNECTION_LOST') {
+            console.error('Se perdió la conexión con la base de datos');
+        }
+        if (err.code === 'ER_CON_COUNT_ERROR') {
+            console.error('La base de datos tiene demasiadas conexiones');
+        }
+        if (err.code === 'ECONNREFUSED') {
+            console.error('La conexión fue rechazada');
+        }
     }
-    console.log('Conectado a MySQL');
+    if (connection) {
+        console.log('Conectado a MySQL');
+        connection.release();
+    }
 });
 
-module.exports = connection;
+// Manejar errores del pool
+pool.on('error', (err) => {
+    console.error('Error en el pool de MySQL:', err);
+    if (err.code === 'PROTOCOL_CONNECTION_LOST') {
+        console.error('Se perdió la conexión con la base de datos');
+    }
+});
+
+module.exports = promisePool;

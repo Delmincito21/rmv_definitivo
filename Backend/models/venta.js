@@ -3,7 +3,7 @@ const db = require('../config/db.config.js');
 class Venta {
     static async getAll() {
         try {
-            const [rows] = await db.promise().query(`
+            const [rows] = await db.query(`
                 SELECT 
                     v.id_venta, 
                     v.fecha_venta, 
@@ -40,7 +40,7 @@ class Venta {
 
         try {
             // Verificar que el usuario existe
-            const [usuarios] = await db.promise().query(
+            const [usuarios] = await db.query(
                 'SELECT id_usuario FROM usuarios WHERE id_usuario = ?',
                 [id_usuario]
             );
@@ -49,7 +49,7 @@ class Venta {
                 throw new Error(`El usuario con ID ${id_usuario} no existe`);
             }
 
-            const [result] = await db.promise().query(
+            const [result] = await db.query(
                 `INSERT INTO venta (
                     id_usuario,
                     fecha_venta,
@@ -72,7 +72,7 @@ class Venta {
 
     static async getById(id) {
         try {
-            const [rows] = await db.promise().query('SELECT * FROM venta WHERE id_venta = ?', [id]);
+            const [rows] = await db.query('SELECT * FROM venta WHERE id_venta = ?', [id]);
             return rows[0];
         } catch (error) {
             throw error;
@@ -82,7 +82,7 @@ class Venta {
     static async update(id, ventaData) {
         const { id_venta, ...dataToUpdate } = ventaData;
         try {
-            const [result] = await db.promise().query(
+            const [result] = await db.query(
                 'UPDATE venta SET ? WHERE id_venta = ?',
                 [dataToUpdate, id]
             );
@@ -94,7 +94,7 @@ class Venta {
 
     static async delete(id) {
         try {
-            const [result] = await db.promise().query('DELETE FROM venta WHERE id_venta = ?', [id]);
+            const [result] = await db.query('DELETE FROM venta WHERE id_venta = ?', [id]);
             return result;
         } catch (error) {
             throw error;

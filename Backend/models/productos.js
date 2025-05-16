@@ -3,7 +3,7 @@ const db = require('../config/db.config.js');
 class Producto {
     static async getAll() {
         try {
-            const [rows] = await db.promise().query('SELECT * FROM productos');
+            const [rows] = await db.query('SELECT * FROM productos');
             return rows;
         } catch (error) {
             throw error;
@@ -26,7 +26,7 @@ class Producto {
         } = productoData;
 
         try {
-            const [result] = await db.promise().query(
+            const [result] = await db.query(
                 `INSERT INTO productos (
                     nombre_producto, 
                     descripcion_producto,
@@ -62,7 +62,7 @@ class Producto {
 
     static async getById(id) {
         try {
-            const [rows] = await db.promise().query('SELECT * FROM productos WHERE id_producto = ?', [id]);
+            const [rows] = await db.query('SELECT * FROM productos WHERE id_producto = ?', [id]);
             return rows[0];
         } catch (error) {
             throw error;
@@ -71,7 +71,7 @@ class Producto {
 
     static async update(id, productoData) {
         try {
-            const [result] = await db.promise().query(
+            const [result] = await db.query(
                 'UPDATE productos SET ? WHERE id_producto = ?',
                 [productoData, id]
             );
@@ -83,7 +83,7 @@ class Producto {
 
     static async delete(id) {
         try {
-            const [result] = await db.promise().query('DELETE FROM productos WHERE id_producto = ?', [id]);
+            const [result] = await db.query('DELETE FROM productos WHERE id_producto = ?', [id]);
             return result;
         } catch (error) {
             throw error;

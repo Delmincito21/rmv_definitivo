@@ -593,14 +593,57 @@ function ModificarProductoList() {
   );
 }
 
-// Dashboard de Categorías (sin cambios)
+// Dashboard de Categorías
 function DashboardCategorias() {
-  const [categorias] = useState([
-    { id: 1, nombre: 'Aires Acondicionados', icon: <FaSnowflake />, color: '#3498db', cantidad: 8 },
-    { id: 2, nombre: 'Estufas', icon: <FaFire />, color: '#e74c3c', cantidad: 6 },
-    { id: 3, nombre: 'Refrigeradores', icon: <FaTemperatureHigh />, color: '#2ecc71', cantidad: 5 },
-    { id: 4, nombre: 'Extractores de Grasa', icon: <FaWind />, color: '#f39c12', cantidad: 3 }
-  ]);
+  const [categorias, setCategorias] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Mapeo de iconos por categoría
+  const iconMap = {
+    'Aire acondicionado': <FaSnowflake />,
+    'Nevera': <FaTemperatureHigh />,
+    'Estufas': <FaFire />,
+    'Estractores de grasa': <FaWind />
+  };
+
+  // Mapeo de colores por categoría
+  const colorMap = {
+    'Aire acondicionado': '#3B82F6', // Azul
+    'Nevera': '#2ecc71', // Verde
+    'Estufas': '#EF4444', // Rojo
+    'Estractores de grasa': '#f39c12' // Amarillo
+  };
+
+  useEffect(() => {
+    const fetchCategorias = async () => {
+      try {
+        const response = await fetch('http://localhost:3000/dashboard/categorias');
+        if (!response.ok) {
+          throw new Error('Error al cargar las categorías');
+        }
+        const data = await response.json();
+        setCategorias(data);
+        setLoading(false);
+      } catch (err) {
+        console.error('Error:', err);
+        setError(err.message);
+        setLoading(false);
+      }
+    };
+
+    fetchCategorias();
+  }, []);
+
+  if (loading) {
+    return <div>Cargando categorías...</div>;
+  }
+
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
+
+  const totalProductos = categorias.reduce((total, cat) => total + cat.cantidad_productos, 0);
 
   return (
     <div className="content-card">
@@ -608,13 +651,43 @@ function DashboardCategorias() {
 
       <div className="horizontal-products-container">
         {categorias.map(categoria => (
-          <div key={categoria.id} className="horizontal-product-card" style={{ borderLeft: `4px solid ${categoria.color}` }}>
-            <div className="horizontal-product-icon" style={{ backgroundColor: categoria.color }}>
-              {categoria.icon}
+          <div 
+            key={categoria.id_categoria_producto} 
+            className="horizontal-product-card" 
+            style={{ 
+              borderLeft: `4px solid ${colorMap[categoria.categoria] || '#3B82F6'}`,
+              backgroundColor: 'white',
+              padding: '20px',
+              borderRadius: '8px',
+              boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '15px'
+            }}
+          >
+            <div 
+              className="horizontal-product-icon" 
+              style={{ 
+                backgroundColor: colorMap[categoria.categoria] || '#3B82F6',
+                width: '40px',
+                height: '40px',
+                borderRadius: '8px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'white',
+                fontSize: '1.2rem'
+              }}
+            >
+              {iconMap[categoria.categoria] || <FaBoxOpen />}
             </div>
             <div className="horizontal-product-info">
-              <h4>{categoria.nombre}</h4>
-              <p><strong>{categoria.cantidad}</strong> productos</p>
+              <h4 style={{ margin: '0 0 5px 0', fontSize: '1rem', color: '#1F2937' }}>
+                {categoria.categoria}
+              </h4>
+              <p style={{ margin: 0, fontSize: '0.9rem', color: '#6B7280' }}>
+                <strong>{categoria.cantidad_productos}</strong> productos
+              </p>
             </div>
           </div>
         ))}
@@ -623,7 +696,7 @@ function DashboardCategorias() {
       <div className="stats-container">
         <div className="stats-card">
           <h4>Total de Productos</h4>
-          <p className="stats-number">{categorias.reduce((total, cat) => total + cat.cantidad, 0)}</p>
+          <p className="stats-number">{totalProductos}</p>
         </div>
 
         <div className="stats-card">

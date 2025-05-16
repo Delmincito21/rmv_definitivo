@@ -3,7 +3,7 @@ const db = require('../config/db.config.js');
 class Orden {
     static async getAll() {
         try {
-            const [rows] = await db.promise().query('SELECT * FROM orden');
+            const [rows] = await db.query('SELECT * FROM orden');
             return rows;
         } catch (error) {
             throw error;
@@ -43,7 +43,7 @@ class Orden {
             console.log('Query a ejecutar:', query);
             console.log('Valores a insertar:', values);
 
-            const [result] = await db.promise().query(query, values);
+            const [result] = await db.query(query, values);
             console.log('Resultado de la inserción:', result);
             return result;
         } catch (error) {
@@ -54,7 +54,7 @@ class Orden {
 
     static async getById(id) {
         try {
-            const [rows] = await db.promise().query('SELECT * FROM orden WHERE id_orden = ?', [id]);
+            const [rows] = await db.query('SELECT * FROM orden WHERE id_orden = ?', [id]);
             return rows[0];
         } catch (error) {
             throw error;
@@ -63,7 +63,7 @@ class Orden {
 
     static async getByUsuarioId(id_usuario) {
         try {
-            const [rows] = await db.promise().query('SELECT * FROM orden WHERE id_usuario = ?', [id_usuario]);
+            const [rows] = await db.query('SELECT * FROM orden WHERE id_usuario = ?', [id_usuario]);
             return rows;
         } catch (error) {
             throw error;
@@ -72,7 +72,7 @@ class Orden {
 
     static async getByVentaId(id_venta) {
         try {
-            const [rows] = await db.promise().query('SELECT * FROM orden WHERE id_venta = ?', [id_venta]);
+            const [rows] = await db.query('SELECT * FROM orden WHERE id_venta = ?', [id_venta]);
             return rows[0];
         } catch (error) {
             throw error;
@@ -82,7 +82,7 @@ class Orden {
     static async update(id, ordenData) {
         const { id_orden, ...dataToUpdate } = ordenData;
         try {
-            const [result] = await db.promise().query(
+            const [result] = await db.query(
                 'UPDATE orden SET ? WHERE id_orden = ?',
                 [dataToUpdate, id]
             );
@@ -94,7 +94,7 @@ class Orden {
 
     static async delete(id) {
         try {
-            const [result] = await db.promise().query('DELETE FROM orden WHERE id_orden = ?', [id]);
+            const [result] = await db.query('DELETE FROM orden WHERE id_orden = ?', [id]);
             return result;
         } catch (error) {
             throw error;

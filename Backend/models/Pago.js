@@ -3,7 +3,7 @@ const db = require('../config/db.config.js');
 class Pago {
     static async getAll() {
         try {
-            const [rows] = await db.promise().query('SELECT * FROM pago WHERE estado = "activo"');
+            const [rows] = await db.query('SELECT * FROM pago WHERE estado = "activo"');
             return rows;
         } catch (error) {
             throw error;
@@ -23,7 +23,7 @@ class Pago {
         } = pagoData;
 
         try {
-            const [result] = await db.promise().query(
+            const [result] = await db.query(
                 `INSERT INTO pago (
                     monto_pago,
                     fecha_pago,
@@ -54,7 +54,7 @@ class Pago {
 
     static async getById(id) {
         try {
-            const [rows] = await db.promise().query('SELECT * FROM pago WHERE id_pago = ?', [id]);
+            const [rows] = await db.query('SELECT * FROM pago WHERE id_pago = ?', [id]);
             return rows[0];
         } catch (error) {
             throw error;
@@ -63,7 +63,7 @@ class Pago {
 
     static async getByVentaId(id_venta) {
         try {
-            const [rows] = await db.promise().query('SELECT * FROM pago WHERE id_venta = ?', [id_venta]);
+            const [rows] = await db.query('SELECT * FROM pago WHERE id_venta = ?', [id_venta]);
             return rows;
         } catch (error) {
             throw error;
@@ -72,7 +72,7 @@ class Pago {
 
     static async update(id, pagoData) {
         try {
-            const [result] = await db.promise().query(
+            const [result] = await db.query(
                 'UPDATE pago SET ? WHERE id_pago = ?',
                 [pagoData, id]
             );
@@ -84,7 +84,7 @@ class Pago {
 
     static async delete(id) {
         try {
-            const [result] = await db.promise().query(
+            const [result] = await db.query(
                 'UPDATE pago SET estado = "inactivo" WHERE id_pago = ?',
                 [id]
             );

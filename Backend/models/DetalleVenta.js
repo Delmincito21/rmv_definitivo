@@ -3,7 +3,7 @@ const db = require('../config/db.config.js');
 class DetalleVenta {
     static async getAll() {
         try {
-            const [rows] = await db.promise().query('SELECT * FROM detalle_venta');
+            const [rows] = await db.query('SELECT * FROM detalle_venta');
             return rows;
         } catch (error) {
             throw error;
@@ -26,7 +26,7 @@ class DetalleVenta {
                 throw new Error('Faltan datos requeridos para crear el detalle de venta');
             }
 
-            const [result] = await db.promise().query(
+            const [result] = await db.query(
                 `INSERT INTO detalle_venta (
                     id_venta,
                     id_producto,
@@ -53,7 +53,7 @@ class DetalleVenta {
 
     static async getByVentaId(id_venta) {
         try {
-            const [rows] = await db.promise().query('SELECT * FROM detalle_venta WHERE id_venta = ?', [id_venta]);
+            const [rows] = await db.query('SELECT * FROM detalle_venta WHERE id_venta = ?', [id_venta]);
             return rows;
         } catch (error) {
             throw error;
@@ -63,7 +63,7 @@ class DetalleVenta {
     static async update(id_venta, id_producto, detalleVentaData) {
         const { id_detalle_venta, ...dataToUpdate } = detalleVentaData;
         try {
-            const [result] = await db.promise().query(
+            const [result] = await db.query(
                 'UPDATE detalle_venta SET ? WHERE id_venta = ? AND id_producto = ?',
                 [dataToUpdate, id_venta, id_producto]
             );
@@ -75,7 +75,7 @@ class DetalleVenta {
 
     static async delete(id_venta, id_producto) {
         try {
-            const [result] = await db.promise().query(
+            const [result] = await db.query(
                 'DELETE FROM detalle_venta WHERE id_venta = ? AND id_producto = ?',
                 [id_venta, id_producto]
             );

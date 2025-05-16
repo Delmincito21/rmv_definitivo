@@ -22,12 +22,76 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(express.json());
 
-// Prueba de conexión a la base de datos
-db.query('SELECT 1 + 1 AS resultado', (err, results) => {
-    if (err) {
-        console.error('Error al probar la conexión a la base de datos:', err);
-    } else {
-        console.log('Conexión a la base de datos exitosa. Resultado:', results);
+console.log('Iniciando servidor...');
+
+// Ruta de prueba
+app.get('/test', (req, res) => {
+    res.json({ message: 'Servidor funcionando correctamente' });
+});
+
+// Rutas del Dashboard
+console.log('Registrando rutas del dashboard...');
+
+app.get('/dashboard/stats', async (req, res) => {
+    console.log('Recibida petición a /dashboard/stats');
+    try {
+        // Verificar que las vistas existen
+        const [vistas] = await db.query(`
+            SELECT TABLE_NAME 
+            FROM information_schema.views 
+            WHERE TABLE_SCHEMA = DATABASE()
+            AND TABLE_NAME IN ('vw_clientes_activos', 'vw_pedidos_mes_actual', 'vw_ingresos_mensuales')
+        `);
+
+        console.log('Vistas encontradas:', vistas);
+
+        if (vistas.length < 3) {
+            throw new Error('No se encontraron todas las vistas necesarias');
+        }
+
+        // Obtener datos de las vistas
+        console.log('Consultando vista de clientes activos...');
+        const [clientesActivos] = await db.query('SELECT * FROM vw_clientes_activos');
+        console.log('Resultado clientes activos:', clientesActivos);
+
+        console.log('Consultando vista de pedidos del mes...');
+        const [pedidosMes] = await db.query('SELECT * FROM vw_pedidos_mes_actual');
+        console.log('Resultado pedidos del mes:', pedidosMes);
+
+        console.log('Consultando vista de ingresos mensuales...');
+        const [ingresosMes] = await db.query('SELECT * FROM vw_ingresos_mensuales');
+        console.log('Resultado ingresos mensuales:', ingresosMes);
+
+        // Preparar respuesta
+        const response = {
+            clientesActivos: clientesActivos[0]?.clientes_activos || 0,
+            pedidosMes: pedidosMes[0]?.pedidos_mes || 0,
+            ingresosMes: ingresosMes[0]?.ingresos_mensuales || 0
+        };
+
+        console.log('Enviando respuesta:', response);
+        res.json(response);
+    } catch (error) {
+        console.error('Error detallado al obtener estadísticas:', error);
+        res.status(500).json({ 
+            error: 'Error al obtener estadísticas',
+            details: error.message 
+        });
+    }
+});
+
+app.get('/dashboard/pedidos-por-mes', async (req, res) => {
+    console.log('Recibida petición a /dashboard/pedidos-por-mes');
+    try {
+        const [pedidos] = await db.query('SELECT * FROM vw_pedidos_por_mes_completo_espanol');
+        console.log('Pedidos por mes obtenidos:', pedidos);
+        res.json(pedidos);
+    } catch (error) {
+        console.error('Error detallado en /dashboard/pedidos-por-mes:', error);
+        res.status(500).json({
+            error: 'Error al obtener pedidos por mes',
+            details: error.message
+        });
     }
 });
 
@@ -35,15 +99,17 @@ db.query('SELECT 1 + 1 AS resultado', (err, results) => {
 app.get('/', (req, res) => {
     res.send('Bienvenido al servidor de RMV');
 });
-app.get('/clientes', (req, res) => {
-    db.query('SELECT * FROM clientes', (err, results) => {
-        if (err) {
-            console.error('Error al obtener clientes:', err);
-            return res.status(500).json({ error: 'Error al obtener clientes' });
-        }
+
+// Ruta para obtener clientes
+app.get('/clientes', async (req, res) => {
+    try {
+        const [results] = await db.query('SELECT * FROM clientes');
         console.log('Clientes obtenidos:', results);
         res.json(results);
-    });
+    } catch (err) {
+        console.error('Error al obtener clientes:', err);
+        res.status(500).json({ error: 'Error al obtener clientes' });
+    }
 });
 
 app.put('/clientes/:id', async (req, res) => {
@@ -51,7 +117,7 @@ app.put('/clientes/:id', async (req, res) => {
     const { nombre_clientes, telefono_clientes, direccion_clientes, correo_clientes, estado } = req.body;
 
     try {
-        const [result] = await db.promise().query(
+        const [result] = await db.query(
             `UPDATE clientes SET 
                 nombre_clientes = ?, 
                 telefono_clientes = ?, 
@@ -77,7 +143,7 @@ app.put('/clientes/:id/inactivar', async (req, res) => {
     const { id } = req.params;
 
     try {
-        const [result] = await db.promise().query(
+        const [result] = await db.query(
             'UPDATE clientes SET estado = "inactivo" WHERE id_clientes = ?',
             [id]
         );
@@ -94,32 +160,32 @@ app.put('/clientes/:id/inactivar', async (req, res) => {
 });
 
 // Ruta para obtener todas las ventas
-app.get('/ventas', (req, res) => {
-    const query = `
-        SELECT 
-            v.id_venta, 
-            v.fecha_venta, 
-            c.nombre_clientes AS cliente, 
-            v.estado_venta,
-            (
-                SELECT COALESCE(SUM(dv.subtotal_detalle_venta), 0)
-                FROM detalle_venta dv
-                WHERE dv.id_venta = v.id_venta
-            ) as total
-        FROM venta v
-        JOIN usuarios u ON v.id_usuario = u.id_usuario
-        JOIN clientes c ON u.id_usuario = c.id_clientes
-        WHERE v.estado = 'activo'
-    `;
+app.get('/ventas', async (req, res) => {
+    try {
+        const query = `
+            SELECT 
+                v.id_venta, 
+                v.fecha_venta, 
+                c.nombre_clientes AS cliente, 
+                v.estado_venta,
+                (
+                    SELECT COALESCE(SUM(dv.subtotal_detalle_venta), 0)
+                    FROM detalle_venta dv
+                    WHERE dv.id_venta = v.id_venta
+                ) as total
+            FROM venta v
+            JOIN usuarios u ON v.id_usuario = u.id_usuario
+            JOIN clientes c ON u.id_usuario = c.id_clientes
+            WHERE v.estado = 'activo'
+        `;
 
-    db.query(query, (err, results) => {
-        if (err) {
-            console.error('Error al obtener las ventas:', err);
-            return res.status(500).json({ error: 'Error al obtener las ventas' });
-        }
+        const [results] = await db.query(query);
         console.log('Ventas obtenidas:', results);
         res.json(results);
-    });
+    } catch (err) {
+        console.error('Error al obtener las ventas:', err);
+        res.status(500).json({ error: 'Error al obtener las ventas' });
+    }
 });
 
 // GET todos los productos
@@ -181,7 +247,7 @@ app.put('/productos/:id', async (req, res) => {
     } = req.body;
 
     try {
-        const [result] = await db.promise().query(
+        const [result] = await db.query(
             `UPDATE productos SET 
                 nombre_producto = ?, 
                 descripcion_producto = ?, 
@@ -225,7 +291,7 @@ app.put('/productos/:id/inactivar', async (req, res) => {
     const { id } = req.params;
 
     try {
-        const [result] = await db.promise().query(
+        const [result] = await db.query(
             'UPDATE productos SET estado = "inactivo" WHERE id_producto = ?',
             [id]
         );
@@ -242,20 +308,20 @@ app.put('/productos/:id/inactivar', async (req, res) => {
 });
 
 // GET categorías productos
-app.get('/categorias_productos', (req, res) => {
-    const query = `
-        SELECT *
-        FROM categorias_productos
-        WHERE estado = 'activo'
-    `;
-    
-    db.query(query, (err, results) => {
-        if (err) {
-            console.error('Error al obtener categorías:', err);
-            return res.status(500).json({ error: 'Error al obtener categorías' });
-        }
+app.get('/categorias_productos', async (req, res) => {
+    try {
+        const query = `
+            SELECT *
+            FROM categorias_productos
+            WHERE estado = 'activo'
+        `;
+        
+        const [results] = await db.query(query);
         res.json(results);
-    });
+    } catch (err) {
+        console.error('Error al obtener categorías:', err);
+        res.status(500).json({ error: 'Error al obtener categorías' });
+    }
 });
 
 // POST para registrar un nuevo cliente
@@ -266,7 +332,7 @@ app.post('/clientes', async (req, res) => {
     }
     try {
         // 1. Insertar el cliente
-        const [clienteResult] = await db.promise().query(
+        const [clienteResult] = await db.query(
             `INSERT INTO clientes (
                 nombre_clientes,
                 telefono_clientes,
@@ -285,7 +351,7 @@ app.post('/clientes', async (req, res) => {
         // 2. Hashear el pin_usuario
         const hashedPin = await bcrypt.hash(pin_usuario, 10);
         // 3. Insertar en la tabla usuarios
-        await db.promise().query(
+        await db.query(
             `INSERT INTO usuarios (
                 nombre_usuario,
                 pin_usuario,
@@ -310,7 +376,7 @@ app.post('/login', async (req, res) => {
     const { nombre_usuario, pin_usuario } = req.body;
     try {
         // Busca el usuario activo en la base de datos
-        const [rows] = await db.promise().query(
+        const [rows] = await db.query(
             'SELECT * FROM usuarios WHERE nombre_usuario = ? AND estado = "activo"',
             [nombre_usuario]
         );
@@ -383,7 +449,7 @@ app.put('/ventas/:id', async (req, res) => {
             ventaData.fecha_venta = fecha.toISOString().slice(0, 19).replace('T', ' ');
         }
 
-        const [result] = await db.promise().query(
+        const [result] = await db.query(
             'UPDATE venta SET ? WHERE id_venta = ?',
             [ventaData, req.params.id]
         );
@@ -419,38 +485,38 @@ app.put('/ventas/:id/estado', async (req, res) => {
         const id_venta = req.params.id;
 
         // Actualizar estado de la venta
-        await db.promise().query(
+        await db.query(
             'UPDATE venta SET estado = ? WHERE id_venta = ?',
             [estado, id_venta]
         );
 
         // Actualizar estado de los detalles de venta
-        await db.promise().query(
+        await db.query(
             'UPDATE detalle_venta SET estado = ? WHERE id_venta = ?',
             [estado, id_venta]
         );
 
         // Actualizar estado de los pagos relacionados
-        await db.promise().query(
+        await db.query(
             'UPDATE pago SET estado = ? WHERE id_venta = ?',
             [estado, id_venta]
         );
 
         // Obtener las órdenes relacionadas con la venta
-        const [ordenes] = await db.promise().query(
+        const [ordenes] = await db.query(
             'SELECT id_orden FROM orden WHERE id_venta = ?',
             [id_venta]
         );
 
         // Actualizar estado de las órdenes
-        await db.promise().query(
+        await db.query(
             'UPDATE orden SET estado = ? WHERE id_venta = ?',
             [estado, id_venta]
         );
 
         // Actualizar estado de los envíos relacionados con las órdenes
         for (const orden of ordenes) {
-            await db.promise().query(
+            await db.query(
                 'UPDATE envios SET estado = ? WHERE id_orden = ?',
                 [estado, orden.id_orden]
             );
@@ -511,7 +577,7 @@ app.post('/detalle-ventas', async (req, res) => {
 
 app.get('/detalle-ventas/venta/:id', async (req, res) => {
     try {
-        const [rows] = await db.promise().query(
+        const [rows] = await db.query(
             'SELECT * FROM detalle_venta WHERE id_venta = ? AND estado = "activo"',
             [req.params.id]
         );
@@ -571,7 +637,7 @@ app.get('/orden/usuario/:id', async (req, res) => {
 
 app.put('/orden/:id', async (req, res) => {
     try {
-        const [result] = await db.promise().query(
+        const [result] = await db.query(
             'UPDATE orden SET ? WHERE id_orden = ?',
             [req.body, req.params.id]
         );
@@ -641,7 +707,7 @@ app.get('/envios/:id', async (req, res) => {
 app.get('/envios/orden/:id', async (req, res) => {
     try {
         console.log('Buscando envío para orden:', req.params.id);
-        const [rows] = await db.promise().query(
+        const [rows] = await db.query(
             'SELECT * FROM envios WHERE id_orden = ? AND estado = "activo"',
             [req.params.id]
         );
@@ -675,7 +741,7 @@ app.put('/envios/:id', async (req, res) => {
         });
         
         // Verificar si el envío existe antes de actualizar
-        const [existingEnvio] = await db.promise().query(
+        const [existingEnvio] = await db.query(
             'SELECT id_envio FROM envios WHERE id_envio = ?',
             [req.params.id]
         );
@@ -700,7 +766,7 @@ app.put('/envios/:id', async (req, res) => {
         
         console.log('Datos formateados para actualizar:', dataToUpdate);
         
-        const [result] = await db.promise().query(
+        const [result] = await db.query(
             'UPDATE envios SET ? WHERE id_envio = ?',
             [dataToUpdate, req.params.id]
         );
@@ -734,19 +800,30 @@ app.put('/envios/:id', async (req, res) => {
 });
 
 app.put('/envios/:id/estado', async (req, res) => {
+    const { id } = req.params;
+    const { estado_envio } = req.body;
+
     try {
-        const { estado } = req.body;
-        if (!estado) {
-            return res.status(400).json({ error: 'El estado es requerido' });
-        }
-        const result = await Envio.updateEstado(req.params.id, estado);
+        console.log(`Actualizando estado del envío ${id} a ${estado_envio}`);
+        
+        const [result] = await db.query(
+            'UPDATE envios SET estado_envio = ? WHERE id_envio = ? AND estado = "activo"',
+            [estado_envio, id]
+        );
+
         if (result.affectedRows === 0) {
-            return res.status(404).json({ error: 'Envío no encontrado' });
+            console.log('No se encontró el envío o no se pudo actualizar');
+            return res.status(404).json({ error: 'Envío no encontrado o no se pudo actualizar' });
         }
+
+        console.log('Envío actualizado exitosamente');
         res.json({ message: 'Estado del envío actualizado exitosamente' });
     } catch (error) {
         console.error('Error al actualizar el estado del envío:', error);
-        res.status(500).json({ error: 'Error al actualizar el estado del envío' });
+        res.status(500).json({ 
+            error: 'Error al actualizar el estado del envío',
+            details: error.message 
+        });
     }
 });
 
@@ -808,7 +885,7 @@ app.get('/pagos/:id', async (req, res) => {
 
 app.put('/pagos/:id', async (req, res) => {
     try {
-        const [result] = await db.promise().query(
+        const [result] = await db.query(
             'UPDATE pago SET ? WHERE id_pago = ?',
             [req.body, req.params.id]
         );
@@ -840,7 +917,7 @@ app.delete('/pagos/:id', async (req, res) => {
 // Ruta para obtener pago por ID de venta
 app.get('/pagos/venta/:id', async (req, res) => {
     try {
-        const [rows] = await db.promise().query(
+        const [rows] = await db.query(
             'SELECT * FROM pago WHERE id_venta = ? AND estado = "activo"',
             [req.params.id]
         );
@@ -860,7 +937,7 @@ app.get('/pagos/venta/:id', async (req, res) => {
 app.get('/orden/venta/:id', async (req, res) => {
     try {
         console.log('Buscando orden para venta:', req.params.id);
-        const [rows] = await db.promise().query(
+        const [rows] = await db.query(
             'SELECT * FROM orden WHERE id_venta = ? AND estado = "activo"',
             [req.params.id]
         );
@@ -889,7 +966,7 @@ app.get('/orden/venta/:id', async (req, res) => {
 // GET todos los suplidores
 app.get('/suplidores', async (req, res) => {
     try {
-        const [suplidores] = await db.promise().query('SELECT * FROM suplidores');
+        const [suplidores] = await db.query('SELECT * FROM suplidores');
         res.json(suplidores);
     } catch (error) {
         console.error('Error al obtener suplidores:', error);
@@ -900,7 +977,7 @@ app.get('/suplidores', async (req, res) => {
 // Ruta para actualizar un detalle de venta
 app.put('/detalle-ventas/:id_venta/:id_producto', async (req, res) => {
     try {
-        const [result] = await db.promise().query(
+        const [result] = await db.query(
             'UPDATE detalle_venta SET ? WHERE id_venta = ? AND id_producto = ?',
             [req.body, req.params.id_venta, req.params.id_producto]
         );
@@ -913,6 +990,80 @@ app.put('/detalle-ventas/:id_venta/:id_producto', async (req, res) => {
     } catch (error) {
         console.error('Error al actualizar el detalle de venta:', error);
         res.status(500).json({ error: 'Error al actualizar el detalle de venta' });
+    }
+});
+
+app.get('/dashboard/proximos-envios', async (req, res) => {
+    console.log('Recibida petición a /dashboard/proximos-envios');
+    try {
+        const [envios] = await db.query('SELECT * FROM vw_proximos_envios');
+        console.log('Envíos obtenidos:', envios);
+        res.json(envios);
+    } catch (error) {
+        console.error('Error detallado en /dashboard/proximos-envios:', error);
+        res.status(500).json({
+            error: 'Error al obtener próximos envíos',
+            details: error.message
+        });
+    }
+});
+
+app.get('/api/dashboard/productos-mas-vendidos', async (req, res) => {
+    console.log('Recibida petición a /api/dashboard/productos-mas-vendidos');
+    try {
+        const [productos] = await db.query(`
+            SELECT 
+                p.nombre_producto as nombre,
+                COUNT(dv.id_producto) as cantidad
+            FROM detalle_venta dv
+            JOIN productos p ON dv.id_producto = p.id_producto
+            JOIN venta v ON dv.id_venta = v.id_venta
+            WHERE v.estado = 'activo'
+            AND MONTH(v.fecha_venta) = MONTH(CURRENT_DATE())
+            AND YEAR(v.fecha_venta) = YEAR(CURRENT_DATE())
+            GROUP BY p.id_producto, p.nombre_producto
+            ORDER BY cantidad DESC
+            LIMIT 5
+        `);
+
+        console.log('Productos más vendidos obtenidos:', productos);
+        res.json(productos);
+    } catch (error) {
+        console.error('Error detallado en /api/dashboard/productos-mas-vendidos:', error);
+        res.status(500).json({
+            error: 'Error al obtener productos más vendidos',
+            details: error.message
+        });
+    }
+});
+
+app.get('/dashboard/productos-mas-vendidos', async (req, res) => {
+    console.log('Recibida petición a /dashboard/productos-mas-vendidos');
+    try {
+        const [productos] = await db.query('SELECT * FROM vw_top3_productos_mas_vendidos');
+        console.log('Productos más vendidos obtenidos:', productos);
+        res.json(productos);
+    } catch (error) {
+        console.error('Error detallado en /dashboard/productos-mas-vendidos:', error);
+        res.status(500).json({
+            error: 'Error al obtener productos más vendidos',
+            details: error.message
+        });
+    }
+});
+
+app.get('/dashboard/categorias', async (req, res) => {
+    console.log('Recibida petición a /dashboard/categorias');
+    try {
+        const [categorias] = await db.query('SELECT * FROM vw_dashboard_categorias');
+        console.log('Estadísticas de categorías obtenidas:', categorias);
+        res.json(categorias);
+    } catch (error) {
+        console.error('Error detallado en /dashboard/categorias:', error);
+        res.status(500).json({
+            error: 'Error al obtener estadísticas de categorías',
+            details: error.message
+        });
     }
 });
 

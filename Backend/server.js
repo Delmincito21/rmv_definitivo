@@ -15,9 +15,7 @@ const PORT = 3000;
 // Middleware
 app.use(cors());
 app.use(bodyParser.json());
-
-// Servir archivos estáticos
-app.use('/imagesprods', express.static(path.join(__dirname, 'imagesprods')));
+app.use(express.json());
 
 // Prueba de conexión a la base de datos
 db.query('SELECT 1 + 1 AS resultado', (err, results) => {
@@ -43,31 +41,55 @@ app.get('/clientes', (req, res) => {
     });
 });
 
-app.get('/productos', (req, res) => {
-    const query = `
-        SELECT p.*, cp.nombre_categoria_producto
-        FROM productos p
-        LEFT JOIN categorias_productos cp ON p.id_categoria = cp.id_categoria_producto
-        WHERE p.estado = 'activo'
-    `;
-    
-    db.query(query, (err, results) => {
-        if (err) {
-            console.error('Error al obtener productos:', err);
-            return res.status(500).json({ error: 'Error al obtener productos' });
-        }
-        res.json(results);
-    });
-});
-// Ruta de ejemplo
-// app.get('/Ventas', (req, res) => {
-//     db.query('SELECT * FROM venta', (err, results) => {
-//         if (err) throw err;
-//         res.json(results);
-//     });
-// });
+app.put('/clientes/:id', async (req, res) => {
+    const { id } = req.params;
+    const { nombre_clientes, telefono_clientes, direccion_clientes, correo_clientes, estado } = req.body;
 
-app.get('/venta', (req, res) => {
+    try {
+        const [result] = await db.promise().query(
+            `UPDATE clientes SET 
+                nombre_clientes = ?, 
+                telefono_clientes = ?, 
+                direccion_clientes = ?, 
+                correo_clientes = ?, 
+                estado = ? 
+            WHERE id_clientes = ?`,
+            [nombre_clientes, telefono_clientes, direccion_clientes, correo_clientes, estado, id]
+        );
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Cliente no encontrado' });
+        }
+
+        res.json({ message: 'Cliente actualizado exitosamente' });
+    } catch (error) {
+        console.error('Error al actualizar el cliente:', error);
+        res.status(500).json({ error: 'Error al actualizar el cliente', details: error.message });
+    }
+});
+
+app.put('/clientes/:id/inactivar', async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const [result] = await db.promise().query(
+            'UPDATE clientes SET estado = "inactivo" WHERE id_clientes = ?',
+            [id]
+        );
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Cliente no encontrado' });
+        }
+
+        res.json({ message: 'Cliente inactivado exitosamente' });
+    } catch (error) {
+        console.error('Error al inactivar el cliente:', error);
+        res.status(500).json({ error: 'Error al inactivar el cliente', details: error.message });
+    }
+});
+
+// Ruta para obtener todas las ventas
+app.get('/ventas', (req, res) => {
     const query = `
         SELECT v.id_venta, v.fecha_venta, c.nombre_clientes AS cliente, v.total, v.estado_venta
         FROM venta v
@@ -82,6 +104,125 @@ app.get('/venta', (req, res) => {
         console.log('Ventas obtenidas:', results); // Verifica los datos aquí
         res.json(results);
     });
+});
+
+// GET todos los productos
+app.get('/productos', async (req, res) => {
+    try {
+        const productos = await Producto.getAll();
+        res.json(productos);
+    } catch (error) {
+        console.error('Error al obtener productos:', error);
+        res.status(500).json({ error: 'Error al obtener productos' });
+    }
+});
+
+// POST nuevo producto
+app.post('/productos', async (req, res) => {
+    try {
+        const result = await Producto.create(req.body);
+        res.status(201).json({
+            message: 'Producto creado exitosamente',
+            id: result.insertId
+        });
+    } catch (error) {
+        console.error('Error al crear el producto:', error);
+        res.status(500).json({
+            error: 'Error al crear el producto',
+            details: error.message
+        });
+    }
+});
+
+// GET producto por ID
+app.get('/productos/:id', async (req, res) => {
+    try {
+        const producto = await Producto.getById(req.params.id);
+        if (!producto) {
+            return res.status(404).json({ error: 'Producto no encontrado' });
+        }
+        res.json(producto);
+    } catch (error) {
+        console.error('Error al obtener el producto:', error);
+        res.status(500).json({ error: 'Error al obtener el producto' });
+    }
+});
+
+// PUT actualizar producto
+app.put('/productos/:id', async (req, res) => {
+    const { id } = req.params;
+    const {
+        nombre_producto,
+        descripcion_producto,
+        marca_producto,
+        precio_producto,
+        stock_producto,
+        modelo,
+        color,
+        garantia,
+        id_categoria,
+        estado,
+    } = req.body;
+
+    try {
+        const [result] = await db.promise().query(
+            `UPDATE productos SET 
+                nombre_producto = ?, 
+                descripcion_producto = ?, 
+                marca_producto = ?, 
+                precio_producto = ?, 
+                stock_producto = ?, 
+                modelo = ?, 
+                color = ?, 
+                garantia = ?, 
+                id_categoria = ?, 
+                estado = ? 
+            WHERE id_producto = ?`,
+            [
+                nombre_producto,
+                descripcion_producto,
+                marca_producto,
+                precio_producto,
+                stock_producto,
+                modelo,
+                color,
+                garantia,
+                id_categoria,
+                estado,
+                id,
+            ]
+        );
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Producto no encontrado' });
+        }
+
+        res.json({ message: 'Producto actualizado exitosamente' });
+    } catch (error) {
+        console.error('Error al actualizar el producto:', error);
+        res.status(500).json({ error: 'Error al actualizar el producto', details: error.message });
+    }
+});
+
+// Cambiar el estado del producto a "inactivo"
+app.put('/productos/:id/inactivar', async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const [result] = await db.promise().query(
+            'UPDATE productos SET estado = "inactivo" WHERE id_producto = ?',
+            [id]
+        );
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Producto no encontrado' });
+        }
+
+        res.json({ message: 'Producto inactivado exitosamente' });
+    } catch (error) {
+        console.error('Error al inactivar el producto:', error);
+        res.status(500).json({ error: 'Error al inactivar el producto', details: error.message });
+    }
 });
 
 // GET categorías productos
@@ -173,69 +314,425 @@ app.post('/login', async (req, res) => {
     }
 });
 
-// POST nuevo producto
-app.post('/productos', async (req, res) => {
+// Rutas de Ventas
+app.get('/ventas', async (req, res) => {
     try {
-        const result = await Producto.create(req.body);
+        const ventas = await Venta.getAll();
+        res.json(ventas);
+    } catch (error) {
+        console.error('Error al obtener ventas:', error);
+        res.status(500).json({ error: 'Error al obtener ventas' });
+    }
+});
+
+app.post('/ventas', async (req, res) => {
+    try {
+        console.log('Datos recibidos en /ventas:', req.body);
+        const result = await Venta.create(req.body);
+        console.log('Resultado de crear venta:', result);
         res.status(201).json({
-            message: 'Producto creado exitosamente',
+            message: 'Venta creada exitosamente',
             id: result.insertId
         });
     } catch (error) {
-        console.error('Error al crear el producto:', error);
+        console.error('Error detallado al crear la venta:', error);
         res.status(500).json({
-            error: 'Error al crear el producto',
+            error: 'Error al crear la venta',
+            details: error.message,
+            sqlMessage: error.sqlMessage
+        });
+    }
+});
+
+app.get('/ventas/:id', async (req, res) => {
+    try {
+        const venta = await Venta.getById(req.params.id);
+        if (!venta) {
+            return res.status(404).json({ error: 'Venta no encontrada' });
+        }
+        res.json(venta);
+    } catch (error) {
+        console.error('Error al obtener la venta:', error);
+        res.status(500).json({ error: 'Error al obtener la venta' });
+    }
+});
+
+app.put('/ventas/:id', async (req, res) => {
+    try {
+        const result = await Venta.update(req.params.id, req.body);
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Venta no encontrada' });
+        }
+        res.json({ message: 'Venta actualizada exitosamente' });
+    } catch (error) {
+        console.error('Error al actualizar la venta:', error);
+        res.status(500).json({ error: 'Error al actualizar la venta' });
+    }
+});
+
+app.delete('/ventas/:id', async (req, res) => {
+    try {
+        const result = await Venta.delete(req.params.id);
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Venta no encontrada' });
+        }
+        res.json({ message: 'Venta eliminada exitosamente' });
+    } catch (error) {
+        console.error('Error al eliminar la venta:', error);
+        res.status(500).json({ error: 'Error al eliminar la venta' });
+    }
+});
+
+// Ruta para cambiar el estado de una venta y sus registros relacionados
+app.put('/ventas/:id/estado', async (req, res) => {
+    try {
+        const { estado } = req.body;
+        const id_venta = req.params.id;
+
+        // Actualizar estado de la venta
+        await db.promise().query(
+            'UPDATE venta SET estado = ? WHERE id_venta = ?',
+            [estado, id_venta]
+        );
+
+        // Actualizar estado de los detalles de venta
+        await db.promise().query(
+            'UPDATE detalle_venta SET estado = ? WHERE id_venta = ?',
+            [estado, id_venta]
+        );
+
+        // Actualizar estado de los pagos relacionados
+        await db.promise().query(
+            'UPDATE pago SET estado = ? WHERE id_venta = ?',
+            [estado, id_venta]
+        );
+
+        // Obtener las órdenes relacionadas con la venta
+        const [ordenes] = await db.promise().query(
+            'SELECT id_orden FROM orden WHERE id_venta = ?',
+            [id_venta]
+        );
+
+        // Actualizar estado de las órdenes
+        await db.promise().query(
+            'UPDATE orden SET estado = ? WHERE id_venta = ?',
+            [estado, id_venta]
+        );
+
+        // Actualizar estado de los envíos relacionados con las órdenes
+        for (const orden of ordenes) {
+            await db.promise().query(
+                'UPDATE envios SET estado = ? WHERE id_orden = ?',
+                [estado, orden.id_orden]
+            );
+        }
+
+        res.json({ message: 'Estados actualizados exitosamente' });
+    } catch (error) {
+        console.error('Error al actualizar estados:', error);
+        res.status(500).json({
+            error: 'Error al actualizar los estados',
             details: error.message
         });
     }
 });
 
-// GET producto por ID
-app.get('/productos/:id', (req, res) => {
-    const query = `
-        SELECT p.*, cp.nombre_categoria_producto
-        FROM productos p
-        LEFT JOIN categorias_productos cp ON p.id_categoria = cp.id_categoria_producto
-        WHERE p.id_producto = ? AND p.estado = 'activo'
-    `;
-    
-    db.query(query, [req.params.id], (err, results) => {
-        if (err) {
-            console.error('Error al obtener el producto:', err);
-            return res.status(500).json({ error: 'Error al obtener el producto' });
-        }
-        if (results.length === 0) {
-            return res.status(404).json({ error: 'Producto no encontrado' });
-        }
-        res.json(results[0]);
-    });
-});
-
-// PUT actualizar producto
-app.put('/productos/:id', async (req, res) => {
+// Rutas de Detalle Venta
+app.get('/detalle-ventas', async (req, res) => {
     try {
-        const result = await Producto.update(req.params.id, req.body);
-        if (result.affectedRows === 0) {
-            return res.status(404).json({ error: 'Producto no encontrado' });
-        }
-        res.json({ message: 'Producto actualizado exitosamente' });
+        const detalles = await DetalleVenta.getAll();
+        res.json(detalles);
     } catch (error) {
-        console.error('Error al actualizar el producto:', error);
-        res.status(500).json({ error: 'Error al actualizar el producto' });
+        console.error('Error al obtener detalles de venta:', error);
+        res.status(500).json({ error: 'Error al obtener detalles de venta' });
     }
 });
 
-// DELETE producto
-app.delete('/productos/:id', async (req, res) => {
+app.post('/detalle-ventas', async (req, res) => {
     try {
-        const result = await Producto.delete(req.params.id);
-        if (result.affectedRows === 0) {
-            return res.status(404).json({ error: 'Producto no encontrado' });
+        console.log('Datos recibidos en /detalle-ventas:', req.body);
+
+        // Validar que todos los campos requeridos estén presentes
+        const { id_venta, id_producto, cantidad_detalle_venta, precio_unitario_detalle_venta, subtotal_detalle_venta } = req.body;
+
+        if (!id_venta || !id_producto || !cantidad_detalle_venta || !precio_unitario_detalle_venta) {
+            return res.status(400).json({
+                error: 'Faltan datos requeridos',
+                details: 'Todos los campos son obligatorios'
+            });
         }
-        res.json({ message: 'Producto eliminado exitosamente' });
+
+        // Intentar crear el detalle de venta
+        const result = await DetalleVenta.create(req.body);
+        console.log('Resultado de crear detalle venta:', result);
+
+        res.status(201).json({
+            message: 'Detalle de venta creado exitosamente',
+            id: result.insertId
+        });
     } catch (error) {
-        console.error('Error al eliminar el producto:', error);
-        res.status(500).json({ error: 'Error al eliminar el producto' });
+        console.error('Error detallado al crear el detalle de venta:', error);
+        res.status(500).json({
+            error: 'Error al crear el detalle de venta',
+            details: error.message,
+            sqlMessage: error.sqlMessage
+        });
+    }
+});
+
+app.get('/detalle-ventas/venta/:id', async (req, res) => {
+    try {
+        const detalles = await DetalleVenta.getByVentaId(req.params.id);
+        res.json(detalles);
+    } catch (error) {
+        console.error('Error al obtener detalles de la venta:', error);
+        res.status(500).json({ error: 'Error al obtener detalles de la venta' });
+    }
+});
+
+// Rutas de Órdenes
+app.get('/orden', async (req, res) => {
+    try {
+        const ordenes = await Orden.getAll();
+        res.json(ordenes);
+    } catch (error) {
+        console.error('Error al obtener órdenes:', error);
+        res.status(500).json({ error: 'Error al obtener órdenes' });
+    }
+});
+
+app.post('/orden', async (req, res) => {
+    try {
+        const result = await Orden.create(req.body);
+        res.status(201).json({
+            message: 'Orden creada exitosamente',
+            id: result.insertId
+        });
+    } catch (error) {
+        console.error('Error al crear la orden:', error);
+        res.status(500).json({ error: 'Error al crear la orden' });
+    }
+});
+
+app.get('/orden/:id', async (req, res) => {
+    try {
+        const orden = await Orden.getById(req.params.id);
+        if (!orden) {
+            return res.status(404).json({ error: 'Orden no encontrada' });
+        }
+        res.json(orden);
+    } catch (error) {
+        console.error('Error al obtener la orden:', error);
+        res.status(500).json({ error: 'Error al obtener la orden' });
+    }
+});
+
+app.get('/orden/usuario/:id', async (req, res) => {
+    try {
+        const ordenes = await Orden.getByUsuarioId(req.params.id);
+        res.json(ordenes);
+    } catch (error) {
+        console.error('Error al obtener las órdenes del usuario:', error);
+        res.status(500).json({ error: 'Error al obtener las órdenes del usuario' });
+    }
+});
+
+app.put('/orden/:id', async (req, res) => {
+    try {
+        const result = await Orden.update(req.params.id, req.body);
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Orden no encontrada' });
+        }
+        res.json({ message: 'Orden actualizada exitosamente' });
+    } catch (error) {
+        console.error('Error al actualizar la orden:', error);
+        res.status(500).json({ error: 'Error al actualizar la orden' });
+    }
+});
+
+app.delete('/orden/:id', async (req, res) => {
+    try {
+        const result = await Orden.delete(req.params.id);
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Orden no encontrada' });
+        }
+        res.json({ message: 'Orden eliminada exitosamente' });
+    } catch (error) {
+        console.error('Error al eliminar la orden:', error);
+        res.status(500).json({ error: 'Error al eliminar la orden' });
+    }
+});
+
+// Rutas de Envíos
+app.get('/envios', async (req, res) => {
+    try {
+        const envios = await Envio.getAll();
+        res.json(envios);
+    } catch (error) {
+        console.error('Error al obtener envíos:', error);
+        res.status(500).json({ error: 'Error al obtener envíos' });
+    }
+});
+
+app.post('/envios', async (req, res) => {
+    try {
+        const result = await Envio.create(req.body);
+        res.status(201).json({
+            message: 'Envío creado exitosamente',
+            id: result.insertId
+        });
+    } catch (error) {
+        console.error('Error al crear el envío:', error);
+        res.status(500).json({ error: 'Error al crear el envío' });
+    }
+});
+
+app.get('/envios/:id', async (req, res) => {
+    try {
+        const envio = await Envio.getById(req.params.id);
+        if (!envio) {
+            return res.status(404).json({ error: 'Envío no encontrado' });
+        }
+        res.json(envio);
+    } catch (error) {
+        console.error('Error al obtener el envío:', error);
+        res.status(500).json({ error: 'Error al obtener el envío' });
+    }
+});
+
+app.get('/envios/orden/:id', async (req, res) => {
+    try {
+        const envio = await Envio.getByOrdenId(req.params.id);
+        if (!envio) {
+            return res.status(404).json({ error: 'Envío no encontrado para esta orden' });
+        }
+        res.json(envio);
+    } catch (error) {
+        console.error('Error al obtener el envío:', error);
+        res.status(500).json({ error: 'Error al obtener el envío' });
+    }
+});
+
+app.put('/envios/:id', async (req, res) => {
+    try {
+        const result = await Envio.update(req.params.id, req.body);
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Envío no encontrado' });
+        }
+        res.json({ message: 'Envío actualizado exitosamente' });
+    } catch (error) {
+        console.error('Error al actualizar el envío:', error);
+        res.status(500).json({ error: 'Error al actualizar el envío' });
+    }
+});
+
+app.put('/envios/:id/estado', async (req, res) => {
+    try {
+        const { estado } = req.body;
+        if (!estado) {
+            return res.status(400).json({ error: 'El estado es requerido' });
+        }
+        const result = await Envio.updateEstado(req.params.id, estado);
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Envío no encontrado' });
+        }
+        res.json({ message: 'Estado del envío actualizado exitosamente' });
+    } catch (error) {
+        console.error('Error al actualizar el estado del envío:', error);
+        res.status(500).json({ error: 'Error al actualizar el estado del envío' });
+    }
+});
+
+app.delete('/envios/:id', async (req, res) => {
+    try {
+        const result = await Envio.delete(req.params.id);
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Envío no encontrado' });
+        }
+        res.json({ message: 'Envío eliminado exitosamente' });
+    } catch (error) {
+        console.error('Error al eliminar el envío:', error);
+        res.status(500).json({ error: 'Error al eliminar el envío' });
+    }
+});
+
+// Rutas de Pagos
+app.get('/pagos', async (req, res) => {
+    try {
+        const pagos = await Pago.getAll();
+        res.json(pagos);
+    } catch (error) {
+        console.error('Error al obtener pagos:', error);
+        res.status(500).json({ error: 'Error al obtener pagos' });
+    }
+});
+
+app.post('/pagos', async (req, res) => {
+    try {
+        console.log('Datos recibidos en /pagos:', req.body);
+        const result = await Pago.create(req.body);
+        console.log('Resultado de crear pago:', result);
+        res.status(201).json({
+            message: 'Pago creado exitosamente',
+            id: result.insertId
+        });
+    } catch (error) {
+        console.error('Error detallado al crear el pago:', error);
+        res.status(500).json({
+            error: 'Error al crear el pago',
+            details: error.message,
+            sqlMessage: error.sqlMessage
+        });
+    }
+});
+
+app.get('/pagos/:id', async (req, res) => {
+    try {
+        const pago = await Pago.getById(req.params.id);
+        if (!pago) {
+            return res.status(404).json({ error: 'Pago no encontrado' });
+        }
+        res.json(pago);
+    } catch (error) {
+        console.error('Error al obtener el pago:', error);
+        res.status(500).json({ error: 'Error al obtener el pago' });
+    }
+});
+
+app.put('/pagos/:id', async (req, res) => {
+    try {
+        const result = await Pago.update(req.params.id, req.body);
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Pago no encontrado' });
+        }
+        res.json({ message: 'Pago actualizado exitosamente' });
+    } catch (error) {
+        console.error('Error al actualizar el pago:', error);
+        res.status(500).json({ error: 'Error al actualizar el pago' });
+    }
+});
+
+app.delete('/pagos/:id', async (req, res) => {
+    try {
+        const result = await Pago.delete(req.params.id);
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Pago no encontrado' });
+        }
+        res.json({ message: 'Pago eliminado exitosamente' });
+    } catch (error) {
+        console.error('Error al eliminar el pago:', error);
+        res.status(500).json({ error: 'Error al eliminar el pago' });
+    }
+});
+
+// GET todos los suplidores
+app.get('/suplidores', async (req, res) => {
+    try {
+        const [suplidores] = await db.promise().query('SELECT * FROM suplidores');
+        res.json(suplidores);
+    } catch (error) {
+        console.error('Error al obtener suplidores:', error);
+        res.status(500).json({ error: 'Error al obtener suplidores' });
     }
 });
 

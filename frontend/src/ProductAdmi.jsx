@@ -56,7 +56,7 @@ function AgregarProductoForm({ onCancel }) {
         throw new Error('Error al crear el producto');
       }
 
-      const data = await response.json();
+      // const data = await response.json();
       alert('Producto creado exitosamente');
       onCancel(); // Cierra el formulario después de crear
     } catch (err) {

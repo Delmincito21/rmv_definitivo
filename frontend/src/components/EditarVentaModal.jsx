@@ -143,7 +143,7 @@ const EditarVentaModal = ({ isOpen, onClose, ventaId }) => {
       let success = false;
 
       switch (activeTab) {
-        case 'venta':
+        case 'venta': {
           if (ventaData) {
             const ventaResponse = await fetch(`http://localhost:3000/ventas/${ventaId}`, {
               method: 'PUT',
@@ -163,8 +163,9 @@ const EditarVentaModal = ({ isOpen, onClose, ventaId }) => {
             success = true;
           }
           break;
+        }
 
-        case 'detalleVenta':
+        case 'detalleVenta': {
           if (detalleVentaData && detalleVentaData.length > 0) {
             const updatePromises = detalleVentaData.map(detalle => 
               fetch(`http://localhost:3000/detalle-ventas/${ventaId}/${detalle.id_producto}`, {
@@ -182,8 +183,9 @@ const EditarVentaModal = ({ isOpen, onClose, ventaId }) => {
             success = results.every(res => res.ok);
           }
           break;
+        }
 
-        case 'pago':
+        case 'pago': {
           if (pagoData && pagoData.id_pago) {
             const pagoResponse = await fetch(`http://localhost:3000/pagos/${pagoData.id_pago}`, {
               method: 'PUT',
@@ -201,8 +203,9 @@ const EditarVentaModal = ({ isOpen, onClose, ventaId }) => {
             success = pagoResponse.ok;
           }
           break;
+        }
 
-        case 'orden':
+        case 'orden': {
           if (ordenData && ordenData.id_orden) {
             const ordenResponse = await fetch(`http://localhost:3000/orden/${ordenData.id_orden}`, {
               method: 'PUT',
@@ -217,8 +220,9 @@ const EditarVentaModal = ({ isOpen, onClose, ventaId }) => {
             success = ordenResponse.ok;
           }
           break;
+        }
 
-        case 'envio':
+        case 'envio': {
           if (!currentEnvioId) {
             alert('No hay un envío asociado a esta orden. Por favor, verifica que la orden tenga un envío válido.');
             return;
@@ -249,6 +253,7 @@ const EditarVentaModal = ({ isOpen, onClose, ventaId }) => {
           console.log('Respuesta de actualización de envío:', responseData);
           success = true;
           break;
+        }
       }
 
       if (success) {

@@ -30,11 +30,11 @@ const ProductoDetalle = ({ producto, onClose, onAddToCart }) => {
         </button>
         <div className="producto-detalle">
           <div className="producto-detalle-imagen">
-          <img
-  src={`http://localhost:3000/${producto.imagen_url}` || '/imagesprods/p1.png'}
-  alt={producto.nombre_producto}
-  className="producto-imagen"
-/>
+            <img
+              src={`http://localhost:3000/${producto.imagen_url}` || '/imagesprods/p1.png'}
+              alt={producto.nombre_producto}
+              className="producto-imagen"
+            />
 
           </div>
           <div className="producto-detalle-info">
@@ -66,8 +66,8 @@ const ProductoDetalle = ({ producto, onClose, onAddToCart }) => {
                 <p className="descripcion">{producto.descripcion_producto}</p>
               </div>
             </div>
-            <button 
-              className="boton-agregar-detalle" 
+            <button
+              className="boton-agregar-detalle"
               disabled={producto.stock_producto <= 0}
               onClick={onAddToCart}
             >
@@ -191,6 +191,10 @@ const Tienda = () => {
 
       {/* Contenido principal */}
       <main className="main-content">
+        <div className="titulo-productos">
+          <FaShop />
+          <h2>Catálogo de Productos</h2>
+        </div>
         <div className="tienda-container">
           <div className="tienda-header">
             <h2 className="tienda-title">Productos</h2>
@@ -207,7 +211,7 @@ const Tienda = () => {
               </div>
               <select
                 value={filtros.categoria}
-                onChange={(e) => setFiltros({...filtros, categoria: e.target.value})}
+                onChange={(e) => setFiltros({ ...filtros, categoria: e.target.value })}
                 className="filtro-select"
               >
                 <option value="">Todas las categorías</option>
@@ -219,7 +223,7 @@ const Tienda = () => {
               </select>
               <select
                 value={filtros.marca}
-                onChange={(e) => setFiltros({...filtros, marca: e.target.value})}
+                onChange={(e) => setFiltros({ ...filtros, marca: e.target.value })}
                 className="filtro-select"
               >
                 <option value="">Todas las marcas</option>
@@ -229,7 +233,7 @@ const Tienda = () => {
               </select>
               <select
                 value={filtros.color}
-                onChange={(e) => setFiltros({...filtros, color: e.target.value})}
+                onChange={(e) => setFiltros({ ...filtros, color: e.target.value })}
                 className="filtro-select"
               >
                 <option value="">Todos los colores</option>
@@ -257,14 +261,14 @@ const Tienda = () => {
                       {producto.stock_producto > 0 ? `${producto.stock_producto} disponibles` : 'Sin stock'}
                     </div>
                     <div className="product-buttons">
-                      <button 
+                      <button
                         className="boton-detalles"
                         onClick={() => setProductoSeleccionado(producto)}
                       >
                         Ver detalles
                       </button>
-                      <button 
-                        className="boton-agregar" 
+                      <button
+                        className="boton-agregar"
                         disabled={producto.stock_producto <= 0}
                         onClick={() => {
                           addToCart(producto);

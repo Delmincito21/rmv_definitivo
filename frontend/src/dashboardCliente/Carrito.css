@@ -9,10 +9,10 @@
 /* Estilos del sidebar */
 .sidebar {
   width: 250px;
-  background-color: #1a1a1a;
+  background-color: #60a5fa;
   color: white;
   padding: 1rem;
-  transition: width 0.3s ease;
+  transition: all 0.3s ease;
   display: flex;
   flex-direction: column;
   position: fixed;
@@ -22,7 +22,34 @@
 }
 
 .sidebar.collapsed {
-  width: 60px;
+  width: 70px;
+}
+
+.sidebar.collapsed .menu-title,
+.sidebar.collapsed .menu-text,
+.sidebar.collapsed .exit-btn span {
+  display: none;
+}
+
+.sidebar.collapsed .menu-items li {
+  padding: 0.8rem;
+  justify-content: center;
+}
+
+.sidebar.collapsed .menu-items li svg {
+  margin: 0;
+  font-size: 1.4rem;
+}
+
+.sidebar.collapsed .exit-btn {
+  padding: 0.8rem;
+  width: 100%;
+  justify-content: center;
+}
+
+.sidebar.collapsed .exit-btn svg {
+  margin: 0;
+  font-size: 1.4rem;
 }
 
 .sidebar-header {
@@ -111,7 +138,7 @@
   transition: margin-left 0.3s ease;
 }
 
-.sidebar.collapsed + .main-content {
+.sidebar.collapsed+.main-content {
   margin-left: 60px;
 }
 
@@ -277,14 +304,14 @@
     border-radius: 0;
     box-shadow: none;
   }
-  
+
   .cart-item {
     flex-wrap: wrap;
   }
-  
+
   .quantity-controls {
     margin-top: 10px;
     width: 100%;
     justify-content: flex-end;
   }
-}  
+}

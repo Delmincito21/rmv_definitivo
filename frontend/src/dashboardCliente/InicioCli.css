@@ -1,16 +1,15 @@
 /* Barra lateral */
 .sidebar {
-  background-color: #2c3e50;
+  background-color: #60a5fa;
   color: #fff;
   padding: 1rem;
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  color: white;
   height: 100vh;
   padding: 0;
   width: 250px;
-  transition: width 0.3s ease;
+  transition: all 0.3s ease;
 }
 
 .sidebar h2 {
@@ -20,7 +19,34 @@
 }
 
 .sidebar.collapsed {
-  width: 60px;
+  width: 70px;
+}
+
+.sidebar.collapsed .menu-title,
+.sidebar.collapsed .menu-text,
+.sidebar.collapsed .exit-btn span {
+  display: none;
+}
+
+.sidebar.collapsed .menu-items li {
+  padding: 0.8rem;
+  justify-content: center;
+}
+
+.sidebar.collapsed .menu-items li svg {
+  margin: 0;
+  font-size: 1.4rem;
+}
+
+.sidebar.collapsed .exit-btn {
+  padding: 0.8rem;
+  width: 100%;
+  justify-content: center;
+}
+
+.sidebar.collapsed .exit-btn svg {
+  margin: 0;
+  font-size: 1.4rem;
 }
 
 .sidebar ul {
@@ -36,6 +62,7 @@
 .sidebar li.active {
   background-color: #3498db;
 }
+
 .nav-link.active {
   background-color: #3498db;
   color: white;
@@ -68,6 +95,7 @@
 .sidebar li.active {
   background-color: #3498db;
 }
+
 .nav-link.active {
   background-color: #3498db;
   color: white;
@@ -188,55 +216,54 @@
 }
 
 .sidebar-header {
-    padding: 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background-color: #1a2634;
+  padding: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #1a2634;
 }
 
 .menu-title {
-    margin: 0;
-    color: white;
-    font-size: 1.5rem;
-    font-weight: 700;
-    font-family: 'Segoe UI', sans-serif;
-    text-transform: uppercase;
-    letter-spacing: 1px;
+  margin: 0;
+  color: white;
+  font-size: 1.5rem;
+  font-weight: 700;
+  font-family: 'Segoe UI', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .collapse-arrow {
-    color: white;
-    cursor: pointer;
-    transition: transform 0.3s ease;
+  color: white;
+  cursor: pointer;
+  transition: transform 0.3s ease;
 }
 
 .collapse-arrow.rotated {
-    transform: rotate(180deg);
+  transform: rotate(180deg);
 }
 
 .sidebar.collapsed .menu-title {
-    display: none;
+  display: none;
 }
 
 .sidebar.collapsed .menu-text {
-    display: none;
+  display: none;
 }
 
 .menu-items li {
-    padding: 15px 20px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    white-space: nowrap;
+  padding: 15px 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  white-space: nowrap;
 }
 
 .sidebar.collapsed .menu-items li {
-    padding: 15px;
-    justify-content: center;
+  padding: 15px;
+  justify-content: center;
 }
 
 .menu-text {
-    transition: opacity 0.3s ease;
+  transition: opacity 0.3s ease;
 }
-

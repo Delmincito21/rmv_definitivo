@@ -1,10 +1,13 @@
+/* Fondo general con gradiente azul muy suave */
 .login-horizontal {
     display: flex;
-    height: 100vh;
+    min-height: 100vh;
     width: 100vw;
     margin: 0;
     padding: 0;
-    background: white;
+    background: linear-gradient(135deg, #eaf3fa 0%, #c2d8ec 100%);
+    background-size: cover;
+    animation: none;
 }
 
 .logo-panel {
@@ -12,7 +15,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    background: #f8f8f8;
+    background: transparent;
     padding: 2rem;
 }
 
@@ -20,23 +23,32 @@
     max-width: 80%;
     max-height: 200px;
     object-fit: contain;
+    filter: drop-shadow(0 4px 12px rgba(23, 107, 179, 0.10));
 }
 
 .form-panel {
     flex: 1;
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    padding: 0 4rem;
+    justify-content: flex-start;
+    padding: 2rem 4rem 2.5rem 4rem;
     max-width: 500px;
+    background: #fff;
+    border-radius: 24px;
+    box-shadow: 0 8px 32px 0 rgba(23, 107, 179, 0.10);
+    border: 1px solid #e3eaf2;
+    height: 100vh;
+    overflow-y: auto;
 }
 
 .form-title {
-    color: #333;
-    font-size: 1.8rem;
+    color: #176bb3;
+    font-size: 2.2rem;
     margin-bottom: 2rem;
-    text-transform: uppercase;
+    font-weight: 800;
     letter-spacing: 1px;
+    text-align: center;
+    text-shadow: 0 2px 8px #eaf3fa;
 }
 
 .horizontal-form {
@@ -50,81 +62,106 @@
 .form-row label {
     display: block;
     margin-bottom: 0.5rem;
-    font-weight: 500;
-    color: #555;
+    font-weight: 600;
+    color: #176bb3;
+    letter-spacing: 0.5px;
 }
 
 .form-row input {
     width: 100%;
-    padding: 12px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
+    padding: 14px;
+    border: 1.5px solid #99c6eb;
+    border-radius: 8px;
     font-size: 1rem;
-    background-color: white !important; /* Fondo blanco */
-    color: #000 !important; /* Texto negro */
+    background-color: #f8fbfd;
+    color: #176bb3;
+    transition: border 0.3s, box-shadow 0.3s;
+    box-shadow: 0 2px 8px rgba(121, 182, 234, 0.05);
+}
+
+.form-row input:focus {
+    outline: none;
+    border-color: #176bb3;
+    box-shadow: 0 0 0 3px rgba(23, 107, 179, 0.10);
+    background: #fff;
 }
 
 .form-actions {
-    margin-top: 2rem;
+    margin-top: auto;
+    margin-bottom: 0;
+    position: static;
+    width: 100%;
+    background: none;
+    box-shadow: none;
+    padding: 1.2rem 0 1.2rem 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
-.submit-button {
+.submit-button,
+.register-button {
     width: 100%;
-    padding: 12px;
-    background: #222;
-    color: white;
+    padding: 14px;
+    background: linear-gradient(90deg, #4596e7, #176bb3);
+    color: #fff;
     border: none;
-    border-radius: 4px;
-    font-size: 1rem;
+    border-radius: 50px;
+    font-size: 1.1rem;
     font-weight: bold;
     cursor: pointer;
     margin-bottom: 1rem;
-    text-transform: uppercase;
+    letter-spacing: 1px;
+    box-shadow: 0 4px 15px rgba(23, 107, 179, 0.10);
+    transition: background 0.3s, transform 0.2s;
+    text-transform: none;
+}
+
+.submit-button:hover,
+.register-button:hover {
+    background: linear-gradient(90deg, #176bb3, #4596e7);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(23, 107, 179, 0.13);
 }
 
 .register-link {
     text-align: center;
-    color: #666;
+    color: #176bb3;
+    font-weight: 500;
 }
 
 .register-link a {
-    color: #222;
+    color: #176bb3;
     font-weight: bold;
-    text-decoration: none;
+    text-decoration: underline;
+    transition: color 0.2s;
+}
+
+.register-link a:hover {
+    color: #4596e7;
 }
 
 /* Estilos para textarea */
 .textarea-field {
     min-height: 100px;
-    padding: 12px 15px;
+    padding: 14px 15px;
     resize: vertical;
     font-family: inherit;
     line-height: 1.5;
-    border: 1px solid #e2e8f0;
-    border-radius: 6px;
-    background: white !important; /* Fondo blanco */
-    color: #000 !important; /* Texto negro */
-    transition: all 0.3s ease;
+    border: 1.5px solid #99c6eb;
+    border-radius: 8px;
+    background: #f8fbfd;
+    color: #176bb3;
+    transition: border 0.3s, box-shadow 0.3s;
     width: 100%;
+    box-shadow: 0 2px 8px rgba(121, 182, 234, 0.05);
 }
 
 .textarea-field:focus {
     outline: none;
-    border-color: #4299e1;
-    box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.2);
-    background: white !important;
-}
-
-/* Estilos específicos para el formulario de registro */
-.register-button {
-    background: #2c5282 !important;
-    font-size: 1.1rem;
-    padding: 16px;
-    margin-top: 1rem;
-}
-
-.register-button:hover {
-    background: #2a4365 !important;
+    border-color: #176bb3;
+    box-shadow: 0 0 0 3px rgba(23, 107, 179, 0.10);
+    background: #fff;
 }
 
 /* Responsive para móviles */
@@ -138,16 +175,26 @@
     }
 
     .form-panel {
-        padding: 2rem;
+        padding: 1.5rem 1rem 2.5rem 1rem;
         max-width: 100%;
+        border-radius: 0 0 24px 24px;
+        height: 100vh;
+        overflow-y: auto;
     }
-    
+
     .textarea-field {
         min-height: 80px;
     }
+
+    .form-title {
+        font-size: 1.5rem;
+    }
+
+    .form-actions {
+        padding: 1rem 0 1rem 0;
+    }
 }
 
-/* Estilos compactos para el formulario */
 .compact-form {
     height: 100vh;
     max-height: 100vh;
@@ -170,32 +217,43 @@
 .compact-input {
     padding: 10px 12px;
     font-size: 0.9rem;
-    background-color: white !important; /* Fondo blanco */
-    color: #000 !important; /* Texto negro */
+    background-color: #f8fbfd;
+    color: #176bb3;
+    border: 1.5px solid #99c6eb;
+    border-radius: 8px;
 }
 
 .compact-textarea {
     min-height: 70px;
     padding: 10px 12px;
-    background-color: white !important; /* Fondo blanco */
-    color: #000 !important; /* Texto negro */
+    background-color: #f8fbfd;
+    color: #176bb3;
+    border: 1.5px solid #99c6eb;
+    border-radius: 8px;
 }
 
-/* Resto de tus estilos compactos se mantienen igual */
 .compact-actions {
     margin-top: 1rem;
-    position: sticky;
-    bottom: 0;
-    background: white;
+    background: #fff;
     padding: 10px 0;
 }
 
 .compact-button {
     padding: 12px;
     font-size: 1rem;
+    background: linear-gradient(90deg, #4596e7, #176bb3);
+    color: #fff;
+    border: none;
+    border-radius: 50px;
+    font-weight: bold;
+    transition: background 0.3s, transform 0.2s;
 }
 
-/* Ajustes para pantallas más grandes */
+.compact-button:hover {
+    background: linear-gradient(90deg, #176bb3, #4596e7);
+    transform: translateY(-2px);
+}
+
 @media (min-width: 992px) {
     .compact-form-grid {
         grid-template-columns: repeat(2, 1fr);

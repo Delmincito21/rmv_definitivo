@@ -5,62 +5,213 @@
   box-sizing: border-box;
 }
 
-
-
 .bienvenido-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100vh;
+  min-height: 100vh;
   width: 100vw;
-  background-color: #f0f2f5;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg, #c2d8ec, #99c6eb, #7bb6ea, #5ca6e8, #4596e7, #176bb3);
+  background-size: 400% 400%;
+  animation: gradientBG 20s ease infinite;
+  position: relative;
+  overflow: hidden;
+}
+
+@keyframes gradientBG {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.bienvenido-content {
+  background: rgba(255, 255, 255, 0.10);
+  padding: 4rem;
+  border-radius: 30px;
+  text-align: center;
+  max-width: 800px;
+  width: 90%;
+  position: relative;
+  z-index: 1;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.10);
+}
+
+.bienvenido-logo-container {
+  margin-bottom: 3rem;
+}
+
+.bienvenido-logo {
+  width: 220px;
+  height: auto;
+  filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.10));
+  animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+  0% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-12px);
+  }
+
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+.bienvenido-text-container {
+  margin-bottom: 3rem;
 }
 
 .bienvenido-titulo {
   font-size: 3rem;
-  color: #333;
+  color: #176bb3;
   margin-bottom: 1.5rem;
+  font-weight: 800;
+  text-shadow: 1px 1px 6px #c2d8ec, 0 2px 8px rgba(0, 0, 0, 0.10);
+  letter-spacing: 0.5px;
 }
 
 .bienvenido-descripcion {
-  font-size: 1.2rem;
-  color: #666;
-  margin-bottom: 2rem;
+  font-size: 1.3rem;
+  color: #176bb3;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 10px;
+  padding: 0.5rem 1rem;
+  display: inline-block;
+  margin-bottom: 0.5rem;
+  line-height: 1.8;
+  text-shadow: 0 1px 2px #c2d8ec;
 }
 
 .bienvenido-botones {
   display: flex;
-  gap: 2rem;
+  justify-content: center;
+  gap: 1.5rem;
 }
 
-.btn {
-  padding: 0.8rem 2rem;
-  font-size: 1.1rem;
+.btn-empleado {
+  padding: 1.1rem 2.5rem;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #fff;
+  background: linear-gradient(90deg, #4596e7, #176bb3);
   border: none;
-  border-radius: 8px;
+  border-radius: 50px;
   cursor: pointer;
-  transition: background-color 0.3s, transform 0.2s;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(23, 107, 179, 0.15);
+  letter-spacing: 0.5px;
 }
 
-.empleado {
-  background-color: #4CAF50;
-  color: white;
+.btn-empleado:hover {
+  background: linear-gradient(90deg, #176bb3, #4596e7);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 15px rgba(23, 107, 179, 0.18);
 }
 
-.empleado:hover {
-  background-color: #45a049;
-  transform: scale(1.05);
+.bienvenido-decoration {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  pointer-events: none;
 }
 
-.administrador {
-  background-color: #2196F3;
-  color: white;
+.decoration-circle {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(121, 182, 234, 0.10);
+  backdrop-filter: blur(5px);
 }
 
-.administrador:hover {
-  background-color: #1976D2;
-  transform: scale(1.05);
+.circle-1 {
+  width: 400px;
+  height: 400px;
+  top: -200px;
+  right: -200px;
+  animation: rotate 25s linear infinite;
+}
+
+.circle-2 {
+  width: 300px;
+  height: 300px;
+  bottom: -150px;
+  left: -150px;
+  animation: rotate 20s linear infinite reverse;
+}
+
+.circle-3 {
+  width: 200px;
+  height: 200px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  animation: pulse 6s ease-in-out infinite;
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.2;
+  }
+
+  50% {
+    transform: translate(-50%, -50%) scale(1.1);
+    opacity: 0.3;
+  }
+
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.2;
+  }
+}
+
+@media (max-width: 768px) {
+  .bienvenido-content {
+    padding: 2rem;
+    width: 95%;
+  }
+
+  .bienvenido-titulo {
+    font-size: 2rem;
+  }
+
+  .bienvenido-descripcion {
+    font-size: 1rem;
+  }
+
+  .btn-empleado {
+    padding: 1rem 2rem;
+    font-size: 1rem;
+  }
+
+  .bienvenido-logo {
+    width: 140px;
+  }
 }
 
 /* Fondo global y centrado general */

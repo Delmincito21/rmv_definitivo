@@ -20,8 +20,8 @@ function AgregarProductoForm({ onCancel }) {
   });
 
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [categorias, setCategorias] = useState([]);
+  const [setError] = useState(null);
+  const [setCategorias] = useState([]);
   const [mostrarSuplidores, setMostrarSuplidores] = useState(false);
 
   const handleChange = (e) => {
@@ -56,7 +56,7 @@ function AgregarProductoForm({ onCancel }) {
         throw new Error('Error al crear el producto');
       }
 
-      const data = await response.json();
+      // const data = await response.json();
       alert('Producto creado exitosamente');
       onCancel(); // Cierra el formulario después de crear
     } catch (err) {
@@ -406,32 +406,32 @@ function ModificarProductoList() {
 
   const handleGuardarEdicion = async () => {
     try {
-        const response = await fetch(`http://localhost:3000/productos/${productoEditando.id_producto}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(productoEditando),
-        });
+      const response = await fetch(`http://localhost:3000/productos/${productoEditando.id_producto}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(productoEditando),
+      });
 
-        if (!response.ok) {
-            throw new Error('Error al actualizar el producto');
-        }
+      if (!response.ok) {
+        throw new Error('Error al actualizar el producto');
+      }
 
-        alert('Producto actualizado exitosamente');
+      alert('Producto actualizado exitosamente');
 
-        // Actualiza la lista de productos en el frontend
-        setProductos((prevProductos) =>
-            prevProductos.map((producto) =>
-                producto.id_producto === productoEditando.id_producto ? productoEditando : producto
-            )
-        );
+      // Actualiza la lista de productos en el frontend
+      setProductos((prevProductos) =>
+        prevProductos.map((producto) =>
+          producto.id_producto === productoEditando.id_producto ? productoEditando : producto
+        )
+      );
 
-        // Salir del modo de edición
-        setProductoEditando(null);
+      // Salir del modo de edición
+      setProductoEditando(null);
     } catch (error) {
-        console.error('Error al actualizar el producto:', error);
-        alert('Hubo un error al actualizar el producto. Inténtalo de nuevo.');
+      console.error('Error al actualizar el producto:', error);
+      alert('Hubo un error al actualizar el producto. Inténtalo de nuevo.');
     }
   };
 
@@ -567,6 +567,16 @@ function ModificarProductoList() {
                   setProductoEditando((prev) => ({ ...prev, stock_producto: e.target.value }))
                 }
               />
+              <label>Estado:</label>
+              <select
+                value={productoEditando.estado}
+                onChange={(e) =>
+                  setProductoEditando((prev) => ({ ...prev, estado: e.target.value }))
+                }
+              >
+                <option value="activo">Activo</option>
+                <option value="inactivo">Inactivo</option>
+              </select>
               <div className="form-actions">
                 <button type="button" onClick={() => setProductoEditando(null)}>
                   Cancelar

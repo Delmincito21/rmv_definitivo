@@ -7,6 +7,7 @@ const Clientes = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
+    const [clienteEditando, setClienteEditando] = useState(null);
 
     // Cargar datos desde el backend
     useEffect(() => {
@@ -32,6 +33,67 @@ const Clientes = () => {
 
     // Filtrar clientes activos para el card
     const activeClientes = clientes.filter(cliente => cliente.estado === 'activo');
+
+    const handleGuardarEdicionCliente = async () => {
+        try {
+            const response = await fetch(`http://localhost:3000/clientes/${clienteEditando.id_clientes}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(clienteEditando),
+            });
+
+            if (!response.ok) {
+                throw new Error('Error al actualizar el cliente');
+            }
+
+            alert('Cliente actualizado exitosamente');
+
+            // Actualiza la lista de clientes en el frontend
+            setClientes((prevClientes) =>
+                prevClientes.map((cliente) =>
+                    cliente.id_clientes === clienteEditando.id_clientes ? clienteEditando : cliente
+                )
+            );
+
+            // Salir del modo de edición
+            setClienteEditando(null);
+        } catch (error) {
+            console.error('Error al actualizar el cliente:', error);
+            alert('Hubo un error al actualizar el cliente. Inténtalo de nuevo.');
+        }
+    };
+
+    const handleEliminarCliente = async (id) => {
+        if (window.confirm('¿Estás seguro de que deseas inactivar este cliente?')) {
+            try {
+                const response = await fetch(`http://localhost:3000/clientes/${id}/inactivar`, {
+                    method: 'PUT',
+                });
+
+                if (!response.ok) {
+                    throw new Error('Error al inactivar el cliente');
+                }
+
+                alert('Cliente inactivado exitosamente');
+
+                // Actualiza la lista de clientes en el frontend
+                setClientes((prevClientes) =>
+                    prevClientes.map((cliente) =>
+                        cliente.id_clientes === id ? { ...cliente, estado: 'inactivo' } : cliente
+                    )
+                );
+            } catch (error) {
+                console.error('Error al inactivar el cliente:', error);
+                alert('Hubo un error al inactivar el cliente. Inténtalo de nuevo.');
+            }
+        }
+    };
+
+    const handleEditarCliente = (cliente) => {
+        setClienteEditando(cliente);
+    };
 
     if (loading) return <p>Cargando clientes...</p>;
     if (error) return <p>{error}</p>;
@@ -113,11 +175,11 @@ const Clientes = () => {
                                         </span>
                                     </td>
                                     <td className="actions-cell">
-                                        <button className="action-button edit">
-                                            <FiEdit /> Editar
+                                        <button className="action-button edit" onClick={() => handleEditarCliente(cliente)}>
+                                            Editar
                                         </button>
-                                        <button className="action-button delete">
-                                            <FiTrash2 /> Eliminar
+                                        <button className="action-button delete" onClick={() => handleEliminarCliente(cliente.id_clientes)}>
+                                            Eliminar
                                         </button>
                                     </td>
                                 </tr>
@@ -126,6 +188,67 @@ const Clientes = () => {
                     </tbody>
                 </table>
             </div>
+
+            {/* Modal para editar cliente */}
+            {clienteEditando && (
+                <div className="modal-overlay">
+                    <div className="modal-content">
+                        <h3>Editar Cliente</h3>
+                        <form>
+                            <label>Nombre:</label>
+                            <input
+                                type="text"
+                                value={clienteEditando.nombre_clientes || ''}
+                                onChange={(e) =>
+                                    setClienteEditando((prev) => ({ ...prev, nombre_clientes: e.target.value }))
+                                }
+                            />
+                            <label>Teléfono:</label>
+                            <input
+                                type="text"
+                                value={clienteEditando.telefono_clientes || ''}
+                                onChange={(e) =>
+                                    setClienteEditando((prev) => ({ ...prev, telefono_clientes: e.target.value }))
+                                }
+                            />
+                            <label>Dirección:</label>
+                            <input
+                                type="text"
+                                value={clienteEditando.direccion_clientes || ''}
+                                onChange={(e) =>
+                                    setClienteEditando((prev) => ({ ...prev, direccion_clientes: e.target.value }))
+                                }
+                            />
+                            <label>Correo:</label>
+                            <input
+                                type="email"
+                                value={clienteEditando.correo_clientes || ''}
+                                onChange={(e) =>
+                                    setClienteEditando((prev) => ({ ...prev, correo_clientes: e.target.value }))
+                                }
+                            />
+                            <label>Estado:</label>
+                            <select
+                                value={clienteEditando.estado || ''}
+                                onChange={(e) =>
+                                    setClienteEditando((prev) => ({ ...prev, estado: e.target.value }))
+                                }
+                            >
+                                <option value="activo">Activo</option>
+                                <option value="inactivo">Inactivo</option>
+                            </select>
+                            <div className="form-actions">
+                                <button type="button" onClick={() => setClienteEditando(null)}>
+                                    Cancelar
+                                </button>
+                                <button type="button" onClick={handleGuardarEdicionCliente}>
+                                    Guardar
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

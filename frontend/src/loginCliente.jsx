@@ -36,8 +36,8 @@ const LoginCliente = () => {
       }
 
       const data = await response.json();
-      if (data.rol === 'admin') {
-        navigate('/AdminDashboard');
+      if (data.rol === 'administrador') {
+        navigate('/Inicio');
       } else {
         navigate('/InicioCli');
       }

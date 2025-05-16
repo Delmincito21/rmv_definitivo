@@ -82,9 +82,12 @@ const InicioCli = () => {
                             <button className="buy-button" disabled={producto.stock === 0}>
                                 Comprar
                             </button>
-                        </div>
+                        </div>  
                     ))}
                 </section>
+
+                {/* Renderiza las rutas hijas */}
+                <Outlet />
             </main>
         </div>
     );

@@ -1,6 +1,5 @@
 /* Barra lateral */
 .sidebar {
-  width: 250px;
   background-color: #2c3e50;
   color: #fff;
   padding: 1rem;
@@ -34,25 +33,12 @@
   padding: 0.5rem 0;
 }
 
-.sidebar li {
-  padding: 15px 20px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.sidebar ul li:hover {
-  background-color: #34495e;
-}
-
-.sidebar li:hover {
-  background-color: #34495e;
-}
-
 .sidebar li.active {
   background-color: #3498db;
+}
+.nav-link.active {
+  background-color: #3498db;
+  color: white;
 }
 
 .sidebar-footer {
@@ -66,6 +52,121 @@
   width: 100%;
   padding: 10px;
   background-color: #e74c3c;
+  border: none;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.sidebar li:hover {
+  background-color: #34495e;
+}
+
+.sidebar li.active {
+  background-color: #3498db;
+}
+.nav-link.active {
+  background-color: #3498db;
+  color: white;
+}
+
+.sidebar-footer {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  padding: 20px;
+}
+
+.exit-btn {
+  width: 100%;
+  padding: 10px;
+  background-color: #e74c3c;
+  border: none;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+/* Contenido principal */
+.main-content {
+  flex: 1;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.dashboard-header {
+  margin-bottom: 1rem;
+}
+
+.dashboard-header h1 {
+  margin: 0;
+  font-size: 2rem;
+  color: #2c3e50;
+}
+
+/* Cuadrícula de productos */
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+}
+
+.product-card {
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 1rem;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.product-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.product-image {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.product-name {
+  font-size: 1.2rem;
+  margin: 0.5rem 0;
+}
+
+.product-price {
+  font-size: 1rem;
+  color: #27ae60;
+  margin: 0.5rem 0;
+}
+
+.product-stock {
+  font-size: 0.9rem;
+  margin: 0.5rem 0;
+}
+
+.product-stock.in-stock {
+  color: #27ae60;
+}
+
+.product-stock.out-of-stock {
+  color: #e74c3c;
+}
+
+.buy-button {
+  background-color: #3498db;
+  color: #fff;
   border: none;
   color: white;
   display: flex;

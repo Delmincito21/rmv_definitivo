@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
+const path = require('path');
 const db = require('./config/db.config'); // Cambiado a db.config.js
 const Producto = require('./models/productos');
 const Venta = require('./models/venta');
@@ -241,16 +242,20 @@ app.put('/productos/:id/inactivar', async (req, res) => {
 });
 
 // GET categorías productos
-app.get('/categorias_productos', async (req, res) => {
-    try {
-        console.log('Intentando obtener categorías de la base de datos...');
-        const [categorias] = await db.promise().query('SELECT * FROM categorias_productos');
-        console.log('Categorías obtenidas:', categorias);
-        res.json(categorias);
-    } catch (error) {
-        console.error('Error al obtener categorías:', error);
-        res.status(500).json({ error: 'Error al obtener categorías' });
-    }
+app.get('/categorias_productos', (req, res) => {
+    const query = `
+        SELECT *
+        FROM categorias_productos
+        WHERE estado = 'activo'
+    `;
+    
+    db.query(query, (err, results) => {
+        if (err) {
+            console.error('Error al obtener categorías:', err);
+            return res.status(500).json({ error: 'Error al obtener categorías' });
+        }
+        res.json(results);
+    });
 });
 
 // POST para registrar un nuevo cliente

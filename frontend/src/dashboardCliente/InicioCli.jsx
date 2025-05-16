@@ -1,4 +1,4 @@
-import  { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import './InicioCli.css';
 import { useNavigate } from "react-router-dom";
 import {
@@ -6,8 +6,10 @@ import {
     FaSignOutAlt,
     FaShoppingCart,
     FaShoppingBag
- } from "react-icons/fa";
- import { FaShop } from "react-icons/fa6";
+} from "react-icons/fa";
+import { FaShop } from "react-icons/fa6";
+// Agrega esta línea al inicio del archivo:
+import { Outlet } from 'react-router-dom';
 
 const InicioCli = () => {
     const [productos, setProductos] = useState([]);
@@ -35,7 +37,7 @@ const InicioCli = () => {
             <aside className={`sidebar ${isCollapsed ? 'collapsed' : ''}`}>
                 <div className="sidebar-header">
                     <h2 className="menu-title">Menú</h2>
-                    <span 
+                    <span
                         className={`collapse-arrow ${isCollapsed ? 'rotated' : ''}`}
                         onClick={toggleSidebar}
                     >
@@ -44,13 +46,13 @@ const InicioCli = () => {
                 </div>
                 <ul className="menu-items">
                     <li>
-                        <span><FaHome/></span> <span className="menu-text">Inicio</span>
+                        <span><FaHome /></span> <span className="menu-text">Inicio</span>
                     </li>
                     <li>
-                        <span><FaShop/> </span> <span className="menu-text">Tienda</span>
+                        <span><FaShop /> </span> <span className="menu-text">Tienda</span>
                     </li>
                     <li>
-                        <span> <FaShoppingCart/> </span> <span className="menu-text">Carrito</span>
+                        <span> <FaShoppingCart /> </span> <span className="menu-text">Carrito</span>
                     </li>
                     <li>
                         <span>< FaShoppingBag /></span> <span className="menu-text">Mis pedidos</span>
@@ -82,7 +84,7 @@ const InicioCli = () => {
                             <button className="buy-button" disabled={producto.stock === 0}>
                                 Comprar
                             </button>
-                        </div>  
+                        </div>
                     ))}
                 </section>
 

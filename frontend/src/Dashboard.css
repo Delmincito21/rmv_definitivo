@@ -17,7 +17,7 @@
 .admin-sidebar {
     width: 250px;
     height: 100vh;
-    background-color: #3182ce;
+    background-color: #27639b !important;
     color: white;
     display: flex;
     flex-direction: column;
@@ -35,8 +35,9 @@
     /* Espaciado entre el título y el botón */
     align-items: center;
     padding: 10px 15px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid rgba(230, 230, 230, 0.1);
     overflow: visible;
+    background-color: #27639b !important;
     /* Asegura que el contenido no se corte */
 }
 
@@ -130,15 +131,16 @@
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    background-color: #e74c3c;
+    background-color: #313232 !important;
     /* Rojo para indicar acción de salida */
-    color: #fff;
+    color: #fff !important;
     border: none;
-    border-radius: 5px;
+    border-radius: 3px;
     padding: 0.8rem 1.2rem;
-    font-size: 1rem;
+    font-size: 0.5rem;
     cursor: pointer;
     transition: background-color 0.3s ease;
+    border-color: #000000 !important;
 }
 
 /* Icono dentro del botón */
@@ -148,7 +150,7 @@
 
 /* Hover y enfoque */
 .exit-btn:hover {
-    background-color: #c0392b;
+    background-color: #c0392b !important;
     /* Rojo más oscuro al pasar el cursor */
 }
 
@@ -177,6 +179,10 @@
 .admin-sidebar.closed .sidebar-header h3,
 .admin-sidebar.closed .config-link span {
     display: none;
+}
+
+.admin-sidebar.closed .exit-btn span {
+    display: none !important;
 }
 
 .admin-sidebar.closed~.main-content {
@@ -2180,107 +2186,173 @@ html {
 
 /* Estilos para el fondo del modal */
 .modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.6); /* Fondo más oscuro */
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    /* Fondo más oscuro */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
 }
 
 /* Contenedor del modal */
 .modal-content {
-  background: #ffffff; /* Fondo blanco */
-  padding: 30px;
-  border-radius: 12px;
-  width: 90%;
-  max-width: 600px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3); /* Sombra más pronunciada */
-  animation: fadeIn 0.3s ease-in-out;
+    background: #ffffff;
+    /* Fondo blanco */
+    padding: 30px;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 600px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    /* Sombra más pronunciada */
+    animation: fadeIn 0.3s ease-in-out;
 }
 
 /* Título del modal */
 .modal-content h3 {
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: #2c3e50; /* Texto en negro */
-  margin-bottom: 20px;
-  text-align: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #2c3e50;
+    /* Texto en negro */
+    margin-bottom: 20px;
+    text-align: center;
 }
 
 /* Campos de texto */
 .modal-content input,
 .modal-content select {
-  width: 100%;
-  padding: 10px;
-  font-size: 1rem;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  background: #ffffff; /* Fondo blanco */
-  color: #2c3e50; /* Texto en negro */
-  margin-bottom: 15px;
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    width: 100%;
+    padding: 10px;
+    font-size: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    background: #ffffff;
+    /* Fondo blanco */
+    color: #2c3e50;
+    /* Texto en negro */
+    margin-bottom: 15px;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .modal-content input:focus,
 .modal-content select:focus {
-  outline: none;
-  border-color: #3182ce; /* Borde azul al enfocar */
-  box-shadow: 0 0 5px rgba(49, 130, 206, 0.5); /* Sombra azul */
+    outline: none;
+    border-color: #3182ce;
+    /* Borde azul al enfocar */
+    box-shadow: 0 0 5px rgba(49, 130, 206, 0.5);
+    /* Sombra azul */
 }
 
 /* Botones dentro del modal */
 .modal-content .form-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 15px;
-  margin-top: 20px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 15px;
+    margin-top: 20px;
 }
 
 .modal-content .form-actions button {
-  padding: 10px 20px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 1rem;
-  font-weight: bold;
-  transition: background 0.3s ease, transform 0.2s ease;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: bold;
+    transition: background 0.3s ease, transform 0.2s ease;
 }
 
 /* Botón "Cancelar" */
 .modal-content .form-actions button:first-child {
-  background: #f5f5f5; /* Fondo gris claro */
-  color: #333; /* Texto en negro */
+    background: #f5f5f5;
+    /* Fondo gris claro */
+    color: #333;
+    /* Texto en negro */
 }
 
 .modal-content .form-actions button:first-child:hover {
-  background: #e0e0e0; /* Fondo gris más oscuro */
-  transform: scale(1.05); /* Efecto de agrandamiento */
+    background: #e0e0e0;
+    /* Fondo gris más oscuro */
+    transform: scale(1.05);
+    /* Efecto de agrandamiento */
 }
 
 /* Botón "Guardar" */
 .modal-content .form-actions button:last-child {
-  background: #3182ce; /* Fondo azul */
-  color: #ffffff; /* Texto en blanco */
+    background: #3182ce;
+    /* Fondo azul */
+    color: #ffffff;
+    /* Texto en blanco */
 }
 
 .modal-content .form-actions button:last-child:hover {
-  background: #256ba8; /* Fondo azul más oscuro */
-  transform: scale(1.05); /* Efecto de agrandamiento */
+    background: #256ba8;
+    /* Fondo azul más oscuro */
+    transform: scale(1.05);
+    /* Efecto de agrandamiento */
 }
 
 /* Animación para el modal */
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: scale(0.9);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.admin-sidebar.closed .exit-btn {
+    width: 100%;
+    height: auto;
+    padding: 1rem 0;
+    background: none !important;
+    color: #fff !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    /*font-size: 1.2rem;*/
+    transition: background 0.2s, color 0.2s;
+    font-size: 12px;
+    /* Tamaño de texto más pequeño */
+    padding: 4px 10px;
+    /* Menos espacio interno */
+    height: 28px;
+    width: 40px;
+    /* Ajusta el ancho */
+    height: 40px;
+    /* Ajusta la altura */
+    min-width: unset;
+    /* Quita mínimo si existe */
+    min-height: unset;
+    padding: 0;
+    margin: 0 auto 20px auto;
+    /* Centrado y separado del borde inferior */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    /* Ícono más pequeño */
+    background: #2366a2;
+    /* Color igual al sidebar */
+    border: none;
+    border-radius: 8px;
+    /* Opcional, para esquinas redondeadas */
+    box-shadow: none;
+
+}
+
+.admin-sidebar.closed .exit-btn:hover {
+    background: #23609a !important;
+    color: #fff !important;
 }

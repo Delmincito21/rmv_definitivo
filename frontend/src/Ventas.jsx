@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FaCalendarAlt, FaMinus, FaPlus, FaArrowLeft, FaCreditCard, FaTruck } from 'react-icons/fa';
 import './Ventas.css';
+import EditarVentaModal from './components/EditarVentaModal';
 
 // Componente de Pago
 const PagoForm = ({ total, onSubmit, setPaso, id_venta }) => {
@@ -232,12 +233,16 @@ const Ventas = () => {
     detalles: [{}]
   });
 
-  const [paso, setPaso] = useState('venta'); // 'venta', 'pago', 'envio'
+  const [paso, setPaso] = useState('venta');
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [ventas, setVentas] = useState([]);
+  const [ventasFiltradas, setVentasFiltradas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [ordenId, setOrdenId] = useState(null);
+  const [modalIsOpen, setModalIsOpen] = useState(false);
+  const [selectedVentaId, setSelectedVentaId] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     fetch('http://localhost:3000/ventas')
@@ -245,6 +250,7 @@ const Ventas = () => {
       .then(data => {
         console.log('Ventas obtenidas del backend:', data);
         setVentas(data);
+        setVentasFiltradas(data);
         setLoading(false);
       })
       .catch(err => {
@@ -253,6 +259,24 @@ const Ventas = () => {
         setLoading(false);
       });
   }, []);
+
+  useEffect(() => {
+    if (searchTerm === '') {
+      setVentasFiltradas(ventas);
+      return;
+    }
+
+    const termLower = searchTerm.toLowerCase();
+    const filtered = ventas.filter(venta => {
+      const fechaVenta = new Date(venta.fecha_venta).toLocaleDateString();
+      return (
+        venta.id_venta.toString().includes(termLower) ||
+        venta.cliente.toLowerCase().includes(termLower) ||
+        fechaVenta.includes(termLower)
+      );
+    });
+    setVentasFiltradas(filtered);
+  }, [searchTerm, ventas]);
 
   const calcularSubtotal = (detalle) => {
     const cantidad = parseFloat(detalle.cantidad) || 0;
@@ -548,16 +572,46 @@ const Ventas = () => {
     }
   };
 
+  const handleEdit = (ventaId) => {
+    setSelectedVentaId(ventaId);
+    setModalIsOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setModalIsOpen(false);
+    setSelectedVentaId(null);
+    // Recargar la lista de ventas
+    fetch('http://localhost:3000/ventas')
+      .then(res => res.json())
+      .then(data => {
+        setVentas(data);
+      })
+      .catch(err => {
+        console.error('Error al recargar las ventas:', err);
+      });
+  };
+
   return (
     <div className="ventas-container">
       <div className="dashboard-header">
         <h1 className="page-title">Gestión de Ventas</h1>
-        <button
-          className="add-button"
-          onClick={() => setMostrarFormulario(true)}
-        >
-          <FaPlus /> Nueva Venta
-        </button>
+        <div className="actions-container">
+          <div className="search-container">
+            <input
+              type="text"
+              placeholder="Buscar por ID, cliente o fecha..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="search-input"
+            />
+          </div>
+          <button
+            className="add-button"
+            onClick={() => setMostrarFormulario(true)}
+          >
+            <FaPlus /> Nueva Venta
+          </button>
+        </div>
       </div>
 
       {mostrarFormulario ? (
@@ -757,8 +811,8 @@ const Ventas = () => {
                 <tr>
                   <td colSpan="6">{error}</td>
                 </tr>
-              ) : ventas.length > 0 ? (
-                ventas.map((venta, index) => (
+              ) : ventasFiltradas.length > 0 ? (
+                ventasFiltradas.map((venta, index) => (
                   <tr key={index}>
                     <td>{venta.id_venta}</td>
                     <td>{new Date(venta.fecha_venta).toLocaleString()}</td>
@@ -769,7 +823,12 @@ const Ventas = () => {
                     </td>
                     <td className="actions-cell">
                       <button className="action-button view">Ver Detalles</button>
-                      <button className="action-button edit">Editar</button>
+                      <button 
+                        className="action-button edit"
+                        onClick={() => handleEdit(venta.id_venta)}
+                      >
+                        Editar
+                      </button>
                       <button 
                         className="action-button delete"
                         onClick={() => handleDelete(venta.id_venta)}
@@ -781,13 +840,19 @@ const Ventas = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="6">No hay ventas disponibles</td>
+                  <td colSpan="6">No se encontraron ventas</td>
                 </tr>
               )}
             </tbody>
           </table>
         </div>
       )}
+
+      <EditarVentaModal
+        isOpen={modalIsOpen}
+        onClose={handleCloseModal}
+        ventaId={selectedVentaId}
+      />
     </div>
   );
 };

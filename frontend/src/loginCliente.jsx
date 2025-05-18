@@ -39,7 +39,7 @@ const LoginCliente = () => {
       if (data.rol === 'administrador') {
         navigate('/Inicio');
       } else {
-        navigate('/InicioCli');
+        navigate('/Tienda');
       }
     } catch (error) {
       setError('Error al iniciar sesión: ' + error.message);

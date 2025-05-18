@@ -47,7 +47,7 @@ const RegistroCliente = () => {
       }
 
       alert('Cliente registrado con éxito!');
-      navigate('/InicioCli');
+      navigate('/Tienda');
     } catch (error) {
       alert('Error al registrar el cliente: ' + error.message);
     }
@@ -114,7 +114,7 @@ const RegistroCliente = () => {
                   required
                   className="input-field"
                 />
-              </div>
+              </div> 
               <div className="form-row">
                 <input
                   type="text"

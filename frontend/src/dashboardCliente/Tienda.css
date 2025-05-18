@@ -18,7 +18,7 @@ body {
 /* Sidebar Moderno Azul */
 .sidebar {
     width: 240px;
-    background: #3b82f6;
+    background-color: #27639b !important;
     color: #fff;
     display: flex;
     flex-direction: column;
@@ -26,8 +26,8 @@ body {
     min-height: 100vh;
     box-shadow: 2px 0 12px rgba(59, 130, 246, 0.1);
     z-index: 10;
-    border-top-right-radius: 24px;
-    border-bottom-right-radius: 24px;
+    /* border-top-right-radius: 24px;
+    border-bottom-right-radius: 24px; */
     position: relative;
     flex-shrink: 0;
     overflow: hidden;
@@ -68,6 +68,8 @@ body {
     justify-content: space-between;
     padding: 1.5rem 1rem 1rem 1rem;
     border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    background-color: #27639b !important;
+
 }
 
 .menu-title {
@@ -119,7 +121,7 @@ body {
 
 .sidebar-footer {
     margin-top: auto;
-    padding: 2rem 1rem 2.5rem 1rem;
+   
     border-top: none;
     display: flex;
     flex-direction: column;

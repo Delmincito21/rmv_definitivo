@@ -3,7 +3,7 @@ const db = require('../config/db.config.js');
 class Pago {
     static async getAll() {
         try {
-            const [rows] = await db.query('SELECT * FROM pago WHERE estado = "activo"');
+            const [rows] = await db.query('SELECT * FROM pago');
             return rows;
         } catch (error) {
             throw error;
@@ -12,7 +12,7 @@ class Pago {
 
     static async create(pagoData) {
         const {
-            monto: monto_pago,
+            monto_pago,
             fecha_pago,
             metodo_pago,
             referencia,

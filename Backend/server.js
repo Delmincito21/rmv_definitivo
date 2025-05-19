@@ -1068,6 +1068,130 @@ app.get('/dashboard/categorias', async (req, res) => {
     }
 });
 
+// Configura tu transportador de correo (usa tus credenciales reales)
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: 'refrielectricmv@gmail.com',
+        pass: 'rlfp pitl xfuu odnu'
+    }
+});
+
+// Ruta para solicitar recuperación
+app.post('/recuperar', async (req, res) => {
+    const { email } = req.body;
+
+    // Busca el cliente en la base de datos
+    const [clientesResult] = await db.query(
+        'SELECT * FROM clientes WHERE correo_clientes = ?',
+        [email]
+    );
+
+    if (clientesResult.length === 0) {
+        // Por seguridad, responde igual aunque no exista
+        return res.json({ message: 'Si el correo está registrado, recibirás un enlace.' });
+    }
+
+    // Aquí deberías generar un token seguro y guardarlo en la BD
+    const token = Math.random().toString(36).substring(2);
+    const tokenExpires = new Date(Date.now() + 1000 * 60 * 30 + 1000 * 60 * 60 * 4); // suma 4 horas
+
+    // Guarda el token y expiración en la tabla clientes
+    await db.query(
+        'UPDATE clientes SET reset_token = ?, reset_token_expires = ? WHERE correo_clientes = ?',
+        [token, tokenExpires, email]
+    );
+
+    // Enlace de recuperación (ajusta la URL a tu frontend)
+    const resetLink = `http://localhost:5173/reset-password?token=${token}&email=${email}`;
+
+    // Envía el correo
+    await transporter.sendMail({
+        from: '"RMV Soporte" <refrielectricmv@gmail.com>',
+        to: email,
+        subject: 'Recupera tu contraseña - RMV',
+        html: `
+      <div style="font-family: Arial, sans-serif; background: #f8fbfd; padding: 32px;">
+        <div style="max-width: 480px; margin: auto; background: #fff; border-radius: 12px; box-shadow: 0 4px 24px #176bb320; padding: 32px;">
+          <div style="text-align: center; margin-bottom: 24px;">
+            <img src="https://i.postimg.cc/xCTDNby2/lgo.png" alt="RMV Logo" style="width: 80px; margin-bottom: 8px;" />
+            <h2 style="color: #176bb3; margin: 0;">Cambio de contraseña</h2>
+          </div>
+          <p style="color: #222; font-size: 1.1rem;">
+            Hola,<br>
+            Hemos recibido una solicitud para restablecer la contraseña de tu cuenta en <b>RMV</b>.
+          </p>
+          <p style="color: #222; font-size: 1.1rem;">
+            Haz clic en el siguiente botón para cambiar tu contraseña:
+          </p>
+          <div style="text-align: center; margin: 32px 0;">
+            <a href="${resetLink}" style="background: linear-gradient(90deg, #4596e7, #176bb3); color: #fff; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 1.1rem; display: inline-block;">
+              Cambiar contraseña
+            </a>
+          </div>
+          <p style="color: #888; font-size: 0.95rem;">
+            Si no solicitaste este cambio, puedes ignorar este correo. Tu contraseña actual seguirá siendo segura.
+          </p>
+          <hr style="border: none; border-top: 1px solid #e0e0e0; margin: 24px 0;">
+          <div style="text-align: center; color: #aaa; font-size: 0.9rem;">
+            © ${new Date().getFullYear()} RMV | Soporte: refrielectricmv@gmail.com
+          </div>
+        </div>
+      </div>
+    `
+    });
+
+    res.json({ message: 'Si el correo está registrado, recibirás un enlace.' });
+});
+
+// Ruta para restablecer la contraseña
+app.post('/reset-password', async (req, res) => {
+    try {
+        const { email, token, newPassword } = req.body;
+        console.log('Intentando reset:', email, token);
+
+        const [clientesResult] = await db.query(
+            'SELECT * FROM clientes WHERE correo_clientes = ? AND reset_token = ? AND reset_token_expires > NOW()',
+            [email, token]
+        );
+        console.log('Resultado de búsqueda:', clientesResult);
+
+        if (clientesResult.length === 0) {
+            return res.status(400).json({ error: 'Token inválido o expirado.' });
+        }
+
+        // Busca el usuario relacionado a este cliente
+        const cliente = clientesResult[0];
+        // Si tienes una relación directa por id:
+        const [usuariosResult] = await db.query(
+            'SELECT * FROM usuarios WHERE id_usuario = ?',
+            [cliente.id_clientes]
+        );
+        if (usuariosResult.length === 0) {
+            return res.status(400).json({ error: 'Usuario no encontrado.' });
+        }
+
+        // 2. Hashea la nueva contraseña
+        const hashedPin = await bcrypt.hash(newPassword, 10);
+
+        await db.query(
+            'UPDATE usuarios SET pin_usuario = ? WHERE id_usuario = ?',
+            [hashedPin, cliente.id_clientes]
+        );
+
+        // 4. Limpia el token en clientes
+        await db.query(
+            'UPDATE clientes SET reset_token = NULL, reset_token_expires = NULL WHERE correo_clientes = ?',
+            [email]
+        );
+
+        res.json({ message: 'Contraseña actualizada correctamente.' });
+    } catch (error) {
+        res.status(500).json({ error: 'Error al actualizar la contraseña.' });
+    }
+});
+
+
 // Inicia el servidor
 app.listen(PORT, () => {
     console.log(`Servidor en http://localhost:${PORT}`);

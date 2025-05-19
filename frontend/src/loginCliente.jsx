@@ -10,6 +10,7 @@ const LoginCliente = () => {
     contraseña: ''
   });
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -23,6 +24,7 @@ const LoginCliente = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(''); // Limpiar errores previos
+    setLoading(true);
 
     try {
       const response = await fetch('http://localhost:3000/login', {
@@ -36,14 +38,51 @@ const LoginCliente = () => {
         throw new Error(errorData.error || 'Error al iniciar sesión');
       }
 
-      const data = await response.json();
+      const responseText = await response.text();
+      console.log("Respuesta en texto:", responseText);
+      const data = JSON.parse(responseText);
+      console.log("Datos parseados:", data);
+
+      // Limpiar el localStorage antes de establecer el nuevo usuario
+      localStorage.clear();
+
+      // Establecer los nuevos valores
+      localStorage.setItem('userId', String(data.id_usuario));
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('userData', JSON.stringify(data));
+
+      // Disparar evento personalizado para notificar el cambio de usuario
+      window.dispatchEvent(new CustomEvent('userChanged', {
+        detail: { userId: data.id || data.id_usuario || data.userId }
+      }));
+
+      // Mostrar mensaje de bienvenida
+      Swal.fire({
+        position: 'center',
+        icon: 'success',
+        title: '¡Bienvenido!',
+        text: 'Inicio de sesión exitoso',
+        showConfirmButton: false,
+        timer: 1500
+      });
+
+      // Navegar según el rol
       if (data.rol === 'administrador') {
         navigate('/Inicio');
       } else {
         navigate('/Tienda');
       }
+
+      console.log("ID guardado en localStorage:", localStorage.getItem('userId'));
     } catch (error) {
       setError('Error al iniciar sesión: ' + error.message);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error de acceso',
+        text: 'Usuario o contraseña incorrectos'
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -111,6 +150,7 @@ const LoginCliente = () => {
                 placeholder="Usuario"
                 required
                 className="input-field"
+                disabled={loading}
               />
             </div>
 
@@ -123,12 +163,13 @@ const LoginCliente = () => {
                 placeholder="Contraseña"
                 required
                 className="input-field"
+                disabled={loading}
               />
             </div>
 
             <div className="form-actions">
-              <button type="submit" className="submit-button">
-                ENTRAR
+              <button type="submit" className="submit-button" disabled={loading}>
+                {loading ? 'CARGANDO...' : 'ENTRAR'}
               </button>
               <div className="register-link">
                 ¿No tienes cuenta? <span onClick={irARegistro} className="register-anchor">REGÍSTRATE</span>

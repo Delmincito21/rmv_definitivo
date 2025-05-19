@@ -136,20 +136,22 @@ const Tienda = () => {
 
   const handleLogout = () => {
     Swal.fire({
-        title: '¿Estás seguro?',
-        text: "¿Deseas cerrar sesión?",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Sí, cerrar sesión',
-        cancelButtonText: 'Cancelar'
+      title: '¿Estás seguro?',
+      text: "¿Deseas cerrar sesión?",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Sí, cerrar sesión',
+      cancelButtonText: 'Cancelar'
     }).then((result) => {
-        if (result.isConfirmed) {
-            navigate('/', { replace: true }); // <-- Esto evita volver atrás
-        }
+      if (result.isConfirmed) {
+        navigate('/', { replace: true }); // <-- Esto evita volver atrás
+      }
     });
   };
+
+  console.log("ID de usuario actual:", localStorage.getItem('userId'));
 
   if (loading) {
     return <div className="loading">Cargando productos...</div>;

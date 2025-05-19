@@ -6,7 +6,7 @@ import EditarVentaModal from './components/EditarVentaModal';
 // Componente de Pago
 const PagoForm = ({ total, onSubmit, setPaso, id_venta }) => {
   const [datosPago, setDatosPago] = useState({
-    monto: total || 0,
+    monto_pago: total || 0,
     fecha_pago: new Date().toISOString().slice(0, 16),
     metodo_pago: 'transferencia',
     referencia: '',
@@ -20,8 +20,8 @@ const PagoForm = ({ total, onSubmit, setPaso, id_venta }) => {
   const validarPago = () => {
     const nuevosErrores = {};
 
-    if (!datosPago.monto) {
-      nuevosErrores.monto = 'El monto es requerido';
+    if (!datosPago.monto_pago) {
+      nuevosErrores.monto_pago = 'El monto es requerido';
     }
 
     if (!datosPago.referencia) {
@@ -55,16 +55,16 @@ const PagoForm = ({ total, onSubmit, setPaso, id_venta }) => {
       <h3 className="section-subtitle">Información de Pago</h3>
 
       <div className="form-row">
-        <div className={`form-field ${errores.monto ? 'error' : ''}`}>
+        <div className={`form-field ${errores.monto_pago ? 'error' : ''}`}>
           <label>Monto</label>
           <input
             type="number"
-            value={datosPago.monto}
-            onChange={(e) => setDatosPago({ ...datosPago, monto: e.target.value })}
+            value={datosPago.monto_pago}
+            onChange={(e) => setDatosPago({ ...datosPago, monto_pago: e.target.value })}
             placeholder="0.00"
             step="0.01"
           />
-          {errores.monto && <div className="error-message">{errores.monto}</div>}
+          {errores.monto_pago && <div className="error-message">{errores.monto_pago}</div>}
         </div>
 
         <div className="form-field">
@@ -218,7 +218,8 @@ const Ventas = () => {
     fecha_venta: new Date().toISOString().slice(0, 16),
     estado_venta: 'pendiente',
     estado: 'activo',
-    total: 0
+    total: 0,
+    id_venta: null
   });
 
   const [detalles, setDetalles] = useState([{
@@ -243,6 +244,7 @@ const Ventas = () => {
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [selectedVentaId, setSelectedVentaId] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [datosPagoActual, setDatosPagoActual] = useState(null);
 
   useEffect(() => {
     fetch('http://localhost:3000/ventas')
@@ -288,12 +290,28 @@ const Ventas = () => {
     return detalles.reduce((total, detalle) => total + calcularSubtotal(detalle), 0);
   };
 
-  const handleDetalleChange = (index, campo, valor) => {
+  const handleDetalleChange = async (index, campo, valor) => {
     const nuevosDetalles = [...detalles];
     nuevosDetalles[index] = {
       ...nuevosDetalles[index],
       [campo]: valor
     };
+
+    // Si el campo que cambió es id_producto, obtener el precio automáticamente
+    if (campo === 'id_producto' && valor) {
+      try {
+        const response = await fetch(`http://localhost:3000/productos/${valor}/precio`);
+        if (response.ok) {
+          const data = await response.json();
+          nuevosDetalles[index].precio = data.precio;
+        } else {
+          console.error('Error al obtener el precio del producto');
+        }
+      } catch (error) {
+        console.error('Error al obtener el precio:', error);
+      }
+    }
+
     nuevosDetalles[index].subtotal = calcularSubtotal(nuevosDetalles[index]);
 
     setDetalles(nuevosDetalles);
@@ -389,106 +407,139 @@ const Ventas = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (validarFormulario()) {
-      try {
-        // Preparar los datos de la venta
-        const ventaParaEnviar = {
-          id_usuario: parseInt(datosVenta.id_usuario),
-          fecha_venta: datosVenta.fecha_venta,
-          estado_venta: datosVenta.estado_venta,
-          estado: 'activo'
-        };
+        try {
+            let idVenta = datosVenta.id_venta;
 
-        console.log('Datos de venta a enviar:', ventaParaEnviar);
+            if (!idVenta) {
+                // Si no hay ID de venta, crear una nueva
+                const ventaParaEnviar = {
+                    id_usuario: parseInt(datosVenta.id_usuario),
+                    fecha_venta: datosVenta.fecha_venta,
+                    estado_venta: datosVenta.estado_venta,
+                    estado: 'activo'
+                };
 
-        // Crear la venta
-        const ventaResponse = await fetch('http://localhost:3000/ventas', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(ventaParaEnviar)
-        });
+                const ventaResponse = await fetch('http://localhost:3000/ventas', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(ventaParaEnviar)
+                });
 
-        console.log('Respuesta del servidor:', ventaResponse.status);
-        
-        const responseData = await ventaResponse.json();
-        console.log('Datos de respuesta:', responseData);
+                const responseData = await ventaResponse.json();
+                if (!ventaResponse.ok) {
+                    throw new Error(responseData.error || 'Error al crear la venta');
+                }
+                idVenta = responseData.id || responseData.insertId;
+            }
 
-        if (!ventaResponse.ok) {
-          throw new Error(responseData.error || 'Error al crear la venta');
+            // Obtener detalles existentes
+            const detallesResponse = await fetch(`http://localhost:3000/detalle-ventas/venta/${idVenta}`);
+            const detallesExistentes = await detallesResponse.json();
+            
+            // Crear un mapa de detalles existentes por id_producto
+            const detallesMap = new Map(
+                detallesExistentes.map(detalle => [detalle.id_producto, detalle])
+            );
+
+            // Procesar cada detalle
+            for (const detalle of detalles) {
+                const detalleParaEnviar = {
+                    id_venta: idVenta,
+                    id_producto: parseInt(detalle.id_producto),
+                    cantidad_detalle_venta: parseInt(detalle.cantidad),
+                    precio_unitario_detalle_venta: parseFloat(detalle.precio),
+                    subtotal_detalle_venta: parseFloat(detalle.subtotal),
+                    estado: 'activo'
+                };
+
+                if (detallesMap.has(parseInt(detalle.id_producto))) {
+                    // Si el detalle existe, actualizarlo
+                    await fetch(`http://localhost:3000/detalle-ventas/${idVenta}/${detalle.id_producto}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(detalleParaEnviar)
+                    });
+                } else {
+                    // Si el detalle no existe, crearlo
+                    await fetch('http://localhost:3000/detalle-ventas', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(detalleParaEnviar)
+                    });
+                }
+            }
+
+            // Eliminar detalles que ya no están en la lista actual
+            const productosActuales = new Set(detalles.map(d => parseInt(d.id_producto)));
+            for (const detalleExistente of detallesExistentes) {
+                if (!productosActuales.has(detalleExistente.id_producto)) {
+                    await fetch(`http://localhost:3000/detalle-ventas/${idVenta}/${detalleExistente.id_producto}`, {
+                        method: 'DELETE'
+                    });
+                }
+            }
+
+            setDatosVenta(prev => ({ ...prev, id_venta: idVenta }));
+            setPaso('pago');
+        } catch (error) {
+            console.error('Error completo:', error);
+            alert('Error al procesar la venta: ' + error.message);
         }
-
-        // Obtener el ID de la venta desde insertId
-        const idVenta = responseData.id || responseData.insertId;
-        if (!idVenta) {
-          throw new Error('No se pudo obtener el ID de la venta creada');
-        }
-        console.log('ID de venta creada:', idVenta);
-
-        // Crear los detalles de venta
-        for (const detalle of detalles) {
-          const detalleParaEnviar = {
-            id_venta: idVenta,
-            id_producto: parseInt(detalle.id_producto),
-            cantidad_detalle_venta: parseInt(detalle.cantidad),
-            precio_unitario_detalle_venta: parseFloat(detalle.precio),
-            subtotal_detalle_venta: parseFloat(detalle.subtotal),
-            estado: 'activo'
-          };
-
-          console.log('Detalle a enviar:', detalleParaEnviar);
-
-          const detalleResponse = await fetch('http://localhost:3000/detalle-ventas', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(detalleParaEnviar)
-          });
-
-          if (!detalleResponse.ok) {
-            const errorDetalleData = await detalleResponse.json();
-            throw new Error(errorDetalleData.error || 'Error al crear el detalle de venta');
-          }
-        }
-
-        // Guardar el ID de la venta en el estado
-        setDatosVenta(prev => ({ ...prev, id_venta: idVenta }));
-        setPaso('pago');
-      } catch (error) {
-        console.error('Error completo:', error);
-        alert('Error al procesar la venta: ' + error.message);
-      }
     }
   };
 
   const handlePagoSubmit = async (datosPago) => {
     try {
-      // Procesar el pago
-      console.log('Enviando datos de pago:', datosPago);
-      const response = await fetch('http://localhost:3000/pagos', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(datosPago)
-      });
+      let idPago = datosPagoActual?.id_pago;
 
-      if (!response.ok) {
-        throw new Error('Error al procesar el pago');
+      if (!idPago) {
+        // Crear nuevo pago
+        const response = await fetch('http://localhost:3000/pagos', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(datosPago)
+        });
+
+        if (!response.ok) {
+          throw new Error('Error al procesar el pago');
+        }
+
+        const pagoResponse = await response.json();
+        idPago = pagoResponse.id;
+        setDatosPagoActual({ ...datosPago, id_pago: idPago });
+      } else {
+        // Actualizar pago existente
+        const response = await fetch(`http://localhost:3000/pagos/${idPago}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(datosPago)
+        });
+
+        if (!response.ok) {
+          throw new Error('Error al actualizar el pago');
+        }
       }
 
-      // Crear la orden
+      // Crear la orden con estado "completada"
       const ordenData = {
         id_usuario: parseInt(datosVenta.id_usuario),
         id_venta: datosVenta.id_venta,
-        total_orden: datosPago.monto,
-        estado_orden: 'pendiente',
+        total_orden: datosPago.monto_pago,
+        estado_orden: 'completada',
         fecha_orden: datosVenta.fecha_venta,
         estado: 'activo'
       };
 
-      console.log('Enviando datos de orden:', ordenData);
       const ordenResponse = await fetch('http://localhost:3000/orden', {
         method: 'POST',
         headers: {
@@ -502,8 +553,7 @@ const Ventas = () => {
       }
 
       const ordenResult = await ordenResponse.json();
-      console.log('Orden creada exitosamente:', ordenResult);
-      setOrdenId(ordenResult.id); // Guardamos el ID de la orden
+      setOrdenId(ordenResult.id);
       setPaso('envio');
 
     } catch (error) {
@@ -542,7 +592,6 @@ const Ventas = () => {
 
   const handleVolverAVenta = () => {
     setPaso('venta');
-    setMostrarFormulario(true);
   };
 
   const handleDelete = async (id_venta) => {

@@ -1190,7 +1190,65 @@ app.post('/reset-password', async (req, res) => {
         res.status(500).json({ error: 'Error al actualizar la contraseña.' });
     }
 });
+app.get('/productos/:id/precio', async (req, res) => {
+    try {
+        const [rows] = await db.query(
+            'SELECT precio_producto FROM productos WHERE id_producto = ? AND estado = "activo"',
+            [req.params.id]
+        );
+        
+        if (rows.length === 0) {
+            return res.status(404).json({ error: 'Producto no encontrado' });
+        }
+        
+        res.json({ precio: rows[0].precio_producto });
+    } catch (error) {
+        console.error('Error al obtener el precio del producto:', error);
+        res.status(500).json({ error: 'Error al obtener el precio del producto' });
+    }
+});
 
+app.get('/dashboard/productos-bajo-stock', async (req, res) => {
+    console.log('Recibida petición a /dashboard/productos-bajo-stock');
+    try {
+        const [productos] = await db.query(`
+            SELECT 
+                id_producto,
+                nombre_producto,
+                marca_producto,
+                stock_producto,
+                precio_producto
+            FROM productos 
+            WHERE estado = 'activo' 
+            AND stock_producto < 5
+            ORDER BY stock_producto ASC
+        `);
+        
+        console.log('Productos con bajo stock obtenidos:', productos);
+        res.json(productos);
+    } catch (error) {
+        console.error('Error al obtener productos con bajo stock:', error);
+        res.status(500).json({
+            error: 'Error al obtener productos con bajo stock',
+            details: error.message
+        });
+    }
+});
+
+app.get('/dashboard/categorias-mas-vendidas', async (req, res) => {
+    console.log('Recibida petición a /dashboard/categorias-mas-vendidas');
+    try {
+        const [categorias] = await db.query('SELECT * FROM vw_categorias_mas_vendidas');
+        console.log('Categorías más vendidas obtenidas:', categorias);
+        res.json(categorias);
+    } catch (error) {
+        console.error('Error al obtener categorías más vendidas:', error);
+        res.status(500).json({
+            error: 'Error al obtener categorías más vendidas',
+            details: error.message
+        });
+    }
+});
 
 // Inicia el servidor
 app.listen(PORT, () => {

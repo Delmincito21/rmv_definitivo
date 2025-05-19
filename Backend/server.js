@@ -376,23 +376,36 @@ app.post('/clientes', async (req, res) => {
 app.post('/login', async (req, res) => {
     const { nombre_usuario, pin_usuario } = req.body;
     try {
-        // Busca el usuario activo en la base de datos
+        // Busca el usuario activo
         const [rows] = await db.query(
             'SELECT * FROM usuarios WHERE nombre_usuario = ? AND estado = "activo"',
             [nombre_usuario]
         );
+
         if (rows.length === 0) {
             return res.status(401).json({ error: 'Usuario o contraseña incorrectos' });
         }
+
         const usuario = rows[0];
-        // Compara la contraseña hasheada
+
+        // Log para diagnóstico (puedes eliminar esto después)
+        console.log("ID del usuario encontrado:", usuario.id_usuario);
+        console.log("Datos completos del usuario:", usuario);
+
         const match = await bcrypt.compare(pin_usuario, usuario.pin_usuario);
+
         if (!match) {
             return res.status(401).json({ error: 'Usuario o contraseña incorrectos' });
         }
-        // Devuelve el rol y cualquier otro dato necesario
-        res.json({ message: 'Login exitoso', rol: usuario.rol });
+
+        // Devuelve los datos reales - SIN FORZAR NADA
+        res.json({
+            message: 'Login exitoso',
+            rol: usuario.rol,
+            id_usuario: usuario.id_usuario  // USANDO EL ID REAL
+        });
     } catch (error) {
+        console.error("Error completo:", error);
         res.status(500).json({ error: 'Error en el servidor', details: error.message });
     }
 });
@@ -1196,11 +1209,11 @@ app.get('/productos/:id/precio', async (req, res) => {
             'SELECT precio_producto FROM productos WHERE id_producto = ? AND estado = "activo"',
             [req.params.id]
         );
-        
+
         if (rows.length === 0) {
             return res.status(404).json({ error: 'Producto no encontrado' });
         }
-        
+
         res.json({ precio: rows[0].precio_producto });
     } catch (error) {
         console.error('Error al obtener el precio del producto:', error);
@@ -1223,7 +1236,7 @@ app.get('/dashboard/productos-bajo-stock', async (req, res) => {
             AND stock_producto < 5
             ORDER BY stock_producto ASC
         `);
-        
+
         console.log('Productos con bajo stock obtenidos:', productos);
         res.json(productos);
     } catch (error) {
@@ -1246,6 +1259,228 @@ app.get('/dashboard/categorias-mas-vendidas', async (req, res) => {
         res.status(500).json({
             error: 'Error al obtener categorías más vendidas',
             details: error.message
+        });
+    }
+});
+
+app.get('/carrito/:userId', async (req, res) => {
+    try {
+        const { userId } = req.params;
+        console.log(`Consultando carrito para usuario ID: ${userId}`);
+
+        // Primero verificar si el usuario existe
+        const [userExists] = await db.query('SELECT EXISTS(SELECT 1 FROM usuarios WHERE id_usuario = ?) as existe', [userId]);
+
+        if (!userExists[0].existe) {
+            console.log(`Usuario con ID ${userId} no existe`);
+            return res.json({
+                success: true,
+                items: [],
+                total: 0,
+                message: 'Usuario no encontrado, carrito vacío'
+            });
+        }
+
+        // Descubrir el nombre correcto de la columna
+        const [columnsInfo] = await db.query('SHOW COLUMNS FROM productos');
+        console.log('Columnas disponibles en productos:', columnsInfo.map(col => col.Field));
+
+        // Encontrar el nombre de la columna que podría contener imágenes
+        const possibleImageColumn = columnsInfo.find(col =>
+            col.Field.includes('image') ||
+            col.Field.includes('imagen') ||
+            col.Field.includes('img') ||
+            col.Field.includes('foto')
+        );
+
+        const imageColumnName = possibleImageColumn ? possibleImageColumn.Field : 'imagen_url';
+        console.log(`Usando columna de imagen: ${imageColumnName}`);
+
+        // Usar LEFT JOIN para evitar errores si un producto no existe
+        const [items] = await db.query(`
+            SELECT 
+                c.id_carrito,
+                c.id_producto,
+                p.nombre_producto,
+                p.precio_producto,
+                p.${imageColumnName} AS imagen_producto,
+                c.cantidad,
+                (p.precio_producto * c.cantidad) AS subtotal
+            FROM carrito c
+            LEFT JOIN productos p ON c.id_producto = p.id_producto
+            WHERE c.id_usuario = ?
+        `, [userId]);
+
+        console.log(`Encontrados ${items.length} items en el carrito`);
+
+        // Filtrar items donde el producto existe
+        const validItems = items.filter(item => item.nombre_producto !== null);
+
+        // Mapear los items al formato que espera el frontend
+        const formattedItems = validItems.map(item => ({
+            id_producto: item.id_producto,
+            nombre_producto: item.nombre_producto || 'Producto no disponible',
+            precio_producto: item.precio_producto || 0,
+            imagen: item.imagen_producto || '',
+            quantity: item.cantidad,
+            subtotal: item.subtotal || 0
+        }));
+
+        res.json({
+            success: true,
+            items: formattedItems,
+            total: validItems.reduce((sum, item) => sum + (item.subtotal || 0), 0)
+        });
+    } catch (error) {
+        console.error('Error detallado al obtener carrito:', error);
+        console.error('SQL message:', error.sqlMessage);
+        console.error('Stack:', error.stack);
+        res.status(500).json({
+            success: false,
+            message: 'Error al obtener el carrito',
+            error: error.message
+        });
+    }
+});
+
+// 2. Agregar o actualizar un producto en el carrito
+app.post('/carrito/:userId/item', async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const { id_producto, cantidad = 1 } = req.body;
+
+        console.log("Agregando al carrito:", {
+            userId,
+            id_producto,
+            cantidad,
+            body: req.body
+        });
+
+        // Verificar si el producto ya está en el carrito
+        const [existing] = await db.query(
+            'SELECT * FROM carrito WHERE id_usuario = ? AND id_producto = ?',
+            [userId, id_producto]
+        );
+
+        if (existing.length > 0) {
+            // Actualizar cantidad si ya existe
+            const newQuantity = existing[0].cantidad + cantidad;
+            await db.query(
+                'UPDATE carrito SET cantidad = ? WHERE id_carrito = ?',
+                [newQuantity, existing[0].id_carrito]
+            );
+        } else {
+            // Insertar nuevo item
+            await db.query(
+                'INSERT INTO carrito (id_usuario, id_producto, cantidad) VALUES (?, ?, ?)',
+                [userId, id_producto, cantidad]
+            );
+        }
+
+        res.json({
+            success: true,
+            message: 'Producto agregado al carrito'
+        });
+
+    } catch (error) {
+        console.error('Error al agregar al carrito:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error al agregar producto al carrito'
+        });
+    }
+});
+
+// 3. Actualizar cantidad de un producto específico
+app.put('/carrito/:userId/item/:productId', async (req, res) => {
+    try {
+        const { userId, productId } = req.params;
+        const { cantidad } = req.body;
+
+        if (cantidad < 1) {
+            return res.status(400).json({
+                success: false,
+                message: 'La cantidad debe ser al menos 1'
+            });
+        }
+
+        const [result] = await db.query(
+            'UPDATE carrito SET cantidad = ? WHERE id_usuario = ? AND id_producto = ?',
+            [cantidad, userId, productId]
+        );
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'Producto no encontrado en el carrito'
+            });
+        }
+
+        res.json({
+            success: true,
+            message: 'Cantidad actualizada'
+        });
+
+    } catch (error) {
+        console.error('Error al actualizar cantidad:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error al actualizar cantidad'
+        });
+    }
+});
+
+// 4. Eliminar un producto del carrito
+app.delete('/carrito/:userId/item/:productId', async (req, res) => {
+    try {
+        const { userId, productId } = req.params;
+
+        const [result] = await db.query(
+            'DELETE FROM carrito WHERE id_usuario = ? AND id_producto = ?',
+            [userId, productId]
+        );
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'Producto no encontrado en el carrito'
+            });
+        }
+
+        res.json({
+            success: true,
+            message: 'Producto eliminado del carrito'
+        });
+
+    } catch (error) {
+        console.error('Error al eliminar del carrito:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error al eliminar producto del carrito'
+        });
+    }
+});
+
+// 5. Vaciar completamente el carrito
+app.delete('/carrito/:userId', async (req, res) => {
+    try {
+        const { userId } = req.params;
+
+        await db.query(
+            'DELETE FROM carrito WHERE id_usuario = ?',
+            [userId]
+        );
+
+        res.json({
+            success: true,
+            message: 'Carrito vaciado correctamente'
+        });
+
+    } catch (error) {
+        console.error('Error al vaciar carrito:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error al vaciar el carrito'
         });
     }
 });

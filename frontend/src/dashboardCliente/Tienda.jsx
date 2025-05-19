@@ -134,6 +134,23 @@ const Tienda = () => {
     return matchSearch && matchCategoria && matchMarca && matchColor;
   });
 
+  const handleLogout = () => {
+    Swal.fire({
+        title: '¿Estás seguro?',
+        text: "¿Deseas cerrar sesión?",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Sí, cerrar sesión',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            navigate('/', { replace: true }); // <-- Esto evita volver atrás
+        }
+    });
+  };
+
   if (loading) {
     return <div className="loading">Cargando productos...</div>;
   }
@@ -182,7 +199,7 @@ const Tienda = () => {
           </li>
         </ul>
         <div className="sidebar-footer">
-          <button onClick={() => navigate('/Bienvenido')} className="exit-btn">
+          <button onClick={handleLogout} className="exit-btn">
             <FaSignOutAlt className="exit-icon" />
             <span>Cerrar Sesión</span>
           </button>

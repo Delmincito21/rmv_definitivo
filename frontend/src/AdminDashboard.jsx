@@ -11,6 +11,7 @@ import {
     FaCog,
     FaSignOutAlt
 } from "react-icons/fa";
+import Swal from 'sweetalert2';
 import "./Dashboard.css";
 
 const AdminDashboard = () => {
@@ -20,6 +21,23 @@ const AdminDashboard = () => {
 
     // Verificar si estamos en la ruta base del dashboard
     const showWelcome = location.pathname === "/admin" || location.pathname === "/admin/";
+
+    const handleLogout = () => {
+        Swal.fire({
+            title: '¿Estás seguro?',
+            text: "¿Deseas cerrar sesión?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Sí, cerrar sesión',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                navigate('/', { replace: true }); // <-- Esto evita volver atrás
+            }
+        });
+    };
 
     return (
         <div className="dashboard-container">
@@ -50,7 +68,7 @@ const AdminDashboard = () => {
                                 <span className="nav-text">Ventas</span>
                             </NavLink>
                         </li>
-                       
+
                         <li>
                             <NavLink to="/ProductAdmi" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>
                                 <FaBox className="nav-icon" />
@@ -74,7 +92,7 @@ const AdminDashboard = () => {
 
                 <div className="sidebar-footer">
                     <button
-                        onClick={() => navigate('/Bienvenido')} // Redirige a la página de Bienvenido
+                        onClick={handleLogout} // Redirige a la página de Bienvenido
                         className="exit-btn"
                     >
                         <FaSignOutAlt className="icon" />

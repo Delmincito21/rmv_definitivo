@@ -11,6 +11,7 @@ const Envio = require('./models/Envio');
 const Pago = require('./models/Pago.js');
 const bcrypt = require('bcrypt');
 const clientes = require('./models/clientes');
+const nodemailer = require('nodemailer');
 // Abre la consola de Node.js con: node
 
 
@@ -73,9 +74,9 @@ app.get('/dashboard/stats', async (req, res) => {
         res.json(response);
     } catch (error) {
         console.error('Error detallado al obtener estadísticas:', error);
-        res.status(500).json({ 
+        res.status(500).json({
             error: 'Error al obtener estadísticas',
-            details: error.message 
+            details: error.message
         });
     }
 });
@@ -315,7 +316,7 @@ app.get('/categorias_productos', async (req, res) => {
             FROM categorias_productos
             WHERE estado = 'activo'
         `;
-        
+
         const [results] = await db.query(query);
         res.json(results);
     } catch (err) {
@@ -442,7 +443,7 @@ app.get('/ventas/:id', async (req, res) => {
 app.put('/ventas/:id', async (req, res) => {
     try {
         const ventaData = { ...req.body };
-        
+
         // Formatear la fecha correctamente para MySQL
         if (ventaData.fecha_venta) {
             const fecha = new Date(ventaData.fecha_venta);
@@ -453,11 +454,11 @@ app.put('/ventas/:id', async (req, res) => {
             'UPDATE venta SET ? WHERE id_venta = ?',
             [ventaData, req.params.id]
         );
-        
+
         if (result.affectedRows === 0) {
             return res.status(404).json({ error: 'Venta no encontrada' });
         }
-        
+
         res.json({ message: 'Venta actualizada exitosamente' });
     } catch (error) {
         console.error('Error al actualizar la venta:', error);
@@ -641,11 +642,11 @@ app.put('/orden/:id', async (req, res) => {
             'UPDATE orden SET ? WHERE id_orden = ?',
             [req.body, req.params.id]
         );
-        
+
         if (result.affectedRows === 0) {
             return res.status(404).json({ error: 'Orden no encontrada' });
         }
-        
+
         res.json({ message: 'Orden actualizada exitosamente' });
     } catch (error) {
         console.error('Error al actualizar la orden:', error);
@@ -711,21 +712,21 @@ app.get('/envios/orden/:id', async (req, res) => {
             'SELECT * FROM envios WHERE id_orden = ? AND estado = "activo"',
             [req.params.id]
         );
-        
+
         console.log('Resultado de búsqueda de envío:', rows);
-        
+
         if (rows.length === 0) {
-            return res.status(404).json({ 
+            return res.status(404).json({
                 error: 'No se encontró envío para esta orden',
-                ordenId: req.params.id 
+                ordenId: req.params.id
             });
         }
-        
+
         // Devolver el primer envío encontrado
         res.json(rows[0]);
     } catch (error) {
         console.error('Error al obtener el envío por orden:', error);
-        res.status(500).json({ 
+        res.status(500).json({
             error: 'Error al obtener el envío',
             details: error.message,
             ordenId: req.params.id
@@ -739,16 +740,16 @@ app.put('/envios/:id', async (req, res) => {
             id: req.params.id,
             body: req.body
         });
-        
+
         // Verificar si el envío existe antes de actualizar
         const [existingEnvio] = await db.query(
             'SELECT id_envio FROM envios WHERE id_envio = ?',
             [req.params.id]
         );
-        
+
         if (existingEnvio.length === 0) {
             console.error('Envío no encontrado:', req.params.id);
-            return res.status(404).json({ 
+            return res.status(404).json({
                 error: 'Envío no encontrado',
                 message: 'No se encontró el envío con el ID especificado',
                 id: req.params.id
@@ -756,30 +757,30 @@ app.put('/envios/:id', async (req, res) => {
         }
 
         const dataToUpdate = {
-            fecha_estimada_envio: req.body.fecha_estimada_envio ? 
-                new Date(req.body.fecha_estimada_envio).toISOString().slice(0, 19).replace('T', ' ') : 
+            fecha_estimada_envio: req.body.fecha_estimada_envio ?
+                new Date(req.body.fecha_estimada_envio).toISOString().slice(0, 19).replace('T', ' ') :
                 null,
             direccion_entrega_envio: req.body.direccion_entrega_envio,
             estado_envio: req.body.estado_envio,
             estado: req.body.estado || 'activo'
         };
-        
+
         console.log('Datos formateados para actualizar:', dataToUpdate);
-        
+
         const [result] = await db.query(
             'UPDATE envios SET ? WHERE id_envio = ?',
             [dataToUpdate, req.params.id]
         );
-   
+
         if (result.affectedRows === 0) {
-            return res.status(404).json({ 
+            return res.status(404).json({
                 error: 'No se pudo actualizar el envío',
                 message: 'La actualización no afectó ningún registro',
                 id: req.params.id
             });
         }
-        
-        res.json({ 
+
+        res.json({
             message: 'Envío actualizado exitosamente',
             updatedData: dataToUpdate,
             id: req.params.id
@@ -790,7 +791,7 @@ app.put('/envios/:id', async (req, res) => {
             stack: error.stack,
             id: req.params.id
         });
-        res.status(500).json({ 
+        res.status(500).json({
             error: 'Error al actualizar el envío',
             details: error.message,
             sqlMessage: error.sqlMessage,
@@ -805,7 +806,7 @@ app.put('/envios/:id/estado', async (req, res) => {
 
     try {
         console.log(`Actualizando estado del envío ${id} a ${estado_envio}`);
-        
+
         const [result] = await db.query(
             'UPDATE envios SET estado_envio = ? WHERE id_envio = ? AND estado = "activo"',
             [estado_envio, id]
@@ -820,9 +821,9 @@ app.put('/envios/:id/estado', async (req, res) => {
         res.json({ message: 'Estado del envío actualizado exitosamente' });
     } catch (error) {
         console.error('Error al actualizar el estado del envío:', error);
-        res.status(500).json({ 
+        res.status(500).json({
             error: 'Error al actualizar el estado del envío',
-            details: error.message 
+            details: error.message
         });
     }
 });
@@ -889,11 +890,11 @@ app.put('/pagos/:id', async (req, res) => {
             'UPDATE pago SET ? WHERE id_pago = ?',
             [req.body, req.params.id]
         );
-        
+
         if (result.affectedRows === 0) {
             return res.status(404).json({ error: 'Pago no encontrado' });
         }
-        
+
         res.json({ message: 'Pago actualizado exitosamente' });
     } catch (error) {
         console.error('Error al actualizar el pago:', error);
@@ -921,11 +922,11 @@ app.get('/pagos/venta/:id', async (req, res) => {
             'SELECT * FROM pago WHERE id_venta = ? AND estado = "activo"',
             [req.params.id]
         );
-        
+
         if (rows.length === 0) {
             return res.json(null); // Devolver null si no hay resultados
         }
-        
+
         res.json(rows[0]); // Devolver el primer pago encontrado
     } catch (error) {
         console.error('Error al obtener el pago:', error);
@@ -941,21 +942,21 @@ app.get('/orden/venta/:id', async (req, res) => {
             'SELECT * FROM orden WHERE id_venta = ? AND estado = "activo"',
             [req.params.id]
         );
-        
+
         console.log('Resultado de búsqueda de orden:', rows);
-        
+
         if (rows.length === 0) {
-            return res.status(404).json({ 
+            return res.status(404).json({
                 error: 'No se encontró orden para esta venta',
-                ventaId: req.params.id 
+                ventaId: req.params.id
             });
         }
-        
+
         // Devolver la primera orden encontrada
         res.json(rows[0]);
     } catch (error) {
         console.error('Error al obtener la orden por venta:', error);
-        res.status(500).json({ 
+        res.status(500).json({
             error: 'Error al obtener la orden',
             details: error.message,
             ventaId: req.params.id
@@ -981,11 +982,11 @@ app.put('/detalle-ventas/:id_venta/:id_producto', async (req, res) => {
             'UPDATE detalle_venta SET ? WHERE id_venta = ? AND id_producto = ?',
             [req.body, req.params.id_venta, req.params.id_producto]
         );
-        
+
         if (result.affectedRows === 0) {
             return res.status(404).json({ error: 'Detalle de venta no encontrado' });
         }
-        
+
         res.json({ message: 'Detalle de venta actualizado exitosamente' });
     } catch (error) {
         console.error('Error al actualizar el detalle de venta:', error);
@@ -1066,6 +1067,130 @@ app.get('/dashboard/categorias', async (req, res) => {
         });
     }
 });
+
+// Configura tu transportador de correo (usa tus credenciales reales)
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: 'refrielectricmv@gmail.com',
+        pass: 'rlfp pitl xfuu odnu'
+    }
+});
+
+// Ruta para solicitar recuperación
+app.post('/recuperar', async (req, res) => {
+    const { email } = req.body;
+
+    // Busca el cliente en la base de datos
+    const [clientesResult] = await db.query(
+        'SELECT * FROM clientes WHERE correo_clientes = ?',
+        [email]
+    );
+
+    if (clientesResult.length === 0) {
+        // Por seguridad, responde igual aunque no exista
+        return res.json({ message: 'Si el correo está registrado, recibirás un enlace.' });
+    }
+
+    // Aquí deberías generar un token seguro y guardarlo en la BD
+    const token = Math.random().toString(36).substring(2);
+    const tokenExpires = new Date(Date.now() + 1000 * 60 * 30 + 1000 * 60 * 60 * 4); // suma 4 horas
+
+    // Guarda el token y expiración en la tabla clientes
+    await db.query(
+        'UPDATE clientes SET reset_token = ?, reset_token_expires = ? WHERE correo_clientes = ?',
+        [token, tokenExpires, email]
+    );
+
+    // Enlace de recuperación (ajusta la URL a tu frontend)
+    const resetLink = `http://localhost:5173/reset-password?token=${token}&email=${email}`;
+
+    // Envía el correo
+    await transporter.sendMail({
+        from: '"RMV Soporte" <refrielectricmv@gmail.com>',
+        to: email,
+        subject: 'Recupera tu contraseña - RMV',
+        html: `
+      <div style="font-family: Arial, sans-serif; background: #f8fbfd; padding: 32px;">
+        <div style="max-width: 480px; margin: auto; background: #fff; border-radius: 12px; box-shadow: 0 4px 24px #176bb320; padding: 32px;">
+          <div style="text-align: center; margin-bottom: 24px;">
+            <img src="https://i.postimg.cc/xCTDNby2/lgo.png" alt="RMV Logo" style="width: 80px; margin-bottom: 8px;" />
+            <h2 style="color: #176bb3; margin: 0;">Cambio de contraseña</h2>
+          </div>
+          <p style="color: #222; font-size: 1.1rem;">
+            Hola,<br>
+            Hemos recibido una solicitud para restablecer la contraseña de tu cuenta en <b>RMV</b>.
+          </p>
+          <p style="color: #222; font-size: 1.1rem;">
+            Haz clic en el siguiente botón para cambiar tu contraseña:
+          </p>
+          <div style="text-align: center; margin: 32px 0;">
+            <a href="${resetLink}" style="background: linear-gradient(90deg, #4596e7, #176bb3); color: #fff; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 1.1rem; display: inline-block;">
+              Cambiar contraseña
+            </a>
+          </div>
+          <p style="color: #888; font-size: 0.95rem;">
+            Si no solicitaste este cambio, puedes ignorar este correo. Tu contraseña actual seguirá siendo segura.
+          </p>
+          <hr style="border: none; border-top: 1px solid #e0e0e0; margin: 24px 0;">
+          <div style="text-align: center; color: #aaa; font-size: 0.9rem;">
+            © ${new Date().getFullYear()} RMV | Soporte: refrielectricmv@gmail.com
+          </div>
+        </div>
+      </div>
+    `
+    });
+
+    res.json({ message: 'Si el correo está registrado, recibirás un enlace.' });
+});
+
+// Ruta para restablecer la contraseña
+app.post('/reset-password', async (req, res) => {
+    try {
+        const { email, token, newPassword } = req.body;
+        console.log('Intentando reset:', email, token);
+
+        const [clientesResult] = await db.query(
+            'SELECT * FROM clientes WHERE correo_clientes = ? AND reset_token = ? AND reset_token_expires > NOW()',
+            [email, token]
+        );
+        console.log('Resultado de búsqueda:', clientesResult);
+
+        if (clientesResult.length === 0) {
+            return res.status(400).json({ error: 'Token inválido o expirado.' });
+        }
+
+        // Busca el usuario relacionado a este cliente
+        const cliente = clientesResult[0];
+        // Si tienes una relación directa por id:
+        const [usuariosResult] = await db.query(
+            'SELECT * FROM usuarios WHERE id_usuario = ?',
+            [cliente.id_clientes]
+        );
+        if (usuariosResult.length === 0) {
+            return res.status(400).json({ error: 'Usuario no encontrado.' });
+        }
+
+        // 2. Hashea la nueva contraseña
+        const hashedPin = await bcrypt.hash(newPassword, 10);
+
+        await db.query(
+            'UPDATE usuarios SET pin_usuario = ? WHERE id_usuario = ?',
+            [hashedPin, cliente.id_clientes]
+        );
+
+        // 4. Limpia el token en clientes
+        await db.query(
+            'UPDATE clientes SET reset_token = NULL, reset_token_expires = NULL WHERE correo_clientes = ?',
+            [email]
+        );
+
+        res.json({ message: 'Contraseña actualizada correctamente.' });
+    } catch (error) {
+        res.status(500).json({ error: 'Error al actualizar la contraseña.' });
+    }
+});
+
 
 // Inicia el servidor
 app.listen(PORT, () => {

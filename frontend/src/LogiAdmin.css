@@ -164,6 +164,63 @@
     background: #fff;
 }
 
+/* ResetPassword.css */
+.reset-password-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f7fafd;
+}
+
+.reset-password-form {
+    background: #fff;
+    padding: 2.5rem 2rem;
+    border-radius: 1.5rem;
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    min-width: 340px;
+    max-width: 90vw;
+}
+
+.reset-password-input {
+    padding: 1rem;
+    border-radius: 0.7rem;
+    border: 2px solid #e0e0e0;
+    background: #f3f3f3;
+    font-size: 1.1rem;
+    color: #222;
+    transition: border 0.2s, box-shadow 0.2s;
+    outline: none;
+}
+
+.reset-password-input:focus {
+    border: 2px solid #007bff;
+    box-shadow: 0 0 0 2px #007bff33;
+    background: #fff;
+}
+
+.reset-password-btn {
+    padding: 1rem;
+    border: none;
+    border-radius: 0.7rem;
+    background: linear-gradient(90deg, #007bff 60%, #00c6ff 100%);
+    color: #fff;
+    font-size: 1.15rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+    box-shadow: 0 2px 8px 0 rgba(0, 123, 255, 0.10);
+    letter-spacing: 0.5px;
+}
+
+.reset-password-btn:hover {
+    background: linear-gradient(90deg, #0056b3 60%, #00aaff 100%);
+    transform: translateY(-2px) scale(1.03);
+}
+
 /* Responsive para móviles */
 @media (max-width: 768px) {
     .login-horizontal {
@@ -263,4 +320,23 @@
     .compact-textarea {
         grid-column: span 2;
     }
+}
+
+/* Agrega esto a LogiAdmin.css */
+.forgot-link {
+    text-align: center;
+    margin-top: 1.2rem;
+}
+
+.forgot-anchor {
+    color: #176bb3;
+    text-decoration: underline;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: color 0.2s;
+}
+
+.forgot-anchor:hover {
+    color: #4596e7;
 }

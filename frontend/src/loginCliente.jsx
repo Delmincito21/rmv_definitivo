@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './LogiAdmin.css';
 import logo from './imagenes/lgo.png';
+import Swal from 'sweetalert2';
 
 const LoginCliente = () => {
   const [credenciales, setCredenciales] = useState({
@@ -48,6 +49,40 @@ const LoginCliente = () => {
 
   const irARegistro = () => {
     navigate('/registrate');
+  };
+
+  const handleForgotPassword = async () => {
+    const { value: email } = await Swal.fire({
+      title: 'Recuperar contraseña',
+      input: 'email',
+      inputLabel: 'Ingresa tu correo de Google',
+      inputPlaceholder: 'correo@gmail.com',
+      confirmButtonText: 'Enviar enlace',
+      showCancelButton: true,
+      cancelButtonText: 'Cancelar'
+    });
+
+    if (email) {
+      try {
+        await fetch('http://localhost:3000/recuperar', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email })
+        });
+
+        Swal.fire(
+          '¡Listo!',
+          'Si el correo está registrado, recibirás un enlace para recuperar tu contraseña.',
+          'success'
+        );
+      } catch (error) {
+        Swal.fire(
+          'Error',
+          `No se pudo enviar el correo de recuperación. Intenta de nuevo. Detalle: ${error.message}`,
+          'error'
+        );
+      }
+    }
   };
 
   return (
@@ -100,6 +135,12 @@ const LoginCliente = () => {
               </div>
             </div>
           </form>
+
+          <div className="forgot-link">
+            <span onClick={handleForgotPassword} className="forgot-anchor">
+              ¿Olvidaste tu contraseña?
+            </span>
+          </div>
         </div>
       </div>
     </div>

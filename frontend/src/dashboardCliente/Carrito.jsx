@@ -1,175 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, NavLink } from 'react-router-dom';
-import { FaShoppingCart, FaHome, FaSignOutAlt, FaShoppingBag, FaCreditCard, FaArrowLeft } from 'react-icons/fa';
+import { FaShoppingCart, FaHome, FaSignOutAlt, FaShoppingBag } from 'react-icons/fa';
 import { FaShop } from 'react-icons/fa6';
 import { useCart } from '../context/CartContext';
 import Swal from 'sweetalert2';
 import './Carrito.css';
-import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
-
-// Componente ModalPago
-const ModalPago = ({ isOpen, onClose, total, onSubmit }) => {
-  const [datosPago, setDatosPago] = useState({
-    monto_pago: total || 0,
-    fecha_pago: new Date().toISOString().slice(0, 19).replace('T', ' '),
-    metodo_pago: 'TRANSFERENCIA',
-    referencia: '',
-    banco_emisor: '',
-    estado_pago: 'PENDIENTE',
-    estado: 'activo'
-  });
-
-  const [errores, setErrores] = useState({});
-
-  const validarPago = () => {
-    const nuevosErrores = {};
-    if (datosPago.metodo_pago === 'TRANSFERENCIA') {
-      if (!datosPago.referencia.trim()) {
-        nuevosErrores.referencia = 'La referencia es requerida';
-      }
-      if (!datosPago.banco_emisor.trim()) {
-        nuevosErrores.banco_emisor = 'El banco emisor es requerido';
-      }
-    }
-    setErrores(nuevosErrores);
-    return Object.keys(nuevosErrores).length === 0;
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (validarPago()) {
-      onSubmit(datosPago);
-      onClose();
-    }
-  };
-
-  if (!isOpen) return null;
-
-  return (
-    <div className="modal-overlay">
-      <div className="modal-pago">
-        <div className="modal-header">
-          <h2>Información de Pago</h2>
-          <button onClick={onClose} className="close-btn">&times;</button>
-        </div>
-        <form onSubmit={handleSubmit} className="pago-form">
-          <div className="form-row">
-            <div className="form-field">
-              <label>Monto</label>
-              <input
-                type="number"
-                value={datosPago.monto_pago}
-                readOnly
-                className="readonly-input"
-              />
-            </div>
-            <div className="form-field">
-              <label>Fecha de Pago</label>
-              <input
-                type="datetime-local"
-                value={datosPago.fecha_pago}
-                readOnly
-                className="readonly-input"
-              />
-            </div>
-          </div>
-          <div className="form-row">
-            <div className="form-field">
-              <label>Método de Pago</label>
-              <select
-                value={datosPago.metodo_pago}
-                onChange={e => setDatosPago({ ...datosPago, metodo_pago: e.target.value })}
-              >
-                <option value="TRANSFERENCIA">Transferencia</option>
-                <option value="PAYPAL">PayPal</option>
-              </select>
-            </div>
-            {datosPago.metodo_pago === 'TRANSFERENCIA' && (
-              <div className={`form-field ${errores.referencia ? 'error' : ''}`}>
-                <label>Número de Referencia</label>
-                <input
-                  type="text"
-                  value={datosPago.referencia}
-                  onChange={(e) => setDatosPago({ ...datosPago, referencia: e.target.value })}
-                  placeholder="Número de referencia"
-                />
-                {errores.referencia && <div className="error-message">{errores.referencia}</div>}
-              </div>
-            )}
-          </div>
-          <div className="form-row">
-            {datosPago.metodo_pago === 'TRANSFERENCIA' && (
-              <div className={`form-field ${errores.banco_emisor ? 'error' : ''}`}>
-                <label>Banco Emisor</label>
-                <input
-                  type="text"
-                  value={datosPago.banco_emisor}
-                  onChange={(e) => setDatosPago({ ...datosPago, banco_emisor: e.target.value })}
-                  placeholder="Nombre del banco"
-                />
-                {errores.banco_emisor && <div className="error-message">{errores.banco_emisor}</div>}
-              </div>
-            )}
-            <div className="form-field">
-              <label>Estado del Pago</label>
-              <select
-                value={datosPago.estado_pago}
-                onChange={(e) => setDatosPago({ ...datosPago, estado_pago: e.target.value })}
-              >
-                <option value="PENDIENTE">Pendiente</option>
-                <option value="COMPLETADO">Completado</option>
-                <option value="FALLIDO">Fallido</option>
-                <option value="REEMBOLSADO">Reembolsado</option>
-              </select>
-            </div>
-          </div>
-          <div className="form-actions">
-            <button type="button" className="cancel-btn" onClick={onClose}>
-              Cancelar
-            </button>
-            {datosPago.metodo_pago === 'TRANSFERENCIA' && (
-              <button type="submit" className="submit-btn">
-                <FaCreditCard /> Confirmar Pago
-              </button>
-            )}
-          </div>
-        </form>
-        {datosPago.metodo_pago === 'PAYPAL' && (
-          <div style={{ marginTop: '1rem' }}>
-            <PayPalScriptProvider options={{ "client-id": "AdMwepOl7fjhj0-jKj-91OriY35fQ4pz4tUxiWQqwgPSxzhuytqzNMnSaWGArt8tbXckJ4rjTkaPUxWt", currency: "USD" }}>
-              <PayPalButtons
-                style={{ layout: "vertical" }}
-                createOrder={(data, actions) => {
-                  return actions.order.create({
-                    purchase_units: [{
-                      amount: {
-                        value: datosPago.monto_pago
-                      }
-                    }]
-                  });
-                }}
-                onApprove={async (data, actions) => {
-                  const details = await actions.order.capture();
-                  onSubmit({
-                    ...datosPago,
-                    metodo_pago: 'PAYPAL',
-                    referencia: details.id,
-                    banco_emisor: 'PayPal',
-                    estado_pago: 'COMPLETADO'
-                  });
-                  onClose();
-                }}
-                onError={(err) => {
-                  alert('Error con el pago de PayPal: ' + err);
-                }}
-              />
-            </PayPalScriptProvider>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
 
 function Carrito() {
   const navigate = useNavigate();
@@ -187,8 +22,6 @@ function Carrito() {
 
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [processingCheckout, setProcessingCheckout] = useState(false);
-  const [showPagoModal, setShowPagoModal] = useState(false);
-  const [ventaId, setVentaId] = useState(null);
 
   // Asegurarse de que el carrito esté actualizado para el usuario actual
   useEffect(() => {
@@ -245,67 +78,21 @@ function Carrito() {
 
     setProcessingCheckout(true);
     try {
-      // 1. Crear la venta
-      const ventaRes = await fetch('http://localhost:3000/ventas', {
+      // Aquí iría tu lógica de pago
+      // Ejemplo simplificado:
+      const response = await fetch('http://localhost:3000/api/pedidos', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
         body: JSON.stringify({
-          id_usuario: userId,
-          total_venta: getCartTotal(),
-          estado: 'activo',
-          origen: 'carrito',
-          detalles: cartItems.map(item => ({
-            id_producto: item.id_producto,
-            cantidad_detalle_venta: item.quantity,
-            precio_unitario_detalle_venta: item.precio_producto,
-            subtotal_detalle_venta: item.precio_producto * item.quantity
-          }))
+          items: cartItems,
+          total: getCartTotal()
         })
       });
-      if (!ventaRes.ok) throw new Error('Error al crear la venta');
-      const ventaData = await ventaRes.json();
-      setVentaId(ventaData.id);
-      setShowPagoModal(true);
-    } catch (error) {
-      Swal.fire(
-        'Error',
-        `No se pudo iniciar la compra: ${error.message}`,
-        'error'
-      );
-    } finally {
-      setProcessingCheckout(false);
-    }
-  };
 
-  const handlePagoSubmit = async (datosPago) => {
-    try {
-      // 2. Crear el pago
-      const pagoRes = await fetch('http://localhost:3000/pagos', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...datosPago,
-          id_venta: ventaId
-        })
-      });
-      if (!pagoRes.ok) {
-        const errorData = await pagoRes.json();
-        throw new Error(errorData.details || 'Error al registrar el pago');
-      }
-
-      // 3. Crear la orden
-      const ordenRes = await fetch('http://localhost:3000/orden', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id_usuario: userId,
-          id_venta: ventaId,
-          total_orden: getCartTotal(),
-          estado_orden: 'pendiente',
-          estado: 'activo'
-        })
-      });
-      if (!ordenRes.ok) throw new Error('Error al crear la orden');
+      if (!response.ok) throw new Error('Error al procesar el pago');
 
       await clearCart();
 
@@ -323,6 +110,8 @@ function Carrito() {
         `No se pudo completar la compra: ${error.message}`,
         'error'
       );
+    } finally {
+      setProcessingCheckout(false);
     }
   };
 
@@ -426,9 +215,7 @@ function Carrito() {
                       <h3 className="item-name">{item.nombre_producto}</h3>
                       <p className="item-price">${Number(item.precio_producto).toFixed(2)}</p>
                       <p className="item-subtotal">
-                        Subtotal: ${(
-                          Number(item.precio_producto) * Number(item.quantity)
-                        ).toFixed(2)}
+                        Subtotal: ${(item.precio_producto * item.quantity).toFixed(2)}
                       </p>
                     </div>
 
@@ -463,7 +250,7 @@ function Carrito() {
               <div className="cart-summary">
                 <div className="summary-row">
                   <span>Subtotal:</span>
-                  <span>${isNaN(getCartTotal()) ? '0.00' : getCartTotal().toFixed(2)}</span>
+                  <span>${getCartTotal().toFixed(2)}</span>
                 </div>
                 <div className="summary-row">
                   <span>Envío:</span>
@@ -471,7 +258,7 @@ function Carrito() {
                 </div>
                 <div className="summary-row total">
                   <span>Total:</span>
-                  <span>${isNaN(getCartTotal()) ? '0.00' : getCartTotal().toFixed(2)}</span>
+                  <span>${getCartTotal().toFixed(2)}</span>
                 </div>
 
                 <p className="shipping-note">Envío e impuestos calculados al finalizar la compra.</p>
@@ -497,13 +284,6 @@ function Carrito() {
           )}
         </div>
       </main>
-
-      <ModalPago
-        isOpen={showPagoModal}
-        onClose={() => setShowPagoModal(false)}
-        total={getCartTotal()}
-        onSubmit={handlePagoSubmit}
-      />
     </div>
   );
 }

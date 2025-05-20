@@ -12,7 +12,7 @@
   background: #27639b !important;
   color: #fff;
   padding: 1.5rem 1rem;
-  transition: all 0.3s cubic-bezier(.4,0,.2,1);
+  transition: all 0.3s cubic-bezier(.4, 0, .2, 1);
   display: flex;
   flex-direction: column;
   position: fixed;
@@ -147,33 +147,38 @@
   flex: 1;
   padding: 2.5rem 2rem;
   margin-left: 250px;
-  transition: margin-left 0.3s cubic-bezier(.4,0,.2,1);
+  transition: margin-left 0.3s cubic-bezier(.4, 0, .2, 1);
   background: transparent;
 }
 
-.sidebar.collapsed + .main-content {
+.sidebar.collapsed+.main-content {
   margin-left: 70px;
 }
 
 /* Carrito visual */
 .shopping-cart-container {
-  max-width: 900px;
-  margin: 0 auto;
-  padding: 32px 18px;
+  max-width: 700px;
+  margin: 2rem auto;
   background: #fff;
-  border-radius: 1.5rem;
-  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.10);
-  min-height: 80vh;
-  margin-top: 2rem;
+  border-radius: 1.2rem;
+  box-shadow: 0 4px 16px 0 rgba(31, 38, 135, 0.10);
+  padding: 1.5rem 1rem 1rem 1rem;
+  display: flex;
+  flex-direction: column;
+  min-height: 60vh;
 }
 
 .cart-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 2.5rem;
   border-bottom: 2px solid #e0e7ff;
-  padding-bottom: 1rem;
+  padding-bottom: 0.7rem;
+  background: #fff;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  margin-bottom: 1.2rem;
 }
 
 .cart-header h2 {
@@ -211,10 +216,10 @@
 .cart-items {
   display: flex;
   flex-direction: column;
-  gap: 1.2rem;
-  max-height: 380px; /* Ajusta la altura máxima según tu diseño */
+  gap: 1rem;
+  max-height: 220px;
   overflow-y: auto;
-  padding-right: 8px;
+  padding-right: 6px;
   scrollbar-width: thin;
   scrollbar-color: #27639b #e0e7ff !important;
 }
@@ -225,10 +230,12 @@
   border-radius: 6px;
   background: #e0e7ff;
 }
+
 .cart-items::-webkit-scrollbar-thumb {
   background: #27639b !important;
   border-radius: 6px;
 }
+
 .cart-items::-webkit-scrollbar-thumb:hover {
   background: #27639b !important;
 }
@@ -247,8 +254,15 @@
 }
 
 @keyframes fadeInCart {
-  from { opacity: 0; transform: translateY(30px);}
-  to { opacity: 1; transform: translateY(0);}
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .item-image {
@@ -336,10 +350,10 @@
 }
 
 .cart-summary {
-  margin-top: 2.5rem;
-  padding: 1.5rem 1rem;
+  margin-top: 1.2rem;
+  padding: 1rem 0.7rem;
   background: linear-gradient(90deg, #e0e7ff 80%, #f1f5fd 100%);
-  border-radius: 1rem;
+  border-radius: 0.8rem;
   box-shadow: 0 2px 8px #2563eb11;
 }
 
@@ -395,30 +409,40 @@
 }
 
 /* Scrollbar global para toda la pantalla */
-body, html, .dashboard-container {
+body,
+html,
+.dashboard-container {
   scrollbar-width: thin;
   scrollbar-color: #27639b #e0e7ff !important;
 }
 
-body::-webkit-scrollbar, html::-webkit-scrollbar, .dashboard-container::-webkit-scrollbar {
+body::-webkit-scrollbar,
+html::-webkit-scrollbar,
+.dashboard-container::-webkit-scrollbar {
   width: 10px;
   background: #e0e7ff;
 }
 
-body::-webkit-scrollbar-thumb, html::-webkit-scrollbar-thumb, .dashboard-container::-webkit-scrollbar-thumb {
+body::-webkit-scrollbar-thumb,
+html::-webkit-scrollbar-thumb,
+.dashboard-container::-webkit-scrollbar-thumb {
   background: #27639b !important;
   border-radius: 6px;
 }
 
-body::-webkit-scrollbar-thumb:hover, html::-webkit-scrollbar-thumb:hover, .dashboard-container::-webkit-scrollbar-thumb:hover {
+body::-webkit-scrollbar-thumb:hover,
+html::-webkit-scrollbar-thumb:hover,
+.dashboard-container::-webkit-scrollbar-thumb:hover {
   background: #1e3a5c !important;
 }
 
 /* Responsive */
 @media (max-width: 900px) {
   .shopping-cart-container {
-    padding: 18px 4px;
+    padding: 0.7rem 0.2rem;
+    max-width: 98vw;
   }
+
   .main-content {
     padding: 1.2rem 0.2rem;
   }
@@ -428,23 +452,36 @@ body::-webkit-scrollbar-thumb:hover, html::-webkit-scrollbar-thumb:hover, .dashb
   .shopping-cart-container {
     border-radius: 0;
     box-shadow: none;
-    padding: 8px 0;
+    padding: 0.3rem 0.05rem;
     min-height: unset;
   }
+
+  .cart-header {
+    padding-bottom: 0.5rem;
+    margin-bottom: 0.7rem;
+  }
+
+  .cart-items {
+    max-height: 120px;
+  }
+
   .cart-item {
     flex-direction: column;
     align-items: flex-start;
     gap: 0.7rem;
     padding: 1rem 0.5rem;
   }
+
   .item-image {
     margin-right: 0;
     margin-bottom: 0.7rem;
   }
+
   .main-content {
     margin-left: 0 !important;
     padding: 0.5rem 0.1rem;
   }
+
   .sidebar {
     position: static;
     width: 100vw;

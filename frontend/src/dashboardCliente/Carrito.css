@@ -1,4 +1,4 @@
-/* Carrito.css - Diseño moderno y visual para el carrito de compras */
+/* Carrito.css - CSS completo con sidebar mejorado integrado */
 
 .dashboard-container {
   display: flex;
@@ -9,7 +9,7 @@
 /* Sidebar */
 .sidebar {
   width: 250px;
-  background: #27639b !important;
+  background: #27639b;
   color: #fff;
   padding: 1.5rem 1rem;
   transition: all 0.3s cubic-bezier(.4, 0, .2, 1);
@@ -19,7 +19,7 @@
   height: 100vh;
   left: 0;
   top: 0;
-  box-shadow: 2px 0 16px #2563eb22;
+  box-shadow: 2px 0 16px rgba(37, 99, 235, 0.13);
   z-index: 10;
 }
 
@@ -87,26 +87,28 @@
 .nav-link {
   display: flex;
   align-items: center;
-  padding: 0.85rem 1rem;
+  justify-content: flex-start;
+  gap: 0.7rem;
+  width: 100%;
+  padding: 0.5rem 1.2rem;
   color: #fff;
   text-decoration: none;
-  border-radius: 0.6rem;
-  margin-bottom: 0.5rem;
   font-size: 1.08rem;
   font-weight: 500;
+  border-radius: 0.5rem;
   transition: background 0.2s, color 0.2s;
-  gap: 0.7rem;
 }
 
 .nav-link:hover {
-  background: #27639b !important;
-  color: #fff !important;
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .nav-link.active {
-  background: #fff !important;
-  color: #27639b !important;
-  font-weight: bold;
+  background: #fff;
+  color: #27639b;
+  font-weight: 600;
+  border-radius: 0.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .nav-icon {
@@ -129,8 +131,10 @@
   border-radius: 0.6rem;
   cursor: pointer;
   font-weight: bold;
+  font-size: 1.1rem;
   gap: 0.7rem;
   transition: background 0.2s, color 0.2s;
+  justify-content: flex-start;
 }
 
 .exit-btn:hover {
@@ -151,7 +155,7 @@
   background: transparent;
 }
 
-.sidebar.collapsed+.main-content {
+.sidebar.collapsed + .main-content {
   margin-left: 70px;
 }
 
@@ -224,7 +228,7 @@
   scrollbar-color: #27639b #e0e7ff !important;
 }
 
-/* Scrollbar visual para navegadores Webkit (Chrome, Edge, Safari) */
+/* Scrollbar para Webkit */
 .cart-items::-webkit-scrollbar {
   width: 8px;
   border-radius: 6px;
@@ -254,15 +258,8 @@
 }
 
 @keyframes fadeInCart {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(30px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 .item-image {
@@ -408,7 +405,7 @@
   color: #27639b !important;
 }
 
-/* Scrollbar global para toda la pantalla */
+/* Scrollbar global */
 body,
 html,
 .dashboard-container {
@@ -438,14 +435,8 @@ html::-webkit-scrollbar-thumb:hover,
 
 /* Responsive */
 @media (max-width: 900px) {
-  .shopping-cart-container {
-    padding: 0.7rem 0.2rem;
-    max-width: 98vw;
-  }
-
-  .main-content {
-    padding: 1.2rem 0.2rem;
-  }
+  .shopping-cart-container { padding: 0.7rem 0.2rem; max-width: 98vw; }
+  .main-content { padding: 1.2rem 0.2rem; }
 }
 
 @media (max-width: 600px) {
@@ -455,33 +446,16 @@ html::-webkit-scrollbar-thumb:hover,
     padding: 0.3rem 0.05rem;
     min-height: unset;
   }
-
-  .cart-header {
-    padding-bottom: 0.5rem;
-    margin-bottom: 0.7rem;
-  }
-
-  .cart-items {
-    max-height: 120px;
-  }
-
+  .cart-header { padding-bottom: 0.5rem; margin-bottom: 0.7rem; }
+  .cart-items { max-height: 120px; }
   .cart-item {
     flex-direction: column;
     align-items: flex-start;
     gap: 0.7rem;
     padding: 1rem 0.5rem;
   }
-
-  .item-image {
-    margin-right: 0;
-    margin-bottom: 0.7rem;
-  }
-
-  .main-content {
-    margin-left: 0 !important;
-    padding: 0.5rem 0.1rem;
-  }
-
+  .item-image { margin-right: 0; margin-bottom: 0.7rem; }
+  .main-content { margin-left: 0 !important; padding: 0.5rem 0.1rem; }
   .sidebar {
     position: static;
     width: 100vw;

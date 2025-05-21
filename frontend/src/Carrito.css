@@ -1,0 +1,96 @@
+/* Modal de Pago Cliente */
+.modal-pago-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+.modal-pago-content {
+    background: #fff;
+    border-radius: 16px;
+    padding: 32px 28px;
+    min-width: 320px;
+    max-width: 400px;
+    box-shadow: 0 8px 32px rgba(39, 99, 155, 0.15);
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+}
+
+.modal-pago-title {
+    font-size: 1.4rem;
+    font-weight: bold;
+    color: #27639b;
+    margin-bottom: 18px;
+    text-align: center;
+}
+
+.modal-pago-form label {
+    margin-top: 10px;
+    font-weight: 500;
+    color: #1a2a3a;
+}
+
+.modal-pago-form input,
+.modal-pago-form select {
+    width: 100%;
+    padding: 8px 10px;
+    margin-top: 4px;
+    border: 1px solid #dbeafe;
+    border-radius: 6px;
+    font-size: 1rem;
+    margin-bottom: 8px;
+    background: #f8fafc;
+    color: #222;
+    transition: border 0.2s;
+}
+
+.modal-pago-form input:focus,
+.modal-pago-form select:focus {
+    border: 1.5px solid #27639b;
+    outline: none;
+}
+
+.modal-pago-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 18px;
+}
+
+.modal-pago-cancel {
+    background: #e5e7eb;
+    color: #222;
+    border: none;
+    padding: 8px 18px;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.modal-pago-cancel:hover {
+    background: #cbd5e1;
+}
+
+.modal-pago-submit {
+    background: #27639b;
+    color: #fff;
+    border: none;
+    padding: 8px 18px;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.modal-pago-submit:hover {
+    background: #17416b;
+}

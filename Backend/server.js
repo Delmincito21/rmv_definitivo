@@ -1304,7 +1304,7 @@ app.get('/carrito/:userId', async (req, res) => {
                 p.nombre_producto,
                 p.precio_producto,
                 p.${imageColumnName} AS imagen_producto,
-                c.cantidad,
+                c.cantidad AS cantidad,
                 (p.precio_producto * c.cantidad) AS subtotal
             FROM carrito c
             LEFT JOIN productos p ON c.id_producto = p.id_producto
@@ -1312,6 +1312,7 @@ app.get('/carrito/:userId', async (req, res) => {
         `, [userId]);
 
         console.log(`Encontrados ${items.length} items en el carrito`);
+        console.log('Items crudos del carrito:', items);
 
         // Filtrar items donde el producto existe
         const validItems = items.filter(item => item.nombre_producto !== null);
@@ -1320,16 +1321,18 @@ app.get('/carrito/:userId', async (req, res) => {
         const formattedItems = validItems.map(item => ({
             id_producto: item.id_producto,
             nombre_producto: item.nombre_producto || 'Producto no disponible',
-            precio_producto: item.precio_producto || 0,
+            precio_producto: Number(item.precio_producto),
             imagen: item.imagen_producto || '',
-            quantity: item.cantidad,
-            subtotal: item.subtotal || 0
+            quantity: Number(item.cantidad),
+            subtotal: Number(item.precio_producto) * Number(item.cantidad)
         }));
+
+        console.log('formattedItems:', formattedItems);
 
         res.json({
             success: true,
             items: formattedItems,
-            total: validItems.reduce((sum, item) => sum + (item.subtotal || 0), 0)
+            total: formattedItems.reduce((sum, item) => sum + (item.subtotal || 0), 0)
         });
     } catch (error) {
         console.error('Error detallado al obtener carrito:', error);
@@ -1365,6 +1368,7 @@ app.post('/carrito/:userId/item', async (req, res) => {
         if (existing.length > 0) {
             // Actualizar cantidad si ya existe
             const newQuantity = existing[0].cantidad + cantidad;
+            console.log('Enviando cantidad:', newQuantity, typeof newQuantity);
             await db.query(
                 'UPDATE carrito SET cantidad = ? WHERE id_carrito = ?',
                 [newQuantity, existing[0].id_carrito]
@@ -1397,35 +1401,95 @@ app.put('/carrito/:userId/item/:productId', async (req, res) => {
         const { userId, productId } = req.params;
         const { cantidad } = req.body;
 
-        if (cantidad < 1) {
+        console.log('PUT carrito - Datos recibidos:', {
+            userId,
+            productId,
+            cantidad,
+            body: req.body
+        });
+
+        // Validar que userId y productId sean números válidos
+        if (isNaN(parseInt(userId)) || isNaN(parseInt(productId))) {
             return res.status(400).json({
                 success: false,
-                message: 'La cantidad debe ser al menos 1'
+                message: 'ID de usuario o producto inválido'
             });
         }
 
+        // Validar que cantidad sea un número positivo
+        const cantidadNum = parseInt(cantidad);
+        if (isNaN(cantidadNum) || cantidadNum < 1) {
+            return res.status(400).json({
+                success: false,
+                message: 'La cantidad debe ser un número mayor a 0'
+            });
+        }
+
+        // Verificar si el producto existe
+        const [producto] = await db.query(
+            'SELECT id_producto FROM productos WHERE id_producto = ? AND estado = "activo"',
+            [productId]
+        );
+
+        if (producto.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'El producto no existe o no está activo'
+            });
+        }
+
+        // Verificar si el item existe en el carrito
+        const [itemExistente] = await db.query(
+            'SELECT id_carrito FROM carrito WHERE id_usuario = ? AND id_producto = ?',
+            [userId, productId]
+        );
+
+        if (itemExistente.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'El producto no está en el carrito'
+            });
+        }
+
+        // Actualizar la cantidad
         const [result] = await db.query(
             'UPDATE carrito SET cantidad = ? WHERE id_usuario = ? AND id_producto = ?',
-            [cantidad, userId, productId]
+            [cantidadNum, userId, productId]
         );
 
         if (result.affectedRows === 0) {
             return res.status(404).json({
                 success: false,
-                message: 'Producto no encontrado en el carrito'
+                message: 'No se pudo actualizar la cantidad'
             });
         }
 
+        // Obtener el item actualizado para la respuesta
+        const [itemActualizado] = await db.query(`
+            SELECT 
+                c.id_carrito,
+                c.id_producto,
+                p.nombre_producto,
+                p.precio_producto,
+                c.cantidad,
+                (p.precio_producto * c.cantidad) as subtotal
+            FROM carrito c
+            JOIN productos p ON c.id_producto = p.id_producto
+            WHERE c.id_usuario = ? AND c.id_producto = ?
+        `, [userId, productId]);
+
         res.json({
             success: true,
-            message: 'Cantidad actualizada'
+            message: 'Cantidad actualizada correctamente',
+            item: itemActualizado[0]
         });
 
     } catch (error) {
-        console.error('Error al actualizar cantidad:', error);
+        console.error('Error detallado al actualizar cantidad:', error);
         res.status(500).json({
             success: false,
-            message: 'Error al actualizar cantidad'
+            message: 'Error al actualizar la cantidad',
+            error: error.message
         });
     }
 });
@@ -1488,4 +1552,74 @@ app.delete('/carrito/:userId', async (req, res) => {
 // Inicia el servidor
 app.listen(PORT, () => {
     console.log(`Servidor en http://localhost:${PORT}`);
+});
+
+app.post('/procesar-compra', async (req, res) => {
+    const connection = await db.getConnection();
+    try {
+        const { id_usuario, items, total, pago, direccion_envio } = req.body;
+
+        await connection.beginTransaction();
+
+        // 1. Crear la venta
+        const ventaResult = await Venta.create({
+            id_usuario,
+            fecha_venta: new Date(),
+            estado_venta: 'pendiente',
+            estado: 'activo'
+        });
+        const id_venta = ventaResult.insertId;
+
+        // 2. Crear los detalles de venta
+        for (const item of items) {
+            await DetalleVenta.create({
+                id_venta,
+                id_producto: item.id_producto,
+                cantidad_detalle_venta: item.quantity,
+                precio_unitario_detalle_venta: item.precio_producto,
+                subtotal_detalle_venta: item.precio_producto * item.quantity,
+                estado: 'activo'
+            });
+        }
+
+        // 3. Registrar el pago
+        await Pago.create({
+            id_venta,
+            monto_pago: pago.monto_pago,
+            fecha_pago: pago.fecha_pago,
+            metodo_pago: pago.metodo_pago,
+            referencia: pago.referencia,
+            banco_emisor: pago.banco_emisor,
+            estado_pago: pago.estado_pago,
+            estado: 'activo'
+        });
+
+        // 4. Crear la orden
+        const ordenResult = await Orden.create({
+            id_usuario,
+            id_venta,
+            total_orden: total,
+            estado_orden: 'pendiente',
+            fecha_orden: new Date(),
+            estado: 'activo'
+        });
+        const id_orden = ordenResult.insertId;
+
+        // 5. Registrar el envío
+        await Envio.create({
+            id_orden,
+            direccion_entrega_envio: direccion_envio,
+            estado_envio: 'pendiente',
+            estado: 'activo'
+        });
+
+        await connection.commit();
+        res.json({ success: true, message: 'Compra procesada correctamente' });
+    } catch (error) {
+        await connection.rollback();
+        console.error('Error al procesar la compra:', error);
+        res.status(500).json({ success: false, message: 'Error al procesar la compra', error: error.message });
+    } finally {
+        connection.release();
+    }
 });

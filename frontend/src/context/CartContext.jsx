@@ -37,7 +37,8 @@ export const CartProvider = ({ children }) => {
         id_producto: item.id_producto
       })) || [];
 
-      setCartItems(formattedItems);
+      console.log('Items recibidos del backend:', data.items);
+      setCartItems(data.items);
     } catch (error) {
       console.error("Error al cargar carrito:", error);
       setError("No se pudo cargar el carrito. Intenta de nuevo más tarde.");
@@ -57,7 +58,7 @@ export const CartProvider = ({ children }) => {
   useEffect(() => {
     const userId = localStorage.getItem('userId');
     console.log("CartContext inicializado, userId:", userId);
-    
+
     if (userId && userId !== "undefined" && userId !== "null") {
       setCurrentUserId(userId);
       fetchCart(userId);
@@ -149,6 +150,7 @@ export const CartProvider = ({ children }) => {
 
   // Actualizar cantidad de un producto
   const updateQuantity = async (productId, newQuantity) => {
+    newQuantity = Number(newQuantity);
     if (!currentUserId) return;
 
     if (newQuantity < 1) {
@@ -169,11 +171,12 @@ export const CartProvider = ({ children }) => {
         throw new Error(`Error al actualizar cantidad (${response.status})`);
       }
 
-      // Actualizar UI después de confirmación del servidor
+      // Refresca el carrito después de actualizar
       await fetchCart(currentUserId);
     } catch (error) {
-      console.error("Error al actualizar cantidad:", error);
       setError("No se pudo actualizar la cantidad");
+      // Refresca el carrito si hay error
+      await fetchCart(currentUserId);
     } finally {
       setLoading(false);
     }
@@ -206,10 +209,17 @@ export const CartProvider = ({ children }) => {
 
   // Calcular total del carrito
   const getCartTotal = () => {
-    return cartItems.reduce((total, item) => {
-      const price = Number(item.precio_producto) || 0;
-      return total + (price * item.quantity);
-    }, 0);
+    try {
+      return cartItems.reduce((total, item) => {
+        const price = parseFloat(item.precio_producto) || 0;
+        const quantity = parseInt(item.quantity) || 0;
+        const itemTotal = price * quantity;
+        return total + (isNaN(itemTotal) ? 0 : itemTotal);
+      }, 0);
+    } catch (error) {
+      console.error('Error al calcular el total del carrito:', error);
+      return 0;
+    }
   };
 
   // Obtener número total de items

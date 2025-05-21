@@ -23,6 +23,12 @@ class Pago {
         } = pagoData;
 
         try {
+            let fechaMysql = fecha_pago;
+            if (fechaMysql && typeof fechaMysql === 'string') {
+                // Si viene en formato ISO, conviértelo a formato MySQL
+                fechaMysql = fechaMysql.replace('T', ' ').replace('Z', '').split('.')[0];
+            }
+
             const [result] = await db.query(
                 `INSERT INTO pago (
                     monto_pago,
@@ -36,7 +42,7 @@ class Pago {
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
                 [
                     monto_pago,
-                    fecha_pago,
+                    fechaMysql,
                     metodo_pago.toUpperCase(),
                     referencia,
                     banco_emisor,

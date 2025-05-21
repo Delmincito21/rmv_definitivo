@@ -155,7 +155,7 @@
   background: transparent;
 }
 
-.sidebar.collapsed + .main-content {
+.sidebar.collapsed+.main-content {
   margin-left: 70px;
 }
 
@@ -258,8 +258,15 @@
 }
 
 @keyframes fadeInCart {
-  from { opacity: 0; transform: translateY(30px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .item-image {
@@ -435,8 +442,14 @@ html::-webkit-scrollbar-thumb:hover,
 
 /* Responsive */
 @media (max-width: 900px) {
-  .shopping-cart-container { padding: 0.7rem 0.2rem; max-width: 98vw; }
-  .main-content { padding: 1.2rem 0.2rem; }
+  .shopping-cart-container {
+    padding: 0.7rem 0.2rem;
+    max-width: 98vw;
+  }
+
+  .main-content {
+    padding: 1.2rem 0.2rem;
+  }
 }
 
 @media (max-width: 600px) {
@@ -446,16 +459,33 @@ html::-webkit-scrollbar-thumb:hover,
     padding: 0.3rem 0.05rem;
     min-height: unset;
   }
-  .cart-header { padding-bottom: 0.5rem; margin-bottom: 0.7rem; }
-  .cart-items { max-height: 120px; }
+
+  .cart-header {
+    padding-bottom: 0.5rem;
+    margin-bottom: 0.7rem;
+  }
+
+  .cart-items {
+    max-height: 120px;
+  }
+
   .cart-item {
     flex-direction: column;
     align-items: flex-start;
     gap: 0.7rem;
     padding: 1rem 0.5rem;
   }
-  .item-image { margin-right: 0; margin-bottom: 0.7rem; }
-  .main-content { margin-left: 0 !important; padding: 0.5rem 0.1rem; }
+
+  .item-image {
+    margin-right: 0;
+    margin-bottom: 0.7rem;
+  }
+
+  .main-content {
+    margin-left: 0 !important;
+    padding: 0.5rem 0.1rem;
+  }
+
   .sidebar {
     position: static;
     width: 100vw;
@@ -465,4 +495,80 @@ html::-webkit-scrollbar-thumb:hover,
     border-radius: 0;
     box-shadow: none;
   }
+}
+
+.modal-pago-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.modal-pago-content {
+  background: #fff;
+  padding: 2rem;
+  border-radius: 12px;
+  min-width: 320px;
+  max-width: 90vw;
+}
+
+.modal-pago-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.modal-pago-title {
+  margin-bottom: 1.2rem;
+  font-size: 1.6rem;
+  font-weight: bold;
+  color: #27639b;
+}
+
+.modal-pago-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.2rem;
+}
+
+.modal-pago-cancel,
+.modal-pago-submit {
+  flex: 1;
+  padding: 0.7rem;
+  border: none;
+  border-radius: 0.5rem;
+  font-weight: bold;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.modal-pago-cancel {
+  background: #f87171;
+  color: #fff;
+}
+
+.modal-pago-cancel:hover {
+  background: #dc2626;
+}
+
+.modal-pago-submit {
+  background: #27639b;
+  color: #fff;
+}
+
+.modal-pago-submit:hover {
+  background: #17416b;
 }

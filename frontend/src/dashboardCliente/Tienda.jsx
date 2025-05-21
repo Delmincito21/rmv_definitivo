@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { FaShoppingCart, FaHome, FaSignOutAlt, FaShoppingBag, FaSearch, FaTimes } from "react-icons/fa";
+import { FaShoppingCart, FaHome, FaSignOutAlt, FaShoppingBag, FaSearch, FaTimes, FaUser } from "react-icons/fa";
 import { FaShop } from "react-icons/fa6";
 import { NavLink, useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -93,6 +93,7 @@ const Tienda = () => {
     color: ''
   });
   const [productoSeleccionado, setProductoSeleccionado] = useState(null);
+  const [userInfo, setUserInfo] = useState(null);
   const navigate = useNavigate();
   const { addToCart } = useCart();
 
@@ -103,12 +104,21 @@ const Tienda = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [productosRes, categoriasRes] = await Promise.all([
+        const userId = localStorage.getItem('userId');
+        if (!userId) {
+          navigate('/loginCliente');
+          return;
+        }
+
+        const [productosRes, categoriasRes, userRes] = await Promise.all([
           axios.get('http://localhost:3000/productos'),
-          axios.get('http://localhost:3000/categorias_productos')
+          axios.get('http://localhost:3000/categorias_productos'),
+          axios.get(`http://localhost:3000/usuario/${userId}`)
         ]);
+
         setProductos(productosRes.data);
         setCategorias(categoriasRes.data);
+        setUserInfo(userRes.data);
         setLoading(false);
       } catch (err) {
         console.error('Error al cargar los datos:', err);
@@ -118,7 +128,7 @@ const Tienda = () => {
     };
 
     fetchData();
-  }, []);
+  }, [navigate]);
 
   // Obtener marcas y colores únicos de los productos
   const marcas = [...new Set(productos.map(p => p.marca_producto))];
@@ -165,41 +175,55 @@ const Tienda = () => {
     <div className="dashboard-container">
       {/* Barra lateral */}
       <aside className={`sidebar ${isCollapsed ? 'collapsed' : ''}`}>
-        <div className="sidebar-header">
-          <h2 className="menu-title">Menú</h2>
-          <span
-            className={`collapse-arrow ${isCollapsed ? 'rotated' : ''}`}
-            onClick={toggleSidebar}
-          >
-            ◄
-          </span>
+        <div className="sidebar-content">
+          <div className="sidebar-header">
+            <h2 className="menu-title">Menú</h2>
+            <span
+              className={`collapse-arrow ${isCollapsed ? 'rotated' : ''}`}
+              onClick={toggleSidebar}
+            >
+              ◄
+            </span>
+          </div>
+
+          {/* Información del usuario */}
+          {userInfo && (
+            <div className="user-info">
+              <div className="user-avatar">
+                <FaUser size={40} />
+              </div>
+              <h3 className="username">{userInfo.nombre_clientes}</h3>
+              <p className="user-email">{userInfo.correo_clientes}</p>
+            </div>
+          )}
+
+          <ul className="menu-items">
+            <li>
+              <NavLink to="/iniciocli" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>
+                <FaHome className="nav-icon" />
+                <span className="nav-text">Inicio</span>
+              </NavLink>
+            </li>
+            <li>
+              <NavLink to="/Tienda" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>
+                <FaShop className="nav-icon" />
+                <span className="nav-text">Tienda</span>
+              </NavLink>
+            </li>
+            <li>
+              <NavLink to="/Carrito" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>
+                <FaShoppingCart className="nav-icon" />
+                <span className="nav-text">Carrito</span>
+              </NavLink>
+            </li>
+            <li>
+              <NavLink to="/MisPedidos" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>
+                <FaShoppingBag className="nav-icon" />
+                <span className="nav-text">Mis pedidos</span>
+              </NavLink>
+            </li>
+          </ul>
         </div>
-        <ul className="menu-items">
-          <li>
-            <NavLink to="/iniciocli" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>
-              <FaHome className="nav-icon" />
-              <span className="nav-text">Inicio</span>
-            </NavLink>
-          </li>
-          <li>
-            <NavLink to="/Tienda" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>
-              <FaShop className="nav-icon" />
-              <span className="nav-text">Tienda</span>
-            </NavLink>
-          </li>
-          <li>
-            <NavLink to="/Carrito" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>
-              <FaShoppingCart className="nav-icon" />
-              <span className="nav-text">Carrito</span>
-            </NavLink>
-          </li>
-          <li>
-            <NavLink to="/MisPedidos" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>
-              <FaShoppingBag className="nav-icon" />
-              <span className="nav-text">Mis pedidos</span>
-            </NavLink>
-          </li>
-        </ul>
         <div className="sidebar-footer">
           <button onClick={handleLogout} className="exit-btn">
             <FaSignOutAlt className="exit-icon" />

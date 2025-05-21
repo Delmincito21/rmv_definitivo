@@ -30,18 +30,26 @@ export const CartProvider = ({ children }) => {
 
       const data = await response.json();
 
-      // Transformar los datos del servidor al formato que espera el frontend
-      const formattedItems = data.items?.map(item => ({
-        ...item,
-        quantity: item.cantidad,
-        id_producto: item.id_producto
-      })) || [];
+      if (!data.success) {
+        throw new Error(data.message || 'Error al cargar el carrito');
+      }
 
-      console.log('Items recibidos del backend:', data.items);
-      setCartItems(data.items);
+      // Transformar los datos del servidor al formato que espera el frontend
+      const formattedItems = data.items.map(item => ({
+        id_producto: item.id_producto,
+        nombre_producto: item.nombre_producto,
+        precio_producto: Number(item.precio_producto),
+        imagen: item.imagen_url,
+        quantity: Number(item.cantidad),
+        subtotal: Number(item.subtotal)
+      }));
+
+      console.log('Items del carrito:', formattedItems);
+      setCartItems(formattedItems);
     } catch (error) {
       console.error("Error al cargar carrito:", error);
       setError("No se pudo cargar el carrito. Intenta de nuevo más tarde.");
+      setCartItems([]);
     } finally {
       setLoading(false);
     }

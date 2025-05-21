@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { FaShoppingCart, FaHome, FaSignOutAlt, FaShoppingBag, FaSearch, FaFilter, FaSort } from "react-icons/fa";
+import { FaShoppingCart, FaHome, FaSignOutAlt, FaShoppingBag, FaSearch, FaFilter, FaSort, FaUser } from "react-icons/fa";
 import { FaShop } from "react-icons/fa6";
 import { NavLink, useNavigate } from "react-router-dom";
 import Swal from 'sweetalert2';
@@ -21,6 +21,7 @@ const MisPedidos = () => {
   const [ordenarPor, setOrdenarPor] = useState('fecha');
   const [ordenAscendente, setOrdenAscendente] = useState(false);
   const navigate = useNavigate();
+  const [userInfo, setUserInfo] = useState(null);
 
   // Cargar pedidos del usuario
   useEffect(() => {
@@ -29,12 +30,14 @@ const MisPedidos = () => {
     fetch(`http://localhost:3000/ventas/usuario/${userId}`)
       .then(res => res.json())
       .then(data => {
+        console.log("Pedidos recibidos:", data);
         setPedidos(data);
         setPedidosFiltrados(data);
-        setLoading(false);
       })
       .catch(err => {
         Swal.fire('Error', 'No se pudieron cargar tus pedidos', 'error');
+      })
+      .finally(() => {
         setLoading(false);
       });
   }, [userId]);
@@ -124,6 +127,21 @@ const MisPedidos = () => {
 
   const toggleSidebar = () => setIsCollapsed(!isCollapsed);
 
+  useEffect(() => {
+    if (!userId) return;
+    fetch(`http://localhost:3000/usuario/${userId}`)
+      .then(res => res.json())
+      .then(data => {
+        setUserInfo(data);
+      })
+      .catch(() => {
+        setUserInfo(null);
+      });
+  }, [userId]);
+
+  console.log("pedidos:", pedidos);
+  console.log("pedidosFiltrados:", pedidosFiltrados);
+
   return (
     <div className="dashboard-container">
       {/* Sidebar igual que en Tienda */}
@@ -137,6 +155,18 @@ const MisPedidos = () => {
             ◄
           </span>
         </div>
+
+        {/* Información del usuario */}
+        {userInfo && (
+          <div className="user-info">
+            <div className="user-avatar">
+              <FaUser size={40} />
+            </div>
+            <h3 className="username">{userInfo.nombre_clientes}</h3>
+            <p className="user-email">{userInfo.correo_clientes}</p>
+          </div>
+        )}
+
         <ul className="menu-items">
           <li>
             <NavLink to="/iniciocli" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>
@@ -163,6 +193,7 @@ const MisPedidos = () => {
             </NavLink>
           </li>
         </ul>
+
         <div className="sidebar-footer">
           <button onClick={handleLogout} className="exit-btn">
             <FaSignOutAlt className="exit-icon" />
@@ -175,7 +206,7 @@ const MisPedidos = () => {
       <main className="main-content">
         <div className="mis-pedidos-container" style={{
           maxWidth: 1000,
-          margin: '2rem auto',
+          margin: '0.5rem auto',
           background: '#fff',
           borderRadius: 12,
           boxShadow: '0 4px 16px #2563eb11',
@@ -190,7 +221,7 @@ const MisPedidos = () => {
               color: '#27639b',
               fontWeight: 'bold'
             }}>
-              Total: {pedidosFiltrados.length} pedidos
+              Total: {loading ? 'Cargando...' : pedidos.length + ' pedidos'}
             </div>
           </div>
 

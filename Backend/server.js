@@ -1281,63 +1281,33 @@ app.get('/carrito/:userId', async (req, res) => {
             });
         }
 
-        // Descubrir el nombre correcto de la columna
-        const [columnsInfo] = await db.query('SHOW COLUMNS FROM productos');
-        console.log('Columnas disponibles en productos:', columnsInfo.map(col => col.Field));
-
-        // Encontrar el nombre de la columna que podría contener imágenes
-        const possibleImageColumn = columnsInfo.find(col =>
-            col.Field.includes('image') ||
-            col.Field.includes('imagen') ||
-            col.Field.includes('img') ||
-            col.Field.includes('foto')
-        );
-
-        const imageColumnName = possibleImageColumn ? possibleImageColumn.Field : 'imagen_url';
-        console.log(`Usando columna de imagen: ${imageColumnName}`);
-
-        // Usar LEFT JOIN para evitar errores si un producto no existe
+        // Consulta simplificada y más robusta
         const [items] = await db.query(`
             SELECT 
                 c.id_carrito,
                 c.id_producto,
                 p.nombre_producto,
                 p.precio_producto,
-                p.${imageColumnName} AS imagen_producto,
-                c.cantidad AS cantidad,
+                p.imagen_url,
+                c.cantidad,
                 (p.precio_producto * c.cantidad) AS subtotal
             FROM carrito c
-            LEFT JOIN productos p ON c.id_producto = p.id_producto
-            WHERE c.id_usuario = ?
+            INNER JOIN productos p ON c.id_producto = p.id_producto
+            WHERE c.id_usuario = ? AND p.estado = 'activo'
         `, [userId]);
 
         console.log(`Encontrados ${items.length} items en el carrito`);
-        console.log('Items crudos del carrito:', items);
 
-        // Filtrar items donde el producto existe
-        const validItems = items.filter(item => item.nombre_producto !== null);
-
-        // Mapear los items al formato que espera el frontend
-        const formattedItems = validItems.map(item => ({
-            id_producto: item.id_producto,
-            nombre_producto: item.nombre_producto || 'Producto no disponible',
-            precio_producto: Number(item.precio_producto),
-            imagen: item.imagen_producto || '',
-            quantity: Number(item.cantidad),
-            subtotal: Number(item.precio_producto) * Number(item.cantidad)
-        }));
-
-        console.log('formattedItems:', formattedItems);
+        // Calcular el total
+        const total = items.reduce((sum, item) => sum + (item.subtotal || 0), 0);
 
         res.json({
             success: true,
-            items: formattedItems,
-            total: formattedItems.reduce((sum, item) => sum + (item.subtotal || 0), 0)
+            items: items,
+            total: total
         });
     } catch (error) {
         console.error('Error detallado al obtener carrito:', error);
-        console.error('SQL message:', error.sqlMessage);
-        console.error('Stack:', error.stack);
         res.status(500).json({
             success: false,
             message: 'Error al obtener el carrito',
@@ -1621,10 +1591,15 @@ app.post('/procesar-compra', async (req, res) => {
         await connection.commit();
 
         // 1. Obtener el correo del cliente
+        console.log("Procesando compra para id_usuario:", id_usuario);
         const [clienteRows] = await connection.query(
-            'SELECT correo_clientes, nombre_clientes FROM clientes WHERE id_clientes = ?',
+            'SELECT correo_clientes, nombre_clientes FROM clientes WHERE id_usuario = ?',
             [id_usuario]
         );
+        console.log("Resultado de búsqueda de cliente:", clienteRows);
+        if (!clienteRows.length) {
+            throw new Error('No se encontró el cliente para el usuario que compra');
+        }
         const cliente = clienteRows[0];
 
         // 2. Construir el HTML de los productos comprados
@@ -1743,5 +1718,26 @@ app.get('/pedido/detalle/:id_venta', async (req, res) => {
     } catch (error) {
         console.error('Error al obtener detalle completo del pedido:', error);
         res.status(500).json({ error: 'Error al obtener detalle del pedido' });
+    }
+});
+
+// Obtener información del usuario por ID
+app.get('/usuario/:id', async (req, res) => {
+    try {
+        const [usuario] = await db.query(`
+            SELECT u.*, c.* 
+            FROM usuarios u 
+            LEFT JOIN clientes c ON u.id_usuario = c.id_usuario 
+            WHERE u.id_usuario = ? AND u.estado = 'activo'
+        `, [req.params.id]);
+
+        if (usuario.length === 0) {
+            return res.status(404).json({ error: 'Usuario no encontrado' });
+        }
+
+        res.json(usuario[0]);
+    } catch (error) {
+        console.error('Error al obtener información del usuario:', error);
+        res.status(500).json({ error: 'Error al obtener información del usuario' });
     }
 });

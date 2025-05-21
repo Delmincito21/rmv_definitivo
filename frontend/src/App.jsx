@@ -13,6 +13,7 @@ import Tienda from './dashboardCliente/Tienda';
 import Carrito from './dashboardCliente/Carrito';
 import ResetPassword from './ResetPassword';
 import MisPedidos from './dashboardCliente/MisPedidos';
+import EditarPerfil from './dashboardCliente/EditarPerfil';
 
 function App() {
   return (
@@ -29,6 +30,7 @@ function App() {
           <Route path="/Carrito" element={<Carrito />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/MisPedidos" element={<MisPedidos />} />
+          <Route path="/editar-perfil" element={<EditarPerfil />} />
 
           {/* Rutas con sidebar */}
           <Route element={<LayoutWithSidebar />}>

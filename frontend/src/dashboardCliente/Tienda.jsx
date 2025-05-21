@@ -189,7 +189,11 @@ const Tienda = () => {
           {/* Información del usuario */}
           {userInfo && (
             <div className="user-info">
-              <div className="user-avatar">
+              <div
+                className="user-avatar"
+                style={{ cursor: "pointer" }}
+                onClick={() => navigate("/editar-perfil")}
+              >
                 <FaUser size={40} />
               </div>
               <h3 className="username">{userInfo.nombre_clientes}</h3>

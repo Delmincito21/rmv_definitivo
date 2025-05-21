@@ -1741,3 +1741,27 @@ app.get('/usuario/:id', async (req, res) => {
         res.status(500).json({ error: 'Error al obtener información del usuario' });
     }
 });
+
+// Cambiar contraseña de usuario
+app.post('/cambiar-password', async (req, res) => {
+    const { id_usuario, actual, nueva } = req.body;
+    try {
+        // 1. Buscar el usuario
+        const [rows] = await db.query('SELECT * FROM usuarios WHERE id_usuario = ?', [id_usuario]);
+        if (rows.length === 0) {
+            return res.status(404).json({ error: 'Usuario no encontrado' });
+        }
+        const usuario = rows[0];
+        // 2. Verificar la contraseña actual
+        const match = await bcrypt.compare(actual, usuario.pin_usuario);
+        if (!match) {
+            return res.status(401).json({ error: 'La contraseña actual es incorrecta' });
+        }
+        // 3. Hashear la nueva contraseña
+        const hashed = await bcrypt.hash(nueva, 10);
+        await db.query('UPDATE usuarios SET pin_usuario = ? WHERE id_usuario = ?', [hashed, id_usuario]);
+        res.json({ message: 'Contraseña actualizada correctamente' });
+    } catch (error) {
+        res.status(500).json({ error: 'Error al cambiar la contraseña', details: error.message });
+    }
+});

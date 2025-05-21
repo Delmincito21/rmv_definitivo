@@ -219,12 +219,13 @@ body,
 html {
   margin: 0;
   padding: 0;
-  height: 100%;
-  background-color: #1e1e1e;
+  min-height: 100vh;
+  background-color: #f8f9fa;
+  /* o el color que prefieras */
   font-family: sans-serif;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  width: 100%;
+  /* Elimina display: flex, justify-content, align-items */
+  /* Así el scroll vertical será natural */
 }
 
 /* === LOGIN CLIENTE === */

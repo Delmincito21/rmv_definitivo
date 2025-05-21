@@ -22,7 +22,10 @@ function Carrito() {
   } = useCart();
 
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [ setProcessingCheckout] = useState(false);
+  const [processingCheckout, setProcessingCheckout] = useState(false);
+  const [direccionEnvio, setDireccionEnvio] = useState('');
+  const [mostrarPayPal, setMostrarPayPal] = useState(false);
+
   // Asegurarse de que el carrito esté actualizado para el usuario actual
   useEffect(() => {
     if (userId) {
@@ -115,77 +118,100 @@ function Carrito() {
     }
   };
 
-  // const mostrarModalPago = async (total, onSubmit) => {
-  //   const { value: formValues } = await Swal.fire({
-  //     title: '<h2 style="color:#27639b;margin-bottom:16px;">Información de Pago</h2>',
-  //     html: `
-  //       <div style="display: flex; flex-direction: column; gap: 16px;">
-  //         <div style="display: flex; gap: 16px;">
-  //           <div style="flex:1; min-width:220px; max-width: 260px;">
-  //             <label style="font-weight:bold;">Monto</label>
-  //             <input id="swal-monto" class="swal2-input" style="width:100%;" value="${total}" readonly>
-  //           </div>
-  //           <div style="flex:1; min-width:220px; max-width: 260px;">
-  //             <label style="font-weight:bold;">Fecha de Pago</label>
-  //             <input id="swal-fecha" class="swal2-input" style="width:100%;" type="datetime-local" value="${new Date().toISOString().slice(0, 16)}">
-  //           </div>
-  //         </div>
-  //         <div style="display: flex; gap: 16px;">
-  //           <div style="flex:1; min-width:220px; max-width: 260px;">
-  //             <label style="font-weight:bold;">Método de Pago</label>
-  //             <input id="swal-metodo" class="swal2-input" style="width:100%;" value="Transferencia" readonly>
-  //           </div>
-  //           <div style="flex:1; min-width:220px; max-width: 260px;">
-  //             <label style="font-weight:bold;">Referencia</label>
-  //             <input id="swal-referencia" class="swal2-input" style="width:100%;" placeholder="Referencia">
-  //           </div>
-  //         </div>
-  //         <div style="display: flex; gap: 16px;">
-  //           <div style="flex:1; min-width:220px; max-width: 260px;">
-  //             <label style="font-weight:bold;">Banco Emisor</label>
-  //             <input id="swal-banco" class="swal2-input" style="width:100%;" placeholder="Banco Emisor">
-  //           </div>
-  //           <div style="flex:1; min-width:220px; max-width: 260px;">
-  //             <label style="font-weight:bold;">Estado del Pago</label>
-  //             <select id="swal-estado" class="swal2-input" style="width:100%;">
-  //               <option value="pendiente">Pendiente</option>
-  //               <option value="completado">Completado</option>
-  //             </select>
-  //           </div>
-  //         </div>
-  //       </div>
-  //     `,
-  //     width: 700,
-  //     focusConfirm: false,
-  //     showCancelButton: true,
-  //     confirmButtonText: 'Procesar Pago',
-  //     cancelButtonText: 'Cancelar',
-  //     preConfirm: () => {
-  //       const referencia = document.getElementById('swal-referencia').value;
-  //       const banco = document.getElementById('swal-banco').value;
-  //       if (!referencia || !banco) {
-  //         Swal.showValidationMessage('Referencia y Banco Emisor son obligatorios');
-  //         return false;
-  //       }
-  //       return {
-  //         monto_pago: Number(document.getElementById('swal-monto').value),
-  //         fecha_pago: document.getElementById('swal-fecha').value,
-  //         metodo_pago: document.getElementById('swal-metodo').value,
-  //         referencia,
-  //         banco_emisor: banco,
-  //         estado_pago: document.getElementById('swal-estado').value
-  //       };
-  //     }
-  //   });
+  const pedirDireccionEnvio = async () => {
+    const { value: direccion } = await Swal.fire({
+      title: 'Dirección de envío',
+      input: 'text',
+      inputLabel: 'Por favor ingresa tu dirección de envío',
+      inputPlaceholder: 'Dirección completa',
+      confirmButtonText: 'Continuar con el pago',
+      showCancelButton: true,
+      cancelButtonText: 'Cancelar',
+      inputValidator: (value) => {
+        if (!value) {
+          return 'La dirección de envío es obligatoria';
+        }
+      }
+    });
+    if (direccion) {
+      setDireccionEnvio(direccion);
+      setMostrarPayPal(true);
+      console.log('Dirección guardada:', direccion);
+      console.log('mostrarPayPal:', true);
+    }
+  };
 
-  //   if (formValues) {
-  //     onSubmit(formValues);
-  //   }
-  // };
+  const mostrarModalPago = async (total, onSubmit) => {
+    const { value: formValues } = await Swal.fire({
+      title: '<h2 style="color:#27639b;margin-bottom:16px;">Información de Pago</h2>',
+      html: `
+        <div style="display: flex; flex-direction: column; gap: 16px;">
+          <div style="display: flex; gap: 16px;">
+            <div style="flex:1; min-width:220px; max-width: 260px;">
+              <label style="font-weight:bold;">Monto</label>
+              <input id="swal-monto" class="swal2-input" style="width:100%;" value="${total}" readonly>
+            </div>
+            <div style="flex:1; min-width:220px; max-width: 260px;">
+              <label style="font-weight:bold;">Fecha de Pago</label>
+              <input id="swal-fecha" class="swal2-input" style="width:100%;" type="datetime-local" value="${new Date().toISOString().slice(0, 16)}">
+            </div>
+          </div>
+          <div style="display: flex; gap: 16px;">
+            <div style="flex:1; min-width:220px; max-width: 260px;">
+              <label style="font-weight:bold;">Método de Pago</label>
+              <input id="swal-metodo" class="swal2-input" style="width:100%;" value="Transferencia" readonly>
+            </div>
+            <div style="flex:1; min-width:220px; max-width: 260px;">
+              <label style="font-weight:bold;">Referencia</label>
+              <input id="swal-referencia" class="swal2-input" style="width:100%;" placeholder="Referencia">
+            </div>
+          </div>
+          <div style="display: flex; gap: 16px;">
+            <div style="flex:1; min-width:220px; max-width: 260px;">
+              <label style="font-weight:bold;">Banco Emisor</label>
+              <input id="swal-banco" class="swal2-input" style="width:100%;" placeholder="Banco Emisor">
+            </div>
+            <div style="flex:1; min-width:220px; max-width: 260px;">
+              <label style="font-weight:bold;">Estado del Pago</label>
+              <select id="swal-estado" class="swal2-input" style="width:100%;">
+                <option value="pendiente">Pendiente</option>
+                <option value="completado">Completado</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      `,
+      width: 700,
+      focusConfirm: false,
+      showCancelButton: true,
+      confirmButtonText: 'Procesar Pago',
+      cancelButtonText: 'Cancelar',
+      preConfirm: () => {
+        const referencia = document.getElementById('swal-referencia').value;
+        const banco = document.getElementById('swal-banco').value;
+        if (!referencia || !banco) {
+          Swal.showValidationMessage('Referencia y Banco Emisor son obligatorios');
+          return false;
+        }
+        return {
+          monto_pago: Number(document.getElementById('swal-monto').value),
+          fecha_pago: document.getElementById('swal-fecha').value,
+          metodo_pago: document.getElementById('swal-metodo').value,
+          referencia,
+          banco_emisor: banco,
+          estado_pago: document.getElementById('swal-estado').value
+        };
+      }
+    });
 
-  // const handlePagoCliente = async (datosPago) => {
-  //   // ... tu lógica de pago ...
-  // };
+    if (formValues) {
+      onSubmit(formValues);
+    }
+  };
+
+  const handlePagoCliente = async (datosPago) => {
+    // ... tu lógica de pago ...
+  };
 
   // Mostrar errores si existen
   useEffect(() => {
@@ -336,33 +362,50 @@ function Carrito() {
                 <p className="shipping-note">Envío e impuestos calculados al finalizar la compra.</p>
 
                 <div className="checkout-buttons">
-                  <PayPalScriptProvider options={{ "client-id": "AX2kwfBLc6X6tevJto9iZ6-yUVrt5GjvXHe2cEQZzJg7aSQrFlGjOZy-SgZKgh4PAOGiPnQtG76XhwT9" }}>
-                    <PayPalButtons
-                      createOrder={(data, actions) => {
-                        return actions.order.create({
-                          purchase_units: [{
-                            amount: { value: getCartTotal().toString() }
-                          }]
-                        });
-                      }}
-                      onApprove={async (data, actions) => {
-                        const details = await actions.order.capture();
-                        if (details.status === 'COMPLETED') {
-                          const datosPago = {
-                            monto_pago: getCartTotal(),
-                            fecha_pago: new Date().toISOString(),
-                            metodo_pago: 'PayPal',
-                            referencia: details.id,
-                            banco_emisor: details.payer.email_address,
-                            estado_pago: details.status
-                          };
-                          handleCheckout(datosPago);
-                        } else {
-                          Swal.fire('Pago no completado', 'El pago con PayPal no se completó correctamente.', 'error');
-                        }
-                      }}
-                    />
-                  </PayPalScriptProvider>
+                  {!mostrarPayPal ? (
+                    <button
+                      className="checkout-btn"
+                      onClick={pedirDireccionEnvio}
+                      disabled={loading || processingCheckout || cartItems.length === 0}
+                    >
+                      Proceder al pago
+                    </button>
+                  ) : (
+                    <PayPalScriptProvider options={{ "client-id": "AX2kwfBLc6X6tevJto9iZ6-yUVrt5GjvXHe2cEQZzJg7aSQrFlGjOZy-SgZKgh4PAOGiPnQtG76XhwT9" }}>
+                      <PayPalButtons
+                        createOrder={(data, actions) => {
+                          return actions.order.create({
+                            purchase_units: [{
+                              amount: { value: getCartTotal().toString() }
+                            }]
+                          });
+                        }}
+                        onApprove={async (data, actions) => {
+                          const details = await actions.order.capture();
+                          if (details.status === 'COMPLETED') {
+                            const datosPago = {
+                              monto_pago: getCartTotal(),
+                              fecha_pago: new Date().toISOString(),
+                              metodo_pago: 'PayPal',
+                              referencia: details.id,
+                              banco_emisor: details.payer.email_address,
+                              estado_pago: details.status,
+                              direccion_envio: direccionEnvio // <-- Aquí va la dirección
+                            };
+                            handleCheckout(datosPago);
+                            setMostrarPayPal(false); // Oculta el botón después del pago
+                            setDireccionEnvio('');
+                          } else {
+                            Swal.fire('Pago no completado', 'El pago con PayPal no se completó correctamente.', 'error');
+                          }
+                        }}
+                        onCancel={() => {
+                          setMostrarPayPal(false);
+                          setDireccionEnvio('');
+                        }}
+                      />
+                    </PayPalScriptProvider>
+                  )}
                   <button
                     className="continue-shopping-btn"
                     onClick={() => navigate('/Tienda')}

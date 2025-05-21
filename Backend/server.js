@@ -1606,20 +1606,142 @@ app.post('/procesar-compra', async (req, res) => {
         const id_orden = ordenResult.insertId;
 
         // 5. Registrar el envío
+        // Calcula la fecha estimada de envío (+3 días)
+        const fechaEstimada = new Date();
+        fechaEstimada.setDate(fechaEstimada.getDate() + 3);
+
         await Envio.create({
             id_orden,
             direccion_entrega_envio: direccion_envio,
+            fecha_estimada_envio: fechaEstimada.toISOString().slice(0, 19).replace('T', ' '),
             estado_envio: 'pendiente',
             estado: 'activo'
         });
 
         await connection.commit();
-        res.json({ success: true, message: 'Compra procesada correctamente' });
+
+        // 1. Obtener el correo del cliente
+        const [clienteRows] = await connection.query(
+            'SELECT correo_clientes, nombre_clientes FROM clientes WHERE id_clientes = ?',
+            [id_usuario]
+        );
+        const cliente = clienteRows[0];
+
+        // 2. Construir el HTML de los productos comprados
+        const productosHtml = items.map(item => `
+            <tr>
+                <td>${item.nombre_producto}</td>
+                <td>${item.quantity}</td>
+                <td>$${item.precio_producto}</td>
+                <td>$${(item.precio_producto * item.quantity).toFixed(2)}</td>
+            </tr>
+        `).join('');
+
+        // 3. Configurar el transportador de correo
+        const transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: 'refrielectricmv@gmail.com',
+                pass: 'rlfp pitl xfuu odnu'
+            }
+        });
+
+        // 4. Enviar el correo
+        await transporter.sendMail({
+            from: '"RMV Tienda" <TU_CORREO@gmail.com>',
+            to: cliente.correo_clientes,
+            subject: '¡Gracias por tu compra en RMV!',
+            html: `
+                <h2>¡Hola, ${cliente.nombre_clientes}!</h2>
+                <p>Gracias por tu compra. Aquí tienes el resumen de tu pedido:</p>
+                <table border="1" cellpadding="8" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>Producto</th>
+                            <th>Cantidad</th>
+                            <th>Precio unitario</th>
+                            <th>Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${productosHtml}
+                    </tbody>
+                </table>
+                <p><b>Total pagado:</b> $${total}</p>
+                <p>¡Esperamos verte pronto!</p>
+            `
+        });
+
+        // 5. Responder al frontend
+        res.json({ success: true, message: 'Compra procesada y correo enviado correctamente' });
+
     } catch (error) {
         await connection.rollback();
         console.error('Error al procesar la compra:', error);
         res.status(500).json({ success: false, message: 'Error al procesar la compra', error: error.message });
     } finally {
         connection.release();
+    }
+});
+
+// Obtener todas las ventas de un usuario específico
+app.get('/ventas/usuario/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        const [ventas] = await db.query(`
+            SELECT 
+                v.id_venta, 
+                v.fecha_venta, 
+                v.estado_venta,
+                (
+                    SELECT COALESCE(SUM(dv.subtotal_detalle_venta), 0)
+                    FROM detalle_venta dv
+                    WHERE dv.id_venta = v.id_venta
+                ) as total
+            FROM venta v
+            WHERE v.id_usuario = ? AND v.estado = 'activo'
+            ORDER BY v.fecha_venta DESC
+        `, [id]);
+        res.json(ventas);
+    } catch (error) {
+        console.error('Error al obtener ventas del usuario:', error);
+        res.status(500).json({ error: 'Error al obtener ventas del usuario' });
+    }
+});
+
+// Detalles completos de un pedido (venta)
+app.get('/pedido/detalle/:id_venta', async (req, res) => {
+    const { id_venta } = req.params;
+    try {
+        // Detalles de productos
+        const [detalles] = await db.query(
+            `SELECT d.*, p.nombre_producto 
+             FROM detalle_venta d
+             JOIN productos p ON d.id_producto = p.id_producto
+             WHERE d.id_venta = ?`, [id_venta]
+        );
+        // Pago
+        const [pagos] = await db.query(
+            `SELECT * FROM pago WHERE id_venta = ? ORDER BY id_pago DESC LIMIT 1`, [id_venta]
+        );
+        // Orden y envío
+        const [orden] = await db.query(
+            `SELECT * FROM orden WHERE id_venta = ? ORDER BY id_orden DESC LIMIT 1`, [id_venta]
+        );
+        let envio = null;
+        if (orden.length > 0) {
+            const [envios] = await db.query(
+                `SELECT * FROM envios WHERE id_orden = ? ORDER BY id_envio DESC LIMIT 1`, [orden[0].id_orden]
+            );
+            envio = envios.length > 0 ? envios[0] : null;
+        }
+        res.json({
+            detalles,
+            pago: pagos.length > 0 ? pagos[0] : null,
+            envio
+        });
+    } catch (error) {
+        console.error('Error al obtener detalle completo del pedido:', error);
+        res.status(500).json({ error: 'Error al obtener detalle del pedido' });
     }
 });

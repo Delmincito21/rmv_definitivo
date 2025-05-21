@@ -621,15 +621,18 @@ button {
 
   .sidebar ul {
     display: flex;
-    overflow-x: auto;
-    padding-bottom: 5px;
-    /* Espacio para scrollbar */
+    flex-direction: column;
+    overflow-x: unset;
+    padding-bottom: 0;
   }
 
   .sidebar ul li {
     padding: 1rem;
     white-space: nowrap;
     flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
   }
 
   .sidebar-footer {
@@ -690,6 +693,7 @@ button {
 .precio {
   font-size: 1.3rem;
 }
+
 /* ===== SIDEBAR MEJORADO Y FUNCIONAL ===== */
 .sidebar {
   width: 240px;
@@ -816,4 +820,24 @@ button {
 
 .sidebar.collapsed .exit-btn span {
   display: none;
+}
+
+.tabla-scroll-personalizada::-webkit-scrollbar {
+  height: 10px;
+  background: #f1f5fa;
+  border-radius: 8px;
+}
+
+.tabla-scroll-personalizada::-webkit-scrollbar-thumb {
+  background: #b6c6e6;
+  border-radius: 8px;
+}
+
+.tabla-scroll-personalizada::-webkit-scrollbar-thumb:hover {
+  background: #27639b;
+}
+
+.tabla-scroll-personalizada {
+  scrollbar-color: #b6c6e6 #f1f5fa;
+  scrollbar-width: thin;
 }

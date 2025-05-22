@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, NavLink } from 'react-router-dom';
-import { FaShoppingCart, FaHome, FaSignOutAlt, FaShoppingBag } from 'react-icons/fa';
+import { FaShoppingCart, FaHome, FaSignOutAlt, FaShoppingBag, FaUser } from 'react-icons/fa';
 import { FaShop } from 'react-icons/fa6';
 import { useCart } from '../context/CartContext';
 import Swal from 'sweetalert2';
@@ -25,11 +25,18 @@ function Carrito() {
   const [processingCheckout, setProcessingCheckout] = useState(false);
   const [direccionEnvio, setDireccionEnvio] = useState('');
   const [mostrarPayPal, setMostrarPayPal] = useState(false);
+  const [userInfo, setUserInfo] = useState(null);
+
 
   // Asegurarse de que el carrito esté actualizado para el usuario actual
   useEffect(() => {
     if (userId) {
       refreshCart(userId);
+      // Obtener info del usuario
+      fetch(`http://localhost:3000/usuario/${userId}`)
+        .then(res => res.json())
+        .then(data => setUserInfo(data))
+        .catch(() => setUserInfo(null));
     } else {
       // Redirigir al login si no hay usuario
       navigate('/loginCliente');
@@ -141,77 +148,77 @@ function Carrito() {
     }
   };
 
-  const mostrarModalPago = async (total, onSubmit) => {
-    const { value: formValues } = await Swal.fire({
-      title: '<h2 style="color:#27639b;margin-bottom:16px;">Información de Pago</h2>',
-      html: `
-        <div style="display: flex; flex-direction: column; gap: 16px;">
-          <div style="display: flex; gap: 16px;">
-            <div style="flex:1; min-width:220px; max-width: 260px;">
-              <label style="font-weight:bold;">Monto</label>
-              <input id="swal-monto" class="swal2-input" style="width:100%;" value="${total}" readonly>
-            </div>
-            <div style="flex:1; min-width:220px; max-width: 260px;">
-              <label style="font-weight:bold;">Fecha de Pago</label>
-              <input id="swal-fecha" class="swal2-input" style="width:100%;" type="datetime-local" value="${new Date().toISOString().slice(0, 16)}">
-            </div>
-          </div>
-          <div style="display: flex; gap: 16px;">
-            <div style="flex:1; min-width:220px; max-width: 260px;">
-              <label style="font-weight:bold;">Método de Pago</label>
-              <input id="swal-metodo" class="swal2-input" style="width:100%;" value="Transferencia" readonly>
-            </div>
-            <div style="flex:1; min-width:220px; max-width: 260px;">
-              <label style="font-weight:bold;">Referencia</label>
-              <input id="swal-referencia" class="swal2-input" style="width:100%;" placeholder="Referencia">
-            </div>
-          </div>
-          <div style="display: flex; gap: 16px;">
-            <div style="flex:1; min-width:220px; max-width: 260px;">
-              <label style="font-weight:bold;">Banco Emisor</label>
-              <input id="swal-banco" class="swal2-input" style="width:100%;" placeholder="Banco Emisor">
-            </div>
-            <div style="flex:1; min-width:220px; max-width: 260px;">
-              <label style="font-weight:bold;">Estado del Pago</label>
-              <select id="swal-estado" class="swal2-input" style="width:100%;">
-                <option value="pendiente">Pendiente</option>
-                <option value="completado">Completado</option>
-              </select>
-            </div>
-          </div>
-        </div>
-      `,
-      width: 700,
-      focusConfirm: false,
-      showCancelButton: true,
-      confirmButtonText: 'Procesar Pago',
-      cancelButtonText: 'Cancelar',
-      preConfirm: () => {
-        const referencia = document.getElementById('swal-referencia').value;
-        const banco = document.getElementById('swal-banco').value;
-        if (!referencia || !banco) {
-          Swal.showValidationMessage('Referencia y Banco Emisor son obligatorios');
-          return false;
-        }
-        return {
-          monto_pago: Number(document.getElementById('swal-monto').value),
-          fecha_pago: document.getElementById('swal-fecha').value,
-          metodo_pago: document.getElementById('swal-metodo').value,
-          referencia,
-          banco_emisor: banco,
-          estado_pago: document.getElementById('swal-estado').value
-        };
-      }
-    });
+  // const mostrarModalPago = async (total, onSubmit) => {
+  //   const { value: formValues } = await Swal.fire({
+  //     title: '<h2 style="color:#27639b;margin-bottom:16px;">Información de Pago</h2>',
+  //     html: `
+  //       <div style="display: flex; flex-direction: column; gap: 16px;">
+  //         <div style="display: flex; gap: 16px;">
+  //           <div style="flex:1; min-width:220px; max-width: 260px;">
+  //             <label style="font-weight:bold;">Monto</label>
+  //             <input id="swal-monto" class="swal2-input" style="width:100%;" value="${total}" readonly>
+  //           </div>
+  //           <div style="flex:1; min-width:220px; max-width: 260px;">
+  //             <label style="font-weight:bold;">Fecha de Pago</label>
+  //             <input id="swal-fecha" class="swal2-input" style="width:100%;" type="datetime-local" value="${new Date().toISOString().slice(0, 16)}">
+  //           </div>
+  //         </div>
+  //         <div style="display: flex; gap: 16px;">
+  //           <div style="flex:1; min-width:220px; max-width: 260px;">
+  //             <label style="font-weight:bold;">Método de Pago</label>
+  //             <input id="swal-metodo" class="swal2-input" style="width:100%;" value="Transferencia" readonly>
+  //           </div>
+  //           <div style="flex:1; min-width:220px; max-width: 260px;">
+  //             <label style="font-weight:bold;">Referencia</label>
+  //             <input id="swal-referencia" class="swal2-input" style="width:100%;" placeholder="Referencia">
+  //           </div>
+  //         </div>
+  //         <div style="display: flex; gap: 16px;">
+  //           <div style="flex:1; min-width:220px; max-width: 260px;">
+  //             <label style="font-weight:bold;">Banco Emisor</label>
+  //             <input id="swal-banco" class="swal2-input" style="width:100%;" placeholder="Banco Emisor">
+  //           </div>
+  //           <div style="flex:1; min-width:220px; max-width: 260px;">
+  //             <label style="font-weight:bold;">Estado del Pago</label>
+  //             <select id="swal-estado" class="swal2-input" style="width:100%;">
+  //               <option value="pendiente">Pendiente</option>
+  //               <option value="completado">Completado</option>
+  //             </select>
+  //           </div>
+  //         </div>
+  //       </div>
+  //     `,
+  //     width: 700,
+  //     focusConfirm: false,
+  //     showCancelButton: true,
+  //     confirmButtonText: 'Procesar Pago',
+  //     cancelButtonText: 'Cancelar',
+  //     preConfirm: () => {
+  //       const referencia = document.getElementById('swal-referencia').value;
+  //       const banco = document.getElementById('swal-banco').value;
+  //       if (!referencia || !banco) {
+  //         Swal.showValidationMessage('Referencia y Banco Emisor son obligatorios');
+  //         return false;
+  //       }
+  //       return {
+  //         monto_pago: Number(document.getElementById('swal-monto').value),
+  //         fecha_pago: document.getElementById('swal-fecha').value,
+  //         metodo_pago: document.getElementById('swal-metodo').value,
+  //         referencia,
+  //         banco_emisor: banco,
+  //         estado_pago: document.getElementById('swal-estado').value
+  //       };
+  //     }
+  //   });
 
-    if (formValues) {
-      onSubmit(formValues);
-    }
-  };
+  //   if (formValues) {
+  //     onSubmit(formValues);
+  //   }
+  // };
 
-  const handlePagoCliente = async (datosPago) => {
-    // ... tu lógica de pago ...
-  };
+  // const handlePagoCliente = async (datosPago) => {
+  //   // ... tu lógica de pago ...
+  // };
 
   // Mostrar errores si existen
   useEffect(() => {
@@ -233,13 +240,27 @@ function Carrito() {
             ◄
           </span>
         </div>
+        {/* Información del usuario */}
+        {userInfo && (
+          <div className="user-info">
+            <div
+              className="user-avatar"
+              style={{ cursor: "pointer" }}
+              onClick={() => navigate("/editar-perfil")}
+            >
+              <FaUser size={40} />
+            </div>
+            <h3 className="username">{userInfo.nombre_clientes}</h3>
+            <p className="user-email">{userInfo.correo_clientes}</p>
+          </div>
+        )}
         <ul className="menu-items">
-          <li>
+          {/* <li>
             <NavLink to="/iniciocli" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>
               <FaHome className="nav-icon" />
               <span className="nav-text">Inicio</span>
             </NavLink>
-          </li>
+          </li> */}
           <li>
             <NavLink to="/Tienda" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>
               <FaShop className="nav-icon" />

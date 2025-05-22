@@ -202,12 +202,12 @@ const Tienda = () => {
           )}
 
           <ul className="menu-items">
-            <li>
+            {/* <li>
               <NavLink to="/iniciocli" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>
                 <FaHome className="nav-icon" />
                 <span className="nav-text">Inicio</span>
               </NavLink>
-            </li>
+            </li> */}
             <li>
               <NavLink to="/Tienda" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>
                 <FaShop className="nav-icon" />

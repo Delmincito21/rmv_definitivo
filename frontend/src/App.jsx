@@ -8,7 +8,6 @@ import Ventas from './Ventas';
 import AdminDashboard from './AdminDashboard';
 import Clientes from './Clientes';
 import Inicio from './Inicio';
-import InicioCli from './dashboardCliente/InicioCli';
 import Tienda from './dashboardCliente/Tienda';
 import Carrito from './dashboardCliente/Carrito';
 import ResetPassword from './ResetPassword';
@@ -25,7 +24,6 @@ function App() {
           <Route path="/Bienvenido" element={<Bienvenido />} />
           <Route path="/loginCliente" element={<LoginCliente />} />
           <Route path="/registrate" element={<RegistroCliente />} />
-          <Route path="/iniciocli" element={<InicioCli />} />
           <Route path="/Tienda" element={<Tienda />} />
           <Route path="/Carrito" element={<Carrito />} />
           <Route path="/reset-password" element={<ResetPassword />} />

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { FaShoppingCart, FaHome, FaSignOutAlt, FaShoppingBag, FaSearch, FaTimes, FaUser } from "react-icons/fa";
+import { FaShoppingCart, FaHome, FaSignOutAlt, FaShoppingBag, FaSearch, FaTimes, FaUser, FaSort } from "react-icons/fa";
 import { FaShop } from "react-icons/fa6";
 import { NavLink, useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -19,6 +19,13 @@ const formatPrice = (price) => {
   }
 };
 
+const getImagenUrl = (url) => {
+  // Si la URL ya tiene el parámetro de formato, la devuelve igual
+  if (url.includes('$')) return url;
+  // Si no, le agrega el formato PNG por defecto
+  return url + '?$684_547_PNG$';
+};
+
 const ProductoDetalle = ({ producto, onClose, onAddToCart }) => {
   if (!producto) return null;
 
@@ -31,9 +38,13 @@ const ProductoDetalle = ({ producto, onClose, onAddToCart }) => {
         <div className="producto-detalle">
           <div className="producto-detalle-imagen">
             <img
-              src={`http://localhost:3000/${producto.imagen_url}` || '/imagesprods/p1.png'}
+              src={getImagenUrl(producto.imagen_url)}
               alt={producto.nombre_producto}
               className="producto-imagen"
+              onError={(e) => {
+                e.target.onerror = null;
+                e.target.src = "https://via.placeholder.com/300x200?text=Imagen+no+disponible";
+              }}
             />
 
           </div>
@@ -116,6 +127,7 @@ const Tienda = () => {
           axios.get(`http://localhost:3000/usuario/${userId}`)
         ]);
 
+        console.log("Datos de productos recibidos:", productosRes.data);
         setProductos(productosRes.data);
         setCategorias(categoriasRes.data);
         setUserInfo(userRes.data);
@@ -143,6 +155,9 @@ const Tienda = () => {
 
     return matchSearch && matchCategoria && matchMarca && matchColor;
   });
+
+  // Contador de productos filtrados
+  const totalFiltrados = filteredProducts.length;
 
   const handleLogout = () => {
     Swal.fire({
@@ -173,61 +188,44 @@ const Tienda = () => {
 
   return (
     <div className="dashboard-container">
-      {/* Barra lateral */}
+      {/* Sidebar igual que en MisPedidos */}
       <aside className={`sidebar ${isCollapsed ? 'collapsed' : ''}`}>
-        <div className="sidebar-content">
-          <div className="sidebar-header">
-            <h2 className="menu-title">Menú</h2>
-            <span
-              className={`collapse-arrow ${isCollapsed ? 'rotated' : ''}`}
-              onClick={toggleSidebar}
-            >
-              ◄
-            </span>
-          </div>
-
-          {/* Información del usuario */}
-          {userInfo && (
-            <div className="user-info">
-              <div
-                className="user-avatar"
-                style={{ cursor: "pointer" }}
-                onClick={() => navigate("/editar-perfil")}
-              >
-                <FaUser size={40} />
-              </div>
-              <h3 className="username">{userInfo.nombre_clientes}</h3>
-              <p className="user-email">{userInfo.correo_clientes}</p>
-            </div>
-          )}
-
-          <ul className="menu-items">
-            {/* <li>
-              <NavLink to="/iniciocli" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>
-                <FaHome className="nav-icon" />
-                <span className="nav-text">Inicio</span>
-              </NavLink>
-            </li> */}
-            <li>
-              <NavLink to="/Tienda" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>
-                <FaShop className="nav-icon" />
-                <span className="nav-text">Tienda</span>
-              </NavLink>
-            </li>
-            <li>
-              <NavLink to="/Carrito" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>
-                <FaShoppingCart className="nav-icon" />
-                <span className="nav-text">Carrito</span>
-              </NavLink>
-            </li>
-            <li>
-              <NavLink to="/MisPedidos" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>
-                <FaShoppingBag className="nav-icon" />
-                <span className="nav-text">Mis pedidos</span>
-              </NavLink>
-            </li>
-          </ul>
+        <div className="sidebar-header">
+          <h2 className="menu-title">Menú</h2>
+          <span
+            className={`collapse-arrow ${isCollapsed ? 'rotated' : ''}`}
+            onClick={toggleSidebar}
+          >
+            ◄
+          </span>
         </div>
+        {userInfo && (
+          <div className="user-info">
+            <div className="user-avatar" onClick={() => navigate("/editar-perfil")}> <FaUser size={40} /> </div>
+            <h3 className="username">{userInfo.nombre_clientes}</h3>
+            <p className="user-email">{userInfo.correo_clientes}</p>
+          </div>
+        )}
+        <ul className="menu-items">
+          <li>
+            <NavLink to="/Tienda" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>
+              <FaShop className="nav-icon" />
+              <span className="nav-text">Tienda</span>
+            </NavLink>
+          </li>
+          <li>
+            <NavLink to="/Carrito" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>
+              <FaShoppingCart className="nav-icon" />
+              <span className="nav-text">Carrito</span>
+            </NavLink>
+          </li>
+          <li>
+            <NavLink to="/MisPedidos" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>
+              <FaShoppingBag className="nav-icon" />
+              <span className="nav-text">Mis pedidos</span>
+            </NavLink>
+          </li>
+        </ul>
         <div className="sidebar-footer">
           <button onClick={handleLogout} className="exit-btn">
             <FaSignOutAlt className="exit-icon" />
@@ -235,127 +233,278 @@ const Tienda = () => {
           </button>
         </div>
       </aside>
-
       {/* Contenido principal */}
       <main className="main-content">
-        <div className="titulo-productos">
-          <FaShop />
-          <h2>Catálogo de Productos</h2>
-        </div>
-        <div className="tienda-container">
-          <div className="tienda-header">
-            <h2 className="tienda-title">Productos</h2>
-            <div className="filtros-container">
-              <div className="search-input-wrapper">
-                <FaSearch className="search-icon" />
+        <div className="mis-pedidos-container" style={{
+          maxWidth: 1000,
+          margin: '0.5rem auto',
+          background: '#fff',
+          borderRadius: 12,
+          boxShadow: '0 4px 16px #2563eb11',
+          padding: 24
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+            <h2 style={{ color: '#27639b', margin: 0 }}>Catálogo de Productos</h2>
+            <div style={{
+              background: '#e0e7ff',
+              padding: '8px 16px',
+              borderRadius: 20,
+              color: '#27639b',
+              fontWeight: 'bold'
+            }}>
+              Total: {loading ? 'Cargando...' : totalFiltrados + ' productos'}
+            </div>
+          </div>
+          {/* Barra de búsqueda y filtros */}
+          <div style={{
+            display: 'flex',
+            gap: 16,
+            marginBottom: 24,
+            flexWrap: 'wrap'
+          }}>
+            <div style={{ flex: 1, minWidth: 200 }}>
+              <div style={{ position: 'relative' }}>
+                <FaSearch style={{
+                  position: 'absolute',
+                  left: 12,
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  color: '#27639b'
+                }} />
                 <input
                   type="text"
                   placeholder="Buscar productos..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="search-input"
+                  style={{
+                    width: '100%',
+                    padding: '8px 12px 8px 36px',
+                    border: '1px solid #cbd5e1',
+                    borderRadius: 8,
+                    fontSize: 14,
+                    background: '#fff',
+                    color: '#222',
+                    boxShadow: '0 1px 2px #e0e7ff44',
+                    outline: 'none',
+                    transition: 'border 0.2s',
+                  }}
                 />
               </div>
-              <select
-                value={filtros.categoria}
-                onChange={(e) => setFiltros({ ...filtros, categoria: e.target.value })}
-                className="filtro-select"
-              >
-                <option value="">Todas las categorías</option>
-                {categorias.map(cat => (
-                  <option key={cat.id_categoria_producto} value={cat.id_categoria_producto}>
-                    {cat.nombre_categoria_producto}
-                  </option>
-                ))}
-              </select>
-              <select
-                value={filtros.marca}
-                onChange={(e) => setFiltros({ ...filtros, marca: e.target.value })}
-                className="filtro-select"
-              >
-                <option value="">Todas las marcas</option>
-                {marcas.map(marca => (
-                  <option key={marca} value={marca}>{marca}</option>
-                ))}
-              </select>
-              <select
-                value={filtros.color}
-                onChange={(e) => setFiltros({ ...filtros, color: e.target.value })}
-                className="filtro-select"
-              >
-                <option value="">Todos los colores</option>
-                {colores.map(color => (
-                  <option key={color} value={color}>{color}</option>
-                ))}
-              </select>
             </div>
+            <select
+              value={filtros.categoria}
+              onChange={(e) => setFiltros({ ...filtros, categoria: e.target.value })}
+              style={{
+                padding: '8px 12px',
+                border: '1px solid #cbd5e1',
+                borderRadius: 8,
+                fontSize: 14,
+                minWidth: 150,
+                background: '#fff',
+                color: '#222',
+                boxShadow: '0 1px 2px #e0e7ff44',
+                outline: 'none',
+                transition: 'border 0.2s',
+              }}
+            >
+              <option value="">Todas las categorías</option>
+              {categorias.map(cat => (
+                <option key={cat.id_categoria_producto} value={cat.id_categoria_producto}>
+                  {cat.nombre_categoria_producto}
+                </option>
+              ))}
+            </select>
+            <select
+              value={filtros.marca}
+              onChange={(e) => setFiltros({ ...filtros, marca: e.target.value })}
+              style={{
+                padding: '8px 12px',
+                border: '1px solid #cbd5e1',
+                borderRadius: 8,
+                fontSize: 14,
+                minWidth: 150,
+                background: '#fff',
+                color: '#222',
+                boxShadow: '0 1px 2px #e0e7ff44',
+                outline: 'none',
+                transition: 'border 0.2s',
+              }}
+            >
+              <option value="">Todas las marcas</option>
+              {marcas.map(marca => (
+                <option key={marca} value={marca}>{marca}</option>
+              ))}
+            </select>
+            <select
+              value={filtros.color}
+              onChange={(e) => setFiltros({ ...filtros, color: e.target.value })}
+              style={{
+                padding: '8px 12px',
+                border: '1px solid #cbd5e1',
+                borderRadius: 8,
+                fontSize: 14,
+                minWidth: 150,
+                background: '#fff',
+                color: '#222',
+                boxShadow: '0 1px 2px #e0e7ff44',
+                outline: 'none',
+                transition: 'border 0.2s',
+              }}
+            >
+              <option value="">Todos los colores</option>
+              {colores.map(color => (
+                <option key={color} value={color}>{color}</option>
+              ))}
+            </select>
+            <button
+              onClick={() => setProductos([...productos].reverse())}
+              style={{
+                padding: '8px 12px',
+                border: '1px solid #cbd5e1',
+                borderRadius: 8,
+                background: '#fff',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                color: '#27639b',
+                fontWeight: 'bold',
+                boxShadow: '0 1px 2px #e0e7ff44',
+                outline: 'none',
+                transition: 'border 0.2s',
+              }}
+            >
+              <FaSort /> Ordenar
+            </button>
           </div>
-          <div className="horizontal-products-container">
+          {/* Grid de productos */}
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 24,
+              overflowY: 'auto',
+              maxHeight: '420px',
+              background: '#fff',
+              borderRadius: 12,
+              border: '1px solid #e0e7ff',
+              width: '100%',
+              padding: '8px 0 16px 0',
+            }}
+            className="tabla-scroll-personalizada"
+          >
             {filteredProducts.length > 0 ? (
               filteredProducts.map((producto) => (
-                <div key={producto.id_producto} className="horizontal-product-card">
-                  <img
-                    src={producto.imagen_url}
-                    alt={producto.nombre_producto}
-                    className="producto-imagen"
-                  />
-                  <div className="horizontal-product-content">
-                    <h3 className="producto-nombre">{producto.nombre_producto}</h3>
-                    <p className="producto-marca">{producto.marca_producto}</p>
-                    <p className="horizontal-product-price">${formatPrice(producto.precio_producto)}</p>
-                    <div className="horizontal-product-stock">
-                      <span className={`stock-indicator ${producto.stock_producto > 0 ? 'in-stock' : 'out-of-stock'}`}></span>
-                      {producto.stock_producto > 0 ? `${producto.stock_producto} disponibles` : 'Sin stock'}
-                    </div>
-                    <div className="product-buttons">
-                      <button
-                        className="boton-detalles"
-                        onClick={() => setProductoSeleccionado(producto)}
-                      >
-                        Ver detalles
-                      </button>
-                      <button
-                        className="boton-agregar"
-                        disabled={producto.stock_producto <= 0}
-                        onClick={() => {
-                          addToCart(producto);
-                          // Opcional: Mostrar una notificación de éxito
-                          Swal.fire({
-                            title: "AGREGADO AL CARRITO!",
-                            icon: "success",
-                            draggable: true
-                          });
+                <div key={producto.id_producto} style={{
+                  width: '100%',
+                  background: '#f9fafb',
+                  borderRadius: 12,
+                  boxShadow: '0 2px 8px #2563eb11',
+                  padding: 24,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 12,
+                  border: '1px solid #e0e7ff',
+                  position: 'relative',
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
+                    <div style={{ minWidth: 120, maxWidth: 120, height: 90, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fff', borderRadius: 8, overflow: 'hidden', border: '1px solid #e0e7ff' }}>
+                      <img
+                        src={getImagenUrl(producto.imagen_url)}
+                        alt={producto.nombre_producto}
+                        style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.src = "https://via.placeholder.com/300x200?text=Imagen+no+disponible";
                         }}
-                      >
-                        <FaShoppingCart /> Añadir al carrito
-                      </button>
+                      />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <h3 style={{ fontWeight: 'bold', color: '#27639b', fontSize: 18, margin: 0 }}>{producto.nombre_producto}</h3>
+                      <div style={{ color: '#888', fontSize: 15, marginBottom: 4 }}>{producto.marca_producto}</div>
+                      <div style={{ fontWeight: 600, fontSize: 16, color: '#2196F3', marginBottom: 8 }}>
+                        ${formatPrice(producto.precio_producto)}
+                      </div>
+                      <div style={{ display: 'flex', gap: 12 }}>
+                        <button
+                          style={{
+                            background: '#27639b',
+                            color: '#fff',
+                            border: 'none',
+                            borderRadius: 8,
+                            padding: '10px 18px',
+                            fontWeight: 'bold',
+                            fontSize: 15,
+                            cursor: 'pointer',
+                            transition: 'background 0.2s',
+                          }}
+                          onClick={() => setProductoSeleccionado(producto)}
+                          onMouseOver={e => e.target.style.background = '#1e4c7d'}
+                          onMouseOut={e => e.target.style.background = '#27639b'}
+                        >
+                          Ver Detalles
+                        </button>
+                        <button
+                          style={{
+                            background: '#43a047',
+                            color: '#fff',
+                            border: 'none',
+                            borderRadius: 8,
+                            padding: '10px 18px',
+                            fontWeight: 'bold',
+                            fontSize: 15,
+                            cursor: producto.stock_producto <= 0 ? 'not-allowed' : 'pointer',
+                            opacity: producto.stock_producto <= 0 ? 0.6 : 1,
+                            transition: 'background 0.2s',
+                          }}
+                          disabled={producto.stock_producto <= 0}
+                          onClick={() => {
+                            addToCart(producto);
+                            Swal.fire({
+                              title: "AGREGADO AL CARRITO!",
+                              icon: "success",
+                              draggable: true
+                            });
+                          }}
+                          onMouseOver={e => e.target.style.background = '#2e7031'}
+                          onMouseOut={e => e.target.style.background = '#43a047'}
+                        >
+                          <FaShoppingCart /> Añadir al carrito
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
               ))
             ) : (
-              <div className="no-results">No se encontraron productos</div>
+              <div style={{
+                textAlign: 'center',
+                padding: '2rem',
+                background: '#f8fafc',
+                borderRadius: 8
+              }}>
+                <p>No se encontraron productos.</p>
+              </div>
             )}
           </div>
         </div>
+        {/* Modal de detalles del producto */}
+        {productoSeleccionado && (
+          <ProductoDetalle
+            producto={productoSeleccionado}
+            onClose={() => setProductoSeleccionado(null)}
+            onAddToCart={() => {
+              addToCart(productoSeleccionado);
+              Swal.fire({
+                title: "AGREGADO AL CARRITO!",
+                icon: "success",
+                draggable: true
+              });
+              setProductoSeleccionado(null);
+            }}
+          />
+        )}
       </main>
-
-      {/* Modal de detalles del producto */}
-      {productoSeleccionado && (
-        <ProductoDetalle
-          producto={productoSeleccionado}
-          onClose={() => setProductoSeleccionado(null)}
-          onAddToCart={() => {
-            addToCart(productoSeleccionado);
-            Swal.fire({
-              title: "AGREGADO AL CARRITO!",
-              icon: "success",
-              draggable: true
-            });
-            setProductoSeleccionado(null);
-          }}
-        />
-      )}
     </div>
   );
 };

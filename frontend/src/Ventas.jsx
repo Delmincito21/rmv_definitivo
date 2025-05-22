@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { FaCalendarAlt, FaMinus, FaPlus, FaArrowLeft, FaCreditCard, FaTruck } from 'react-icons/fa';
 import './Ventas.css';
 import EditarVentaModal from './components/EditarVentaModal';
+import { useNavigate } from 'react-router-dom';
 
 // Componente de Pago
 const PagoForm = ({ total, onSubmit, setPaso, id_venta }) => {
@@ -264,6 +265,7 @@ const Ventas = () => {
   const [selectedVentaId, setSelectedVentaId] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [datosPagoActual, setDatosPagoActual] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetch('http://localhost:3000/ventas')
@@ -426,75 +428,75 @@ const Ventas = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (validarFormulario()) {
-        try {
-            let idVenta = datosVenta.id_venta;
+      try {
+        let idVenta = datosVenta.id_venta;
 
-            if (!idVenta) {
-                // Si no hay ID de venta, crear una nueva
-                const ventaParaEnviar = {
-                    id_usuario: parseInt(datosVenta.id_usuario),
-                    fecha_venta: datosVenta.fecha_venta,
-                    estado_venta: datosVenta.estado_venta,
-                    estado: 'activo',
-                    detalles: detalles.map(detalle => ({
-                        id_producto: parseInt(detalle.id_producto),
-                        cantidad_detalle_venta: parseInt(detalle.cantidad),
-                        precio_unitario_detalle_venta: parseFloat(detalle.precio),
-                        subtotal_detalle_venta: parseFloat(detalle.subtotal),
-                        estado: 'activo'
-                    }))
-                };
+        if (!idVenta) {
+          // Si no hay ID de venta, crear una nueva
+          const ventaParaEnviar = {
+            id_usuario: parseInt(datosVenta.id_usuario),
+            fecha_venta: datosVenta.fecha_venta,
+            estado_venta: datosVenta.estado_venta,
+            estado: 'activo',
+            detalles: detalles.map(detalle => ({
+              id_producto: parseInt(detalle.id_producto),
+              cantidad_detalle_venta: parseInt(detalle.cantidad),
+              precio_unitario_detalle_venta: parseFloat(detalle.precio),
+              subtotal_detalle_venta: parseFloat(detalle.subtotal),
+              estado: 'activo'
+            }))
+          };
 
-                const ventaResponse = await fetch('http://localhost:3000/ventas', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(ventaParaEnviar)
-                });
+          const ventaResponse = await fetch('http://localhost:3000/ventas', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(ventaParaEnviar)
+          });
 
-                const responseData = await ventaResponse.json();
-                if (!ventaResponse.ok) {
-                    throw new Error(responseData.details || responseData.error || 'Error al crear la venta');
-                }
-                idVenta = responseData.id || responseData.insertId;
-            } else {
-                // Actualizar venta existente
-                const ventaParaEnviar = {
-                    id_usuario: parseInt(datosVenta.id_usuario),
-                    fecha_venta: datosVenta.fecha_venta,
-                    estado_venta: datosVenta.estado_venta,
-                    estado: 'activo',
-                    detalles: detalles.map(detalle => ({
-                        id_producto: parseInt(detalle.id_producto),
-                        cantidad_detalle_venta: parseInt(detalle.cantidad),
-                        precio_unitario_detalle_venta: parseFloat(detalle.precio),
-                        subtotal_detalle_venta: parseFloat(detalle.subtotal),
-                        estado: 'activo'
-                    }))
-                };
+          const responseData = await ventaResponse.json();
+          if (!ventaResponse.ok) {
+            throw new Error(responseData.details || responseData.error || 'Error al crear la venta');
+          }
+          idVenta = responseData.id || responseData.insertId;
+        } else {
+          // Actualizar venta existente
+          const ventaParaEnviar = {
+            id_usuario: parseInt(datosVenta.id_usuario),
+            fecha_venta: datosVenta.fecha_venta,
+            estado_venta: datosVenta.estado_venta,
+            estado: 'activo',
+            detalles: detalles.map(detalle => ({
+              id_producto: parseInt(detalle.id_producto),
+              cantidad_detalle_venta: parseInt(detalle.cantidad),
+              precio_unitario_detalle_venta: parseFloat(detalle.precio),
+              subtotal_detalle_venta: parseFloat(detalle.subtotal),
+              estado: 'activo'
+            }))
+          };
 
-                const ventaResponse = await fetch(`http://localhost:3000/ventas/${idVenta}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(ventaParaEnviar)
-                });
+          const ventaResponse = await fetch(`http://localhost:3000/ventas/${idVenta}`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(ventaParaEnviar)
+          });
 
-                if (!ventaResponse.ok) {
-                    const errorData = await ventaResponse.json();
-                    throw new Error(errorData.details || errorData.error || 'Error al actualizar la venta');
-                }
-            }
-
-            setDatosVenta(prev => ({ ...prev, id_venta: idVenta }));
-            setPaso('pago');
-        } catch (error) {
-            console.error('Error completo:', error);
-            alert(error.message);
-            return; // No continuar si hay error
+          if (!ventaResponse.ok) {
+            const errorData = await ventaResponse.json();
+            throw new Error(errorData.details || errorData.error || 'Error al actualizar la venta');
+          }
         }
+
+        setDatosVenta(prev => ({ ...prev, id_venta: idVenta }));
+        setPaso('pago');
+      } catch (error) {
+        console.error('Error completo:', error);
+        alert(error.message);
+        return; // No continuar si hay error
+      }
     }
   };
 
@@ -587,7 +589,7 @@ const Ventas = () => {
       alert('Venta completada exitosamente');
       setMostrarFormulario(false);
       setPaso('venta');
-      
+
       // Recargar la lista de ventas
       const ventasResponse = await fetch('http://localhost:3000/ventas');
       const ventasData = await ventasResponse.json();
@@ -643,7 +645,7 @@ const Ventas = () => {
       const ventaResponse = await fetch(`http://localhost:3000/ventas/${datosVenta.id_venta}`);
       if (!ventaResponse.ok) throw new Error('Error al cargar la venta');
       const ventaData = await ventaResponse.json();
-      
+
       const detallesResponse = await fetch(`http://localhost:3000/detalle-ventas/venta/${datosVenta.id_venta}`);
       if (!detallesResponse.ok) throw new Error('Error al cargar los detalles');
       const detallesData = await detallesResponse.json();
@@ -652,7 +654,7 @@ const Ventas = () => {
         ...ventaData,
         fecha_venta: new Date(ventaData.fecha_venta).toISOString().slice(0, 16)
       });
-      
+
       setDetalles(detallesData.map(detalle => ({
         id_producto: detalle.id_producto,
         cantidad: detalle.cantidad_detalle_venta,
@@ -716,7 +718,7 @@ const Ventas = () => {
 
   const handleVentaUpdate = (ventaActualizada) => {
     setVentas(prevVentas => {
-      const nuevasVentas = prevVentas.map(venta => 
+      const nuevasVentas = prevVentas.map(venta =>
         venta.id_venta === ventaActualizada.id_venta ? ventaActualizada : venta
       );
       setVentasFiltradas(nuevasVentas);
@@ -955,14 +957,19 @@ const Ventas = () => {
                       <span className={`estado ${venta.estado_venta}`}>{venta.estado_venta}</span>
                     </td>
                     <td className="actions-cell">
-                      <button className="action-button view">Ver Detalles</button>
-                      <button 
+                      <button
+                        className="action-button view"
+                        onClick={() => navigate(`/factura/${venta.id_venta}`, { state: { volverA: '/Ventas' } })}
+                      >
+                        Ver Detalles
+                      </button>
+                      <button
                         className="action-button edit"
                         onClick={() => handleEdit(venta.id_venta)}
                       >
                         Editar
                       </button>
-                      <button 
+                      <button
                         className="action-button delete"
                         onClick={() => handleDelete(venta.id_venta)}
                       >

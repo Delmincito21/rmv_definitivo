@@ -13,6 +13,7 @@ import Carrito from './dashboardCliente/Carrito';
 import ResetPassword from './ResetPassword';
 import MisPedidos from './dashboardCliente/MisPedidos';
 import EditarPerfil from './dashboardCliente/EditarPerfil';
+import Factura from './Factura';
 
 function App() {
   return (
@@ -29,12 +30,15 @@ function App() {
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/MisPedidos" element={<MisPedidos />} />
           <Route path="/editar-perfil" element={<EditarPerfil />} />
+          <Route path="/Factura" element={<Factura />} />
+          <Route path="/factura/:id_venta" element={<Factura />} />
 
           {/* Rutas con sidebar */}
           <Route element={<LayoutWithSidebar />}>
             <Route path="/Inicio" element={<Inicio />} />
             <Route path="/Clientes" element={<Clientes />} />
             <Route path="/Ventas" element={<Ventas />} />
+            <Route path="/Tienda" element={<Tienda />} />
           </Route>
 
           {/* Rutas sin sidebar */}

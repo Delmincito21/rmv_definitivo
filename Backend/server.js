@@ -163,22 +163,22 @@ app.put('/clientes/:id/inactivar', async (req, res) => {
 // Ruta para obtener todas las ventas
 app.get('/ventas', async (req, res) => {
     try {
-    const query = `
-        SELECT 
-            v.id_venta, 
-            v.fecha_venta, 
-            c.nombre_clientes AS cliente, 
-            v.estado_venta,
-            (
-                SELECT COALESCE(SUM(dv.subtotal_detalle_venta), 0)
-                FROM detalle_venta dv
+        const query = `
+            SELECT 
+                v.id_venta, 
+                v.fecha_venta, 
+                c.nombre_clientes AS cliente, 
+                v.estado_venta,
+                (
+                    SELECT COALESCE(SUM(dv.subtotal_detalle_venta), 0)
+                    FROM detalle_venta dv
                 WHERE dv.id_venta = v.id_venta AND dv.estado = 'activo'
-            ) as total
-        FROM venta v
-        JOIN usuarios u ON v.id_usuario = u.id_usuario
-        JOIN clientes c ON u.id_usuario = c.id_clientes
-        WHERE v.estado = 'activo'
-    `;
+                ) as total
+            FROM venta v
+            JOIN usuarios u ON v.id_usuario = u.id_usuario
+            JOIN clientes c ON u.id_usuario = c.id_clientes
+            WHERE v.estado = 'activo'
+        `;
 
         const [results] = await db.query(query);
         console.log('Ventas obtenidas:', results);
@@ -257,9 +257,9 @@ app.put('/productos/:id', async (req, res) => {
                 [id]
             );
 
-        if (result.affectedRows === 0) {
-            return res.status(404).json({ error: 'Producto no encontrado' });
-        }
+            if (result.affectedRows === 0) {
+                return res.status(404).json({ error: 'Producto no encontrado' });
+            }
 
             res.json({ message: 'Stock del producto actualizado exitosamente' });
             return;
@@ -443,7 +443,7 @@ app.post('/ventas', async (req, res) => {
     const connection = await db.getConnection();
     try {
         console.log('Datos recibidos en /ventas:', req.body);
-        
+
         await connection.beginTransaction();
 
         // Verificar stock antes de crear la venta
@@ -516,7 +516,7 @@ app.post('/ventas', async (req, res) => {
     } catch (error) {
         await connection.rollback();
         console.error('Error detallado al crear la venta:', error);
-        res.status(500).json({ 
+        res.status(500).json({
             error: 'Error al crear la venta',
             details: error.message,
             sqlMessage: error.sqlMessage
@@ -526,17 +526,21 @@ app.post('/ventas', async (req, res) => {
     }
 });
 
-app.get('/ventas/:id', async (req, res) => {
-    try {
-        const venta = await Venta.getById(req.params.id);
-        if (!venta) {
-            return res.status(404).json({ error: 'Venta no encontrada' });
-        }
-        res.json(venta);
-    } catch (error) {
-        console.error('Error al obtener la venta:', error);
-        res.status(500).json({ error: 'Error al obtener la venta' });
-    }
+app.get('/ventas/:id_venta', async (req, res) => {
+    const { id_venta } = req.params;
+    const [ventas] = await db.query(`
+        SELECT 
+            v.*, 
+            c.nombre_clientes, 
+            c.direccion_clientes, 
+            c.telefono_clientes, 
+            c.correo_clientes
+        FROM venta v
+        JOIN clientes c ON v.id_usuario = c.id_usuario
+        WHERE v.id_venta = ?
+    `, [id_venta]);
+    if (!ventas.length) return res.status(404).json({ error: 'Venta no encontrada' });
+    res.json(ventas[0]);
 });
 
 app.put('/ventas/:id', async (req, res) => {
@@ -642,7 +646,7 @@ app.put('/ventas/:id', async (req, res) => {
             mensajeStock = 'Stock devuelto';
         }
 
-        res.json({ 
+        res.json({
             message: 'Venta actualizada exitosamente',
             stockActualizado: mensajeStock,
             estadoAnterior,
@@ -656,8 +660,8 @@ app.put('/ventas/:id', async (req, res) => {
             stack: error.stack,
             sqlMessage: error.sqlMessage
         });
-        res.status(500).json({ 
-            error: 'Error al actualizar la venta', 
+        res.status(500).json({
+            error: 'Error al actualizar la venta',
             details: error.message,
             sqlMessage: error.sqlMessage,
             stack: error.stack
@@ -748,12 +752,12 @@ app.get('/detalle-ventas', async (req, res) => {
 app.post('/detalle-ventas', async (req, res) => {
     try {
         console.log('Datos recibidos en /detalle-ventas:', req.body);
-        
+
         // Validar que todos los campos requeridos estén presentes
         const { id_venta, id_producto, cantidad_detalle_venta, precio_unitario_detalle_venta, subtotal_detalle_venta } = req.body;
-        
+
         if (!id_venta || !id_producto || !cantidad_detalle_venta || !precio_unitario_detalle_venta) {
-            return res.status(400).json({ 
+            return res.status(400).json({
                 error: 'Faltan datos requeridos',
                 details: 'Todos los campos son obligatorios'
             });
@@ -762,14 +766,14 @@ app.post('/detalle-ventas', async (req, res) => {
         // Intentar crear el detalle de venta
         const result = await DetalleVenta.create(req.body);
         console.log('Resultado de crear detalle venta:', result);
-        
+
         res.status(201).json({
             message: 'Detalle de venta creado exitosamente',
             id: result.insertId
         });
     } catch (error) {
         console.error('Error detallado al crear el detalle de venta:', error);
-        res.status(500).json({ 
+        res.status(500).json({
             error: 'Error al crear el detalle de venta',
             details: error.message,
             sqlMessage: error.sqlMessage
@@ -1043,19 +1047,19 @@ app.delete('/envios/:id', async (req, res) => {
 });
 
 // Rutas de Pagos
-app.get('/pagos', async (req, res) => {
+app.get('/pago', async (req, res) => {
     try {
-        const pagos = await Pago.getAll();
-        res.json(pagos);
+        const pago = await Pago.getAll();
+        res.json(pago);
     } catch (error) {
         console.error('Error al obtener pagos:', error);
         res.status(500).json({ error: 'Error al obtener pagos' });
     }
 });
 
-app.post('/pagos', async (req, res) => {
+app.post('/pago', async (req, res) => {
     try {
-        console.log('Datos recibidos en /pagos:', req.body);
+        console.log('Datos recibidos en /pago:', req.body);
         const result = await Pago.create(req.body);
         console.log('Resultado de crear pago:', result);
         res.status(201).json({
@@ -1064,7 +1068,7 @@ app.post('/pagos', async (req, res) => {
         });
     } catch (error) {
         console.error('Error detallado al crear el pago:', error);
-        res.status(500).json({ 
+        res.status(500).json({
             error: 'Error al crear el pago',
             details: error.message,
             sqlMessage: error.sqlMessage
@@ -1072,7 +1076,7 @@ app.post('/pagos', async (req, res) => {
     }
 });
 
-app.get('/pagos/:id', async (req, res) => {
+app.get('/pago/:id', async (req, res) => {
     try {
         const pago = await Pago.getById(req.params.id);
         if (!pago) {
@@ -1085,7 +1089,7 @@ app.get('/pagos/:id', async (req, res) => {
     }
 });
 
-app.put('/pagos/:id', async (req, res) => {
+app.put('/pago/:id', async (req, res) => {
     try {
         const [result] = await db.query(
             'UPDATE pago SET ? WHERE id_pago = ?',
@@ -1103,7 +1107,7 @@ app.put('/pagos/:id', async (req, res) => {
     }
 });
 
-app.delete('/pagos/:id', async (req, res) => {
+app.delete('/pago/:id', async (req, res) => {
     try {
         const result = await Pago.delete(req.params.id);
         if (result.affectedRows === 0) {
@@ -1117,22 +1121,11 @@ app.delete('/pagos/:id', async (req, res) => {
 });
 
 // Ruta para obtener pago por ID de venta
-app.get('/pagos/venta/:id', async (req, res) => {
-    try {
-        const [rows] = await db.query(
-            'SELECT * FROM pago WHERE id_venta = ? AND estado = "activo"',
-            [req.params.id]
-        );
-
-        if (rows.length === 0) {
-            return res.json(null); // Devolver null si no hay resultados
-        }
-
-        res.json(rows[0]); // Devolver el primer pago encontrado
-    } catch (error) {
-        console.error('Error al obtener el pago:', error);
-        res.status(500).json({ error: 'Error al obtener el pago' });
-    }
+app.get('/pago/venta/:id_venta', async (req, res) => {
+    const { id_venta } = req.params;
+    const [pago] = await db.query('SELECT * FROM pago WHERE id_venta = ?', [id_venta]);
+    if (!pago) return res.status(404).json({ error: 'Pago no encontrado' });
+    res.json(pago);
 });
 
 // Ruta para obtener orden por ID de venta
@@ -1196,7 +1189,7 @@ app.put('/detalle-ventas/:id_venta/:id_producto', async (req, res) => {
                 id_venta: req.params.id_venta,
                 id_producto: req.params.id_producto
             });
-            return res.status(404).json({ 
+            return res.status(404).json({
                 error: 'Detalle de venta no encontrado',
                 details: 'No se encontró el detalle con los IDs proporcionados'
             });
@@ -1220,20 +1213,20 @@ app.put('/detalle-ventas/:id_venta/:id_producto', async (req, res) => {
 
         if (result.affectedRows === 0) {
             console.log('No se pudo actualizar el detalle');
-            return res.status(500).json({ 
+            return res.status(500).json({
                 error: 'Error al actualizar el detalle de venta',
                 details: 'No se pudo actualizar el registro'
             });
         }
 
         console.log('Detalle actualizado exitosamente');
-        res.json({ 
+        res.json({
             message: 'Detalle de venta actualizado exitosamente',
             updatedData: datosActualizar
         });
     } catch (error) {
         console.error('Error al actualizar el detalle de venta:', error);
-        res.status(500).json({ 
+        res.status(500).json({
             error: 'Error al actualizar el detalle de venta',
             details: error.message,
             sqlMessage: error.sqlMessage
@@ -1507,7 +1500,7 @@ app.get('/carrito/:userId', async (req, res) => {
             INNER JOIN productos ON c.id_producto = productos.id_producto
             WHERE c.id_usuario = ? AND productos.estado = 'activo'
         `, [req.params.userId]);
-        res.json(items);
+        res.json({ success: true, items });
     } catch (error) {
         console.error('Error al obtener carrito:', error);
         res.status(500).json({ error: 'Error al obtener carrito' });
@@ -1887,7 +1880,7 @@ app.get('/pedido/detalle/:id_venta', async (req, res) => {
     try {
         const [detalles] = await db.query(`
             SELECT d.*, productos.nombre_producto
-            FROM detalle_venta d
+             FROM detalle_venta d
             JOIN productos ON d.id_producto = productos.id_producto
             WHERE d.id_venta = ?
         `, [req.params.id_venta]);

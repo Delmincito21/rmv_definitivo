@@ -408,6 +408,26 @@ const MisPedidos = () => {
                   >
                     Ver Detalles
                   </button>
+                  <button
+                    onClick={() => navigate(`/factura/${pedido.id_venta}`, { state: { volverA: '/MisPedidos' } })}
+                    style={{
+                      background: '#43a047',
+                      color: '#fff',
+                      border: 'none',
+                      borderRadius: 8,
+                      padding: '10px 0',
+                      fontWeight: 'bold',
+                      fontSize: 15,
+                      marginTop: 8,
+                      marginLeft: 8,
+                      cursor: 'pointer',
+                      transition: 'background 0.2s',
+                    }}
+                    onMouseOver={e => e.target.style.background = '#2e7031'}
+                    onMouseOut={e => e.target.style.background = '#43a047'}
+                  >
+                    Ver Factura
+                  </button>
                 </div>
               ))}
             </div>

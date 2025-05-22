@@ -157,7 +157,7 @@ const EditarPerfil = () => {
                             className={`collapse-arrow ${isCollapsed ? 'rotated' : ''}`}
                             onClick={toggleSidebar}
                         >
-                            
+
                         </span>
                     </div>
                     {userInfo && (
@@ -270,7 +270,7 @@ const EditarPerfil = () => {
                             Guardar cambios
                         </button>
                         <div style={{ marginTop: 18 }}>
-                            <h3 style={{ fontSize: '1.1rem', color: '#2563eb', marginBottom: 8 }}>Cambiar contraseña</h3>
+                            <h3>Cambiar contraseña</h3>
                             <div className="editar-perfil-form-fields">
                                 <div className="editar-perfil-form-col">
                                     <div className="input-group">

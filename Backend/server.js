@@ -350,27 +350,10 @@ app.post('/clientes', async (req, res) => {
         return res.status(400).json({ error: 'El nombre de usuario y el pin (contraseña) son obligatorios' });
     }
     try {
-        // 1. Insertar el cliente
-        const [clienteResult] = await db.query(
-            `INSERT INTO clientes (
-                nombre_clientes,
-                telefono_clientes,
-                direccion_clientes,
-                correo_clientes,
-                estado
-            ) VALUES (?, ?, ?, ?, ?)`,
-            [
-                clienteData.nombre_clientes,
-                clienteData.telefono_clientes,
-                clienteData.direccion_clientes,
-                clienteData.correo_clientes,
-                clienteData.estado || 'activo'
-            ]
-        );
-        // 2. Hashear el pin_usuario
+        // 1. Hashear el pin_usuario
         const hashedPin = await bcrypt.hash(pin_usuario, 10);
-        // 3. Insertar en la tabla usuarios
-        await db.query(
+        // 2. Insertar en la tabla usuarios primero
+        const [usuarioResult] = await db.query(
             `INSERT INTO usuarios (
                 nombre_usuario,
                 pin_usuario,
@@ -384,7 +367,27 @@ app.post('/clientes', async (req, res) => {
                 'activo'
             ]
         );
-        res.status(201).json({ message: 'Cliente y usuario registrados exitosamente', id_clientes: clienteResult.insertId });
+        const id_usuario = usuarioResult.insertId;
+        // 3. Insertar el cliente usando el id_usuario
+        const [clienteResult] = await db.query(
+            `INSERT INTO clientes (
+                id_usuario,
+                nombre_clientes,
+                telefono_clientes,
+                direccion_clientes,
+                correo_clientes,
+                estado
+            ) VALUES (?, ?, ?, ?, ?, ?)`,
+            [
+                id_usuario,
+                clienteData.nombre_clientes,
+                clienteData.telefono_clientes,
+                clienteData.direccion_clientes,
+                clienteData.correo_clientes,
+                clienteData.estado || 'activo'
+            ]
+        );
+        res.status(201).json({ message: 'Cliente y usuario registrados exitosamente', id_usuario, id_clientes: clienteResult.insertId });
     } catch (error) {
         console.error('Error al registrar cliente y usuario:', error);
         res.status(500).json({ error: 'Error al registrar cliente y usuario', details: error.message });

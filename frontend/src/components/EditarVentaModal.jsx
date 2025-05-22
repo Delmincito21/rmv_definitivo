@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './EditarVentaModal.css';
 
-const EditarVentaModal = ({ isOpen, onClose, ventaId }) => {
+const EditarVentaModal = ({ isOpen, onClose, ventaId, onVentaUpdate }) => {
   const [activeTab, setActiveTab] = useState('venta');
   const [ventaData, setVentaData] = useState(null);
   const [detalleVentaData, setDetalleVentaData] = useState(null);
@@ -137,6 +137,64 @@ const EditarVentaModal = ({ isOpen, onClose, ventaId }) => {
     return date.toISOString().slice(0, 19).replace('T', ' ');
   };
 
+  // Función para obtener el precio de un producto
+  const obtenerPrecioProducto = async (idProducto) => {
+    try {
+      if (!idProducto) return 0;
+      
+      const response = await fetch(`http://localhost:3000/productos/${idProducto}/precio`);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Error al obtener el precio');
+      }
+      const data = await response.json();
+      return data.precio || 0;
+    } catch (error) {
+      console.error('Error al obtener precio:', error);
+      return 0;
+    }
+  };
+
+  // Función para recalcular el subtotal
+  const recalcularSubtotal = (cantidad, precio) => {
+    return (parseFloat(cantidad) || 0) * (parseFloat(precio) || 0);
+  };
+
+  // Función para manejar el cambio de producto
+  const handleProductoChange = async (index, idProducto) => {
+    const newDetalles = [...detalleVentaData];
+    newDetalles[index] = {
+      ...newDetalles[index],
+      id_producto: idProducto
+    };
+
+    // Obtener el precio del nuevo producto
+    const precio = await obtenerPrecioProducto(idProducto);
+    newDetalles[index].precio_unitario_detalle_venta = precio;
+    
+    // Recalcular el subtotal
+    newDetalles[index].subtotal_detalle_venta = recalcularSubtotal(
+      newDetalles[index].cantidad_detalle_venta,
+      precio
+    );
+
+    setDetalleVentaData(newDetalles);
+  };
+
+  // Función para manejar el cambio de cantidad
+  const handleCantidadChange = (index, cantidad) => {
+    const newDetalles = [...detalleVentaData];
+    newDetalles[index] = {
+      ...newDetalles[index],
+      cantidad_detalle_venta: cantidad,
+      subtotal_detalle_venta: recalcularSubtotal(
+        cantidad,
+        newDetalles[index].precio_unitario_detalle_venta
+      )
+    };
+    setDetalleVentaData(newDetalles);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -167,20 +225,154 @@ const EditarVentaModal = ({ isOpen, onClose, ventaId }) => {
 
         case 'detalleVenta': {
           if (detalleVentaData && detalleVentaData.length > 0) {
-            const updatePromises = detalleVentaData.map(detalle => 
-              fetch(`http://localhost:3000/detalle-ventas/${ventaId}/${detalle.id_producto}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  cantidad_detalle_venta: parseInt(detalle.cantidad_detalle_venta),
-                  precio_unitario_detalle_venta: parseFloat(detalle.precio_unitario_detalle_venta),
-                  subtotal_detalle_venta: parseFloat(detalle.subtotal_detalle_venta),
+            try {
+              console.log('Iniciando actualización de detalles:', {
+                ventaId,
+                detalles: detalleVentaData
+              });
+
+              // Obtener detalles existentes primero
+              const checkResponse = await fetch(`http://localhost:3000/detalle-ventas/venta/${ventaId}`);
+              if (!checkResponse.ok) {
+                throw new Error('Error al verificar detalles existentes');
+              }
+              const detallesExistentes = await checkResponse.json();
+              console.log('Detalles existentes:', detallesExistentes);
+
+              // Actualizar cada detalle
+              for (const detalle of detalleVentaData) {
+                if (!detalle.id_producto) {
+                  console.warn('Detalle sin ID de producto, saltando...');
+                  continue;
+                }
+
+                const detalleParaEnviar = {
+                  id_venta: parseInt(ventaId),
+                  id_producto: parseInt(detalle.id_producto),
+                  cantidad_detalle_venta: parseInt(detalle.cantidad_detalle_venta) || 0,
+                  precio_unitario_detalle_venta: parseFloat(detalle.precio_unitario_detalle_venta) || 0,
+                  subtotal_detalle_venta: parseFloat(detalle.subtotal_detalle_venta) || 0,
                   estado: detalle.estado || 'activo'
-                })
-              })
-            );
-            const results = await Promise.all(updatePromises);
-            success = results.every(res => res.ok);
+                };
+
+                console.log('Enviando detalle para actualizar:', detalleParaEnviar);
+
+                // Buscar si el detalle ya existe
+                const detalleExistente = detallesExistentes.find(
+                  d => d.id_producto === parseInt(detalle.id_producto)
+                );
+
+                if (detalleExistente) {
+                  // Si la venta está completa, necesitamos manejar el stock
+                  if (ventaData.estado_venta === 'completa') {
+                    // Calcular la diferencia en cantidad
+                    const diferenciaCantidad = detalleParaEnviar.cantidad_detalle_venta - detalleExistente.cantidad_detalle_venta;
+                    
+                    if (diferenciaCantidad !== 0) {
+                      // Actualizar el stock del producto
+                      const stockResponse = await fetch(`http://localhost:3000/productos/${detalle.id_producto}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          stock_producto: `stock_producto - ${diferenciaCantidad}`
+                        })
+                      });
+
+                      if (!stockResponse.ok) {
+                        throw new Error('Error al actualizar el stock del producto');
+                      }
+                    }
+                  }
+
+                  // Actualizar el detalle
+                  const updateResponse = await fetch(`http://localhost:3000/detalle-ventas/${ventaId}/${detalle.id_producto}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(detalleParaEnviar)
+                  });
+
+                  if (!updateResponse.ok) {
+                    const errorData = await updateResponse.json();
+                    throw new Error(errorData.error || 'Error al actualizar el detalle de venta');
+                  }
+                } else {
+                  // Si no existe, crear nuevo
+                  const createResponse = await fetch('http://localhost:3000/detalle-ventas', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(detalleParaEnviar)
+                  });
+
+                  if (!createResponse.ok) {
+                    const errorData = await createResponse.json();
+                    throw new Error(errorData.error || 'Error al crear el detalle de venta');
+                  }
+                }
+              }
+
+              // Eliminar detalles que ya no existen en la nueva lista
+              for (const detalleExistente of detallesExistentes) {
+                const detalleSigueExistiendo = detalleVentaData.some(
+                  d => parseInt(d.id_producto) === detalleExistente.id_producto
+                );
+
+                if (!detalleSigueExistiendo) {
+                  // Si la venta está completa, devolver el stock
+                  if (ventaData.estado_venta === 'completa') {
+                    const stockResponse = await fetch(`http://localhost:3000/productos/${detalleExistente.id_producto}`, {
+                      method: 'PUT',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        stock_producto: `stock_producto + ${detalleExistente.cantidad_detalle_venta}`
+                      })
+                    });
+
+                    if (!stockResponse.ok) {
+                      throw new Error('Error al devolver el stock del producto');
+                    }
+                  }
+
+                  // Marcar como inactivo el detalle que ya no existe
+                  const deleteResponse = await fetch(`http://localhost:3000/detalle-ventas/${ventaId}/${detalleExistente.id_producto}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      ...detalleExistente,
+                      estado: 'inactivo'
+                    })
+                  });
+
+                  if (!deleteResponse.ok) {
+                    const errorData = await deleteResponse.json();
+                    throw new Error(errorData.error || 'Error al eliminar el detalle de venta');
+                  }
+                }
+              }
+
+              // Actualizar la lista de ventas en el componente padre
+              const ventasResponse = await fetch('http://localhost:3000/ventas');
+              if (!ventasResponse.ok) {
+                throw new Error('Error al actualizar la lista de ventas');
+              }
+              const ventasActualizadas = await ventasResponse.json();
+              
+              // Encontrar la venta actualizada
+              const ventaActualizada = ventasActualizadas.find(v => v.id_venta === parseInt(ventaId));
+              if (ventaActualizada) {
+                // Actualizar el estado local con los nuevos datos
+                setVentaData(prev => ({
+                  ...prev,
+                  ...ventaActualizada
+                }));
+                // Notificar al componente padre sobre la actualización
+                onVentaUpdate(ventaActualizada);
+              }
+
+              success = true;
+            } catch (error) {
+              console.error('Error al actualizar detalles:', error);
+              throw error;
+            }
           }
           break;
         }
@@ -366,11 +558,7 @@ const EditarVentaModal = ({ isOpen, onClose, ventaId }) => {
                     <input
                       type="number"
                       value={detalle?.id_producto || ''}
-                      onChange={e => {
-                        const newDetalles = [...detalleVentaData];
-                        newDetalles[index] = {...detalle, id_producto: e.target.value};
-                        setDetalleVentaData(newDetalles);
-                      }}
+                      onChange={e => handleProductoChange(index, e.target.value)}
                     />
                   </div>
                   <div className="form-group">
@@ -378,11 +566,7 @@ const EditarVentaModal = ({ isOpen, onClose, ventaId }) => {
                     <input
                       type="number"
                       value={detalle?.cantidad_detalle_venta || ''}
-                      onChange={e => {
-                        const newDetalles = [...detalleVentaData];
-                        newDetalles[index] = {...detalle, cantidad_detalle_venta: e.target.value};
-                        setDetalleVentaData(newDetalles);
-                      }}
+                      onChange={e => handleCantidadChange(index, e.target.value)}
                     />
                   </div>
                   <div className="form-group">
@@ -390,11 +574,8 @@ const EditarVentaModal = ({ isOpen, onClose, ventaId }) => {
                     <input
                       type="number"
                       value={detalle?.precio_unitario_detalle_venta || ''}
-                      onChange={e => {
-                        const newDetalles = [...detalleVentaData];
-                        newDetalles[index] = {...detalle, precio_unitario_detalle_venta: e.target.value};
-                        setDetalleVentaData(newDetalles);
-                      }}
+                      readOnly
+                      style={{ backgroundColor: '#f0f0f0' }}
                     />
                   </div>
                   <div className="form-group">
@@ -402,11 +583,8 @@ const EditarVentaModal = ({ isOpen, onClose, ventaId }) => {
                     <input
                       type="number"
                       value={detalle?.subtotal_detalle_venta || ''}
-                      onChange={e => {
-                        const newDetalles = [...detalleVentaData];
-                        newDetalles[index] = {...detalle, subtotal_detalle_venta: e.target.value};
-                        setDetalleVentaData(newDetalles);
-                      }}
+                      readOnly
+                      style={{ backgroundColor: '#f0f0f0' }}
                     />
                   </div>
                   <div className="form-group">
@@ -428,6 +606,16 @@ const EditarVentaModal = ({ isOpen, onClose, ventaId }) => {
               {(!detalleVentaData || detalleVentaData.length === 0) && (
                 <p>No hay detalles de venta disponibles</p>
               )}
+              {/* Subtotal actualizado */}
+              <div style={{ textAlign: 'right', marginTop: '16px', fontWeight: 'bold', fontSize: '1.1em' }}>
+                Subtotal actualizado: $
+                {detalleVentaData
+                  ? detalleVentaData
+                      .filter(d => d.estado !== 'inactivo')
+                      .reduce((acc, d) => acc + (parseFloat(d.subtotal_detalle_venta) || 0), 0)
+                      .toFixed(2)
+                  : '0.00'}
+              </div>
             </div>
           )}
 

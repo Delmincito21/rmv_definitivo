@@ -163,22 +163,22 @@ app.put('/clientes/:id/inactivar', async (req, res) => {
 // Ruta para obtener todas las ventas
 app.get('/ventas', async (req, res) => {
     try {
-        const query = `
-            SELECT 
-                v.id_venta, 
-                v.fecha_venta, 
-                c.nombre_clientes AS cliente, 
-                v.estado_venta,
-                (
-                    SELECT COALESCE(SUM(dv.subtotal_detalle_venta), 0)
-                    FROM detalle_venta dv
-                    WHERE dv.id_venta = v.id_venta
-                ) as total
-            FROM venta v
-            JOIN usuarios u ON v.id_usuario = u.id_usuario
-            JOIN clientes c ON u.id_usuario = c.id_clientes
-            WHERE v.estado = 'activo'
-        `;
+    const query = `
+        SELECT 
+            v.id_venta, 
+            v.fecha_venta, 
+            c.nombre_clientes AS cliente, 
+            v.estado_venta,
+            (
+                SELECT COALESCE(SUM(dv.subtotal_detalle_venta), 0)
+                FROM detalle_venta dv
+                WHERE dv.id_venta = v.id_venta AND dv.estado = 'activo'
+            ) as total
+        FROM venta v
+        JOIN usuarios u ON v.id_usuario = u.id_usuario
+        JOIN clientes c ON u.id_usuario = c.id_clientes
+        WHERE v.estado = 'activo'
+    `;
 
         const [results] = await db.query(query);
         console.log('Ventas obtenidas:', results);
@@ -248,6 +248,24 @@ app.put('/productos/:id', async (req, res) => {
     } = req.body;
 
     try {
+        // Si stock_producto es una cadena que contiene una operación matemática
+        if (typeof stock_producto === 'string' && (stock_producto.includes('+') || stock_producto.includes('-'))) {
+            const [result] = await db.query(
+                `UPDATE productos SET 
+                    stock_producto = ${stock_producto}
+                WHERE id_producto = ?`,
+                [id]
+            );
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Producto no encontrado' });
+        }
+
+            res.json({ message: 'Stock del producto actualizado exitosamente' });
+            return;
+        }
+
+        // Actualización normal del producto
         const [result] = await db.query(
             `UPDATE productos SET 
                 nombre_producto = ?, 
@@ -422,21 +440,89 @@ app.get('/ventas', async (req, res) => {
 });
 
 app.post('/ventas', async (req, res) => {
+    const connection = await db.getConnection();
     try {
         console.log('Datos recibidos en /ventas:', req.body);
-        const result = await Venta.create(req.body);
-        console.log('Resultado de crear venta:', result);
+        
+        await connection.beginTransaction();
+
+        // Verificar stock antes de crear la venta
+        const detalles = req.body.detalles || [];
+        for (const detalle of detalles) {
+            const [producto] = await connection.query(
+                'SELECT stock_producto FROM productos WHERE id_producto = ? AND estado = "activo"',
+                [detalle.id_producto]
+            );
+
+            if (producto.length === 0) {
+                await connection.rollback();
+                return res.status(400).json({
+                    error: 'Error al crear la venta',
+                    details: `El producto con ID ${detalle.id_producto} no existe o no está activo`
+                });
+            }
+
+            if (producto[0].stock_producto < detalle.cantidad_detalle_venta) {
+                await connection.rollback();
+                return res.status(400).json({
+                    error: 'Error al crear la venta',
+                    details: `Stock insuficiente para el producto con ID ${detalle.id_producto}. Stock disponible: ${producto[0].stock_producto}`
+                });
+            }
+        }
+
+        // Crear la venta
+        const ventaData = {
+            id_usuario: req.body.id_usuario,
+            fecha_venta: req.body.fecha_venta,
+            estado_venta: req.body.estado_venta,
+            estado: req.body.estado
+        };
+
+        const [ventaResult] = await connection.query(
+            'INSERT INTO venta SET ?',
+            [ventaData]
+        );
+
+        const id_venta = ventaResult.insertId;
+
+        // Crear los detalles de venta
+        for (const detalle of detalles) {
+            await connection.query(
+                'INSERT INTO detalle_venta SET ?',
+                [{
+                    id_venta: id_venta,
+                    id_producto: detalle.id_producto,
+                    cantidad_detalle_venta: detalle.cantidad_detalle_venta,
+                    precio_unitario_detalle_venta: detalle.precio_unitario_detalle_venta,
+                    subtotal_detalle_venta: detalle.subtotal_detalle_venta,
+                    estado: detalle.estado
+                }]
+            );
+
+            // Actualizar el stock del producto
+            await connection.query(
+                'UPDATE productos SET stock_producto = stock_producto - ? WHERE id_producto = ?',
+                [detalle.cantidad_detalle_venta, detalle.id_producto]
+            );
+        }
+
+        await connection.commit();
+
         res.status(201).json({
             message: 'Venta creada exitosamente',
-            id: result.insertId
+            id: id_venta
         });
     } catch (error) {
+        await connection.rollback();
         console.error('Error detallado al crear la venta:', error);
-        res.status(500).json({
+        res.status(500).json({ 
             error: 'Error al crear la venta',
             details: error.message,
             sqlMessage: error.sqlMessage
         });
+    } finally {
+        connection.release();
     }
 });
 
@@ -454,8 +540,75 @@ app.get('/ventas/:id', async (req, res) => {
 });
 
 app.put('/ventas/:id', async (req, res) => {
+    const connection = await db.getConnection();
     try {
         const ventaData = { ...req.body };
+        const id_venta = req.params.id;
+
+        console.log('Iniciando actualización de venta:', {
+            id_venta,
+            datosRecibidos: ventaData
+        });
+
+        await connection.beginTransaction();
+
+        // Obtener el estado actual de la venta
+        const [ventaActual] = await connection.query(
+            'SELECT estado_venta FROM venta WHERE id_venta = ?',
+            [id_venta]
+        );
+
+        console.log('Estado actual de la venta:', ventaActual[0]);
+
+        if (ventaActual.length === 0) {
+            await connection.rollback();
+            return res.status(404).json({ error: 'Venta no encontrada' });
+        }
+
+        const estadoAnterior = ventaActual[0].estado_venta;
+        const nuevoEstado = ventaData.estado_venta;
+
+        console.log('Cambio de estado:', {
+            de: estadoAnterior,
+            a: nuevoEstado
+        });
+
+        // Solo verificar stock si el estado cambia a 'completa'
+        if (nuevoEstado === 'completa' && estadoAnterior !== 'completa') {
+            console.log('Verificando stock para venta completa');
+            const [detalles] = await connection.query(
+                'SELECT detalle_venta.*, productos.stock_producto FROM detalle_venta JOIN productos ON detalle_venta.id_producto = productos.id_producto WHERE detalle_venta.id_venta = ? AND detalle_venta.estado = "activo"',
+                [id_venta]
+            );
+
+            console.log('Detalles de la venta:', detalles);
+
+            // Solo verificamos que haya stock suficiente
+            for (const detalle of detalles) {
+                if (detalle.stock_producto < detalle.cantidad_detalle_venta) {
+                    await connection.rollback();
+                    return res.status(400).json({
+                        error: 'Error al actualizar la venta',
+                        details: `Stock insuficiente para el producto con ID ${detalle.id_producto}. Stock disponible: ${detalle.stock_producto}`
+                    });
+                }
+            }
+        }
+        // Si se está cancelando una venta que estaba completa, devolver el stock
+        else if (nuevoEstado === 'cancelada' && estadoAnterior === 'completa') {
+            console.log('Verificando detalles para venta cancelada');
+            try {
+                const [detalles] = await connection.query(
+                    'SELECT detalle_venta.*, productos.stock_producto FROM detalle_venta JOIN productos ON detalle_venta.id_producto = productos.id_producto WHERE detalle_venta.id_venta = ? AND detalle_venta.estado = "activo"',
+                    [id_venta]
+                );
+
+                console.log('Detalles encontrados para venta cancelada:', detalles);
+            } catch (error) {
+                console.error('Error al verificar detalles:', error);
+                throw error;
+            }
+        }
 
         // Formatear la fecha correctamente para MySQL
         if (ventaData.fecha_venta) {
@@ -463,19 +616,54 @@ app.put('/ventas/:id', async (req, res) => {
             ventaData.fecha_venta = fecha.toISOString().slice(0, 19).replace('T', ' ');
         }
 
-        const [result] = await db.query(
+        console.log('Actualizando datos de la venta:', ventaData);
+
+        // Actualizar la venta
+        const [result] = await connection.query(
             'UPDATE venta SET ? WHERE id_venta = ?',
-            [ventaData, req.params.id]
+            [ventaData, id_venta]
         );
 
+        console.log('Resultado de actualización de venta:', result);
+
         if (result.affectedRows === 0) {
+            await connection.rollback();
             return res.status(404).json({ error: 'Venta no encontrada' });
         }
 
-        res.json({ message: 'Venta actualizada exitosamente' });
+        await connection.commit();
+        console.log('Transacción completada exitosamente');
+
+        // Preparar mensaje de respuesta
+        let mensajeStock = '';
+        if (nuevoEstado === 'completa' && estadoAnterior !== 'completa') {
+            mensajeStock = 'Stock actualizado';
+        } else if (nuevoEstado === 'cancelada' && estadoAnterior === 'completa') {
+            mensajeStock = 'Stock devuelto';
+        }
+
+        res.json({ 
+            message: 'Venta actualizada exitosamente',
+            stockActualizado: mensajeStock,
+            estadoAnterior,
+            nuevoEstado
+        });
+
     } catch (error) {
-        console.error('Error al actualizar la venta:', error);
-        res.status(500).json({ error: 'Error al actualizar la venta', details: error.message });
+        await connection.rollback();
+        console.error('Error detallado al actualizar la venta:', {
+            error: error.message,
+            stack: error.stack,
+            sqlMessage: error.sqlMessage
+        });
+        res.status(500).json({ 
+            error: 'Error al actualizar la venta', 
+            details: error.message,
+            sqlMessage: error.sqlMessage,
+            stack: error.stack
+        });
+    } finally {
+        connection.release();
     }
 });
 
@@ -560,12 +748,12 @@ app.get('/detalle-ventas', async (req, res) => {
 app.post('/detalle-ventas', async (req, res) => {
     try {
         console.log('Datos recibidos en /detalle-ventas:', req.body);
-
+        
         // Validar que todos los campos requeridos estén presentes
         const { id_venta, id_producto, cantidad_detalle_venta, precio_unitario_detalle_venta, subtotal_detalle_venta } = req.body;
-
+        
         if (!id_venta || !id_producto || !cantidad_detalle_venta || !precio_unitario_detalle_venta) {
-            return res.status(400).json({
+            return res.status(400).json({ 
                 error: 'Faltan datos requeridos',
                 details: 'Todos los campos son obligatorios'
             });
@@ -574,14 +762,14 @@ app.post('/detalle-ventas', async (req, res) => {
         // Intentar crear el detalle de venta
         const result = await DetalleVenta.create(req.body);
         console.log('Resultado de crear detalle venta:', result);
-
+        
         res.status(201).json({
             message: 'Detalle de venta creado exitosamente',
             id: result.insertId
         });
     } catch (error) {
         console.error('Error detallado al crear el detalle de venta:', error);
-        res.status(500).json({
+        res.status(500).json({ 
             error: 'Error al crear el detalle de venta',
             details: error.message,
             sqlMessage: error.sqlMessage
@@ -876,7 +1064,7 @@ app.post('/pagos', async (req, res) => {
         });
     } catch (error) {
         console.error('Error detallado al crear el pago:', error);
-        res.status(500).json({
+        res.status(500).json({ 
             error: 'Error al crear el pago',
             details: error.message,
             sqlMessage: error.sqlMessage
@@ -991,19 +1179,65 @@ app.get('/suplidores', async (req, res) => {
 // Ruta para actualizar un detalle de venta
 app.put('/detalle-ventas/:id_venta/:id_producto', async (req, res) => {
     try {
+        console.log('Actualizando detalle de venta:', {
+            id_venta: req.params.id_venta,
+            id_producto: req.params.id_producto,
+            datos: req.body
+        });
+
+        // Primero verificar si el detalle existe
+        const [detalleExistente] = await db.query(
+            'SELECT * FROM detalle_venta WHERE id_venta = ? AND id_producto = ?',
+            [req.params.id_venta, req.params.id_producto]
+        );
+
+        if (detalleExistente.length === 0) {
+            console.log('Detalle no encontrado:', {
+                id_venta: req.params.id_venta,
+                id_producto: req.params.id_producto
+            });
+            return res.status(404).json({ 
+                error: 'Detalle de venta no encontrado',
+                details: 'No se encontró el detalle con los IDs proporcionados'
+            });
+        }
+
+        // Preparar los datos para actualizar
+        const datosActualizar = {
+            cantidad_detalle_venta: parseInt(req.body.cantidad_detalle_venta) || detalleExistente[0].cantidad_detalle_venta,
+            precio_unitario_detalle_venta: parseFloat(req.body.precio_unitario_detalle_venta) || detalleExistente[0].precio_unitario_detalle_venta,
+            subtotal_detalle_venta: parseFloat(req.body.subtotal_detalle_venta) || detalleExistente[0].subtotal_detalle_venta,
+            estado: req.body.estado || detalleExistente[0].estado
+        };
+
+        console.log('Datos a actualizar:', datosActualizar);
+
+        // Realizar la actualización
         const [result] = await db.query(
             'UPDATE detalle_venta SET ? WHERE id_venta = ? AND id_producto = ?',
-            [req.body, req.params.id_venta, req.params.id_producto]
+            [datosActualizar, req.params.id_venta, req.params.id_producto]
         );
 
         if (result.affectedRows === 0) {
-            return res.status(404).json({ error: 'Detalle de venta no encontrado' });
+            console.log('No se pudo actualizar el detalle');
+            return res.status(500).json({ 
+                error: 'Error al actualizar el detalle de venta',
+                details: 'No se pudo actualizar el registro'
+            });
         }
 
-        res.json({ message: 'Detalle de venta actualizado exitosamente' });
+        console.log('Detalle actualizado exitosamente');
+        res.json({ 
+            message: 'Detalle de venta actualizado exitosamente',
+            updatedData: datosActualizar
+        });
     } catch (error) {
         console.error('Error al actualizar el detalle de venta:', error);
-        res.status(500).json({ error: 'Error al actualizar el detalle de venta' });
+        res.status(500).json({ 
+            error: 'Error al actualizar el detalle de venta',
+            details: error.message,
+            sqlMessage: error.sqlMessage
+        });
     }
 });
 
@@ -1027,27 +1261,22 @@ app.get('/api/dashboard/productos-mas-vendidos', async (req, res) => {
     try {
         const [productos] = await db.query(`
             SELECT 
-                p.nombre_producto as nombre,
+                productos.nombre_producto as nombre,
                 COUNT(dv.id_producto) as cantidad
             FROM detalle_venta dv
-            JOIN productos p ON dv.id_producto = p.id_producto
+            JOIN productos ON dv.id_producto = productos.id_producto
             JOIN venta v ON dv.id_venta = v.id_venta
             WHERE v.estado = 'activo'
             AND MONTH(v.fecha_venta) = MONTH(CURRENT_DATE())
             AND YEAR(v.fecha_venta) = YEAR(CURRENT_DATE())
-            GROUP BY p.id_producto, p.nombre_producto
+            GROUP BY productos.id_producto, productos.nombre_producto
             ORDER BY cantidad DESC
             LIMIT 5
         `);
-
-        console.log('Productos más vendidos obtenidos:', productos);
         res.json(productos);
     } catch (error) {
-        console.error('Error detallado en /api/dashboard/productos-mas-vendidos:', error);
-        res.status(500).json({
-            error: 'Error al obtener productos más vendidos',
-            details: error.message
-        });
+        console.error('Error al obtener productos más vendidos:', error);
+        res.status(500).json({ error: 'Error al obtener productos más vendidos' });
     }
 });
 
@@ -1265,54 +1494,23 @@ app.get('/dashboard/categorias-mas-vendidas', async (req, res) => {
 
 app.get('/carrito/:userId', async (req, res) => {
     try {
-        const { userId } = req.params;
-        console.log(`Consultando carrito para usuario ID: ${userId}`);
-
-        // Primero verificar si el usuario existe
-        const [userExists] = await db.query('SELECT EXISTS(SELECT 1 FROM usuarios WHERE id_usuario = ?) as existe', [userId]);
-
-        if (!userExists[0].existe) {
-            console.log(`Usuario con ID ${userId} no existe`);
-            return res.json({
-                success: true,
-                items: [],
-                total: 0,
-                message: 'Usuario no encontrado, carrito vacío'
-            });
-        }
-
-        // Consulta simplificada y más robusta
         const [items] = await db.query(`
             SELECT 
                 c.id_carrito,
                 c.id_producto,
-                p.nombre_producto,
-                p.precio_producto,
-                p.imagen_url,
                 c.cantidad,
-                (p.precio_producto * c.cantidad) AS subtotal
+                productos.nombre_producto,
+                productos.precio_producto,
+                productos.imagen_url,
+                (productos.precio_producto * c.cantidad) AS subtotal
             FROM carrito c
-            INNER JOIN productos p ON c.id_producto = p.id_producto
-            WHERE c.id_usuario = ? AND p.estado = 'activo'
-        `, [userId]);
-
-        console.log(`Encontrados ${items.length} items en el carrito`);
-
-        // Calcular el total
-        const total = items.reduce((sum, item) => sum + (item.subtotal || 0), 0);
-
-        res.json({
-            success: true,
-            items: items,
-            total: total
-        });
+            INNER JOIN productos ON c.id_producto = productos.id_producto
+            WHERE c.id_usuario = ? AND productos.estado = 'activo'
+        `, [req.params.userId]);
+        res.json(items);
     } catch (error) {
-        console.error('Error detallado al obtener carrito:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Error al obtener el carrito',
-            error: error.message
-        });
+        console.error('Error al obtener carrito:', error);
+        res.status(500).json({ error: 'Error al obtener carrito' });
     }
 });
 
@@ -1686,38 +1884,17 @@ app.get('/ventas/usuario/:id', async (req, res) => {
 
 // Detalles completos de un pedido (venta)
 app.get('/pedido/detalle/:id_venta', async (req, res) => {
-    const { id_venta } = req.params;
     try {
-        // Detalles de productos
-        const [detalles] = await db.query(
-            `SELECT d.*, p.nombre_producto 
-             FROM detalle_venta d
-             JOIN productos p ON d.id_producto = p.id_producto
-             WHERE d.id_venta = ?`, [id_venta]
-        );
-        // Pago
-        const [pagos] = await db.query(
-            `SELECT * FROM pago WHERE id_venta = ? ORDER BY id_pago DESC LIMIT 1`, [id_venta]
-        );
-        // Orden y envío
-        const [orden] = await db.query(
-            `SELECT * FROM orden WHERE id_venta = ? ORDER BY id_orden DESC LIMIT 1`, [id_venta]
-        );
-        let envio = null;
-        if (orden.length > 0) {
-            const [envios] = await db.query(
-                `SELECT * FROM envios WHERE id_orden = ? ORDER BY id_envio DESC LIMIT 1`, [orden[0].id_orden]
-            );
-            envio = envios.length > 0 ? envios[0] : null;
-        }
-        res.json({
-            detalles,
-            pago: pagos.length > 0 ? pagos[0] : null,
-            envio
-        });
+        const [detalles] = await db.query(`
+            SELECT d.*, productos.nombre_producto
+            FROM detalle_venta d
+            JOIN productos ON d.id_producto = productos.id_producto
+            WHERE d.id_venta = ?
+        `, [req.params.id_venta]);
+        res.json(detalles);
     } catch (error) {
-        console.error('Error al obtener detalle completo del pedido:', error);
-        res.status(500).json({ error: 'Error al obtener detalle del pedido' });
+        console.error('Error al obtener detalles del pedido:', error);
+        res.status(500).json({ error: 'Error al obtener detalles del pedido' });
     }
 });
 

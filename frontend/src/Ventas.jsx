@@ -168,8 +168,27 @@ const EnvioForm = ({ onSubmit, setPaso, id_orden }) => {
     }
   };
 
-  const handleVolver = () => {
-    setPaso('pago');
+  const handleVolver = async () => {
+    try {
+      // Guardar los datos del envío antes de volver
+      if (datosEnvio.id_orden) {
+        const response = await fetch(`http://localhost:3000/envios/${datosEnvio.id_orden}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(datosEnvio)
+        });
+
+        if (!response.ok) {
+          throw new Error('Error al actualizar el envío');
+        }
+      }
+      setPaso('pago');
+    } catch (error) {
+      console.error('Error al volver:', error);
+      alert('Error al guardar los cambios: ' + error.message);
+    }
   };
 
   return (
@@ -416,7 +435,14 @@ const Ventas = () => {
                     id_usuario: parseInt(datosVenta.id_usuario),
                     fecha_venta: datosVenta.fecha_venta,
                     estado_venta: datosVenta.estado_venta,
-                    estado: 'activo'
+                    estado: 'activo',
+                    detalles: detalles.map(detalle => ({
+                        id_producto: parseInt(detalle.id_producto),
+                        cantidad_detalle_venta: parseInt(detalle.cantidad),
+                        precio_unitario_detalle_venta: parseFloat(detalle.precio),
+                        subtotal_detalle_venta: parseFloat(detalle.subtotal),
+                        estado: 'activo'
+                    }))
                 };
 
                 const ventaResponse = await fetch('http://localhost:3000/ventas', {
@@ -429,59 +455,36 @@ const Ventas = () => {
 
                 const responseData = await ventaResponse.json();
                 if (!ventaResponse.ok) {
-                    throw new Error(responseData.error || 'Error al crear la venta');
+                    throw new Error(responseData.details || responseData.error || 'Error al crear la venta');
                 }
                 idVenta = responseData.id || responseData.insertId;
-            }
-
-            // Obtener detalles existentes
-            const detallesResponse = await fetch(`http://localhost:3000/detalle-ventas/venta/${idVenta}`);
-            const detallesExistentes = await detallesResponse.json();
-            
-            // Crear un mapa de detalles existentes por id_producto
-            const detallesMap = new Map(
-                detallesExistentes.map(detalle => [detalle.id_producto, detalle])
-            );
-
-            // Procesar cada detalle
-            for (const detalle of detalles) {
-                const detalleParaEnviar = {
-                    id_venta: idVenta,
-                    id_producto: parseInt(detalle.id_producto),
-                    cantidad_detalle_venta: parseInt(detalle.cantidad),
-                    precio_unitario_detalle_venta: parseFloat(detalle.precio),
-                    subtotal_detalle_venta: parseFloat(detalle.subtotal),
-                    estado: 'activo'
+            } else {
+                // Actualizar venta existente
+                const ventaParaEnviar = {
+                    id_usuario: parseInt(datosVenta.id_usuario),
+                    fecha_venta: datosVenta.fecha_venta,
+                    estado_venta: datosVenta.estado_venta,
+                    estado: 'activo',
+                    detalles: detalles.map(detalle => ({
+                        id_producto: parseInt(detalle.id_producto),
+                        cantidad_detalle_venta: parseInt(detalle.cantidad),
+                        precio_unitario_detalle_venta: parseFloat(detalle.precio),
+                        subtotal_detalle_venta: parseFloat(detalle.subtotal),
+                        estado: 'activo'
+                    }))
                 };
 
-                if (detallesMap.has(parseInt(detalle.id_producto))) {
-                    // Si el detalle existe, actualizarlo
-                    await fetch(`http://localhost:3000/detalle-ventas/${idVenta}/${detalle.id_producto}`, {
-                        method: 'PUT',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify(detalleParaEnviar)
-                    });
-                } else {
-                    // Si el detalle no existe, crearlo
-                    await fetch('http://localhost:3000/detalle-ventas', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify(detalleParaEnviar)
-                    });
-                }
-            }
+                const ventaResponse = await fetch(`http://localhost:3000/ventas/${idVenta}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(ventaParaEnviar)
+                });
 
-            // Eliminar detalles que ya no están en la lista actual
-            const productosActuales = new Set(detalles.map(d => parseInt(d.id_producto)));
-            for (const detalleExistente of detallesExistentes) {
-                if (!productosActuales.has(detalleExistente.id_producto)) {
-                    await fetch(`http://localhost:3000/detalle-ventas/${idVenta}/${detalleExistente.id_producto}`, {
-                        method: 'DELETE'
-                    });
+                if (!ventaResponse.ok) {
+                    const errorData = await ventaResponse.json();
+                    throw new Error(errorData.details || errorData.error || 'Error al actualizar la venta');
                 }
             }
 
@@ -489,7 +492,8 @@ const Ventas = () => {
             setPaso('pago');
         } catch (error) {
             console.error('Error completo:', error);
-            alert('Error al procesar la venta: ' + error.message);
+            alert(error.message);
+            return; // No continuar si hay error
         }
     }
   };
@@ -509,7 +513,8 @@ const Ventas = () => {
         });
 
         if (!response.ok) {
-          throw new Error('Error al procesar el pago');
+          const errorData = await response.json();
+          throw new Error(errorData.details || errorData.error || 'Error al procesar el pago');
         }
 
         const pagoResponse = await response.json();
@@ -526,7 +531,8 @@ const Ventas = () => {
         });
 
         if (!response.ok) {
-          throw new Error('Error al actualizar el pago');
+          const errorData = await response.json();
+          throw new Error(errorData.details || errorData.error || 'Error al actualizar el pago');
         }
       }
 
@@ -549,7 +555,8 @@ const Ventas = () => {
       });
 
       if (!ordenResponse.ok) {
-        throw new Error('Error al crear la orden');
+        const errorData = await ordenResponse.json();
+        throw new Error(errorData.details || errorData.error || 'Error al crear la orden');
       }
 
       const ordenResult = await ordenResponse.json();
@@ -558,7 +565,8 @@ const Ventas = () => {
 
     } catch (error) {
       console.error('Error:', error);
-      alert('Error al procesar el pago o crear la orden: ' + error.message);
+      alert(error.message);
+      return; // No continuar si hay error
     }
   };
 
@@ -590,8 +598,73 @@ const Ventas = () => {
     }
   };
 
-  const handleVolverAVenta = () => {
-    setPaso('venta');
+  const handleVolverAVenta = async () => {
+    try {
+      // Primero guardar los cambios actuales
+      if (datosVenta.id_venta) {
+        // Actualizar la venta
+        const ventaResponse = await fetch(`http://localhost:3000/ventas/${datosVenta.id_venta}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            id_usuario: parseInt(datosVenta.id_usuario),
+            fecha_venta: datosVenta.fecha_venta,
+            estado_venta: datosVenta.estado_venta,
+            estado: 'activo'
+          })
+        });
+
+        if (!ventaResponse.ok) throw new Error('Error al actualizar la venta');
+
+        // Actualizar los detalles
+        for (const detalle of detalles) {
+          const detalleParaEnviar = {
+            id_venta: datosVenta.id_venta,
+            id_producto: parseInt(detalle.id_producto),
+            cantidad_detalle_venta: parseInt(detalle.cantidad),
+            precio_unitario_detalle_venta: parseFloat(detalle.precio),
+            subtotal_detalle_venta: parseFloat(detalle.subtotal),
+            estado: 'activo'
+          };
+
+          await fetch(`http://localhost:3000/detalle-ventas/${datosVenta.id_venta}/${detalle.id_producto}`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(detalleParaEnviar)
+          });
+        }
+      }
+
+      // Cargar los datos actualizados
+      const ventaResponse = await fetch(`http://localhost:3000/ventas/${datosVenta.id_venta}`);
+      if (!ventaResponse.ok) throw new Error('Error al cargar la venta');
+      const ventaData = await ventaResponse.json();
+      
+      const detallesResponse = await fetch(`http://localhost:3000/detalle-ventas/venta/${datosVenta.id_venta}`);
+      if (!detallesResponse.ok) throw new Error('Error al cargar los detalles');
+      const detallesData = await detallesResponse.json();
+
+      setDatosVenta({
+        ...ventaData,
+        fecha_venta: new Date(ventaData.fecha_venta).toISOString().slice(0, 16)
+      });
+      
+      setDetalles(detallesData.map(detalle => ({
+        id_producto: detalle.id_producto,
+        cantidad: detalle.cantidad_detalle_venta,
+        precio: parseFloat(detalle.precio_unitario_detalle_venta),
+        subtotal: parseFloat(detalle.subtotal_detalle_venta) || 0
+      })));
+
+      setPaso('venta');
+    } catch (error) {
+      console.error('Error al cargar los datos de la venta:', error);
+      alert('Error al cargar los datos de la venta: ' + error.message);
+    }
   };
 
   const handleDelete = async (id_venta) => {
@@ -634,10 +707,21 @@ const Ventas = () => {
       .then(res => res.json())
       .then(data => {
         setVentas(data);
+        setVentasFiltradas(data);
       })
       .catch(err => {
         console.error('Error al recargar las ventas:', err);
       });
+  };
+
+  const handleVentaUpdate = (ventaActualizada) => {
+    setVentas(prevVentas => {
+      const nuevasVentas = prevVentas.map(venta => 
+        venta.id_venta === ventaActualizada.id_venta ? ventaActualizada : venta
+      );
+      setVentasFiltradas(nuevasVentas);
+      return nuevasVentas;
+    });
   };
 
   return (
@@ -901,6 +985,7 @@ const Ventas = () => {
         isOpen={modalIsOpen}
         onClose={handleCloseModal}
         ventaId={selectedVentaId}
+        onVentaUpdate={handleVentaUpdate}
       />
     </div>
   );

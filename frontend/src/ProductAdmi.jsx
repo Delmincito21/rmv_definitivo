@@ -715,102 +715,66 @@ function DashboardCategorias() {
   const totalProductos = categorias.reduce((total, cat) => total + cat.cantidad_productos, 0);
 
   return (
-    <div className="dashboard-grid">
-      <div className="content-card categorias-section">
-        <h3 style={{ color: '#000000' }}>Dashboard de Categorías</h3>
-
-        <div className="horizontal-products-container">
+    <div className="dashboard-main-wrapper">
+      <div className="dashboard-content">
+        {/* Cards de categorías arriba */}
+        <div className="horizontal-products-container" style={{marginBottom: 32}}>
           {categorias.map(categoria => (
-            <div 
-              key={categoria.id_categoria_producto} 
-              className="horizontal-product-card" 
-              style={{ 
-                borderLeft: `4px solid ${colorMap[categoria.categoria] || '#3B82F6'}`,
-                backgroundColor: 'white',
-                padding: '20px',
-                borderRadius: '8px',
-                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '15px'
-              }}
+            <div
+              key={categoria.id_categoria_producto}
+              className="horizontal-product-card"
+              style={{ borderLeft: `4px solid ${colorMap[categoria.categoria] || '#3B82F6'}` }}
             >
-              <div 
-                className="horizontal-product-icon" 
-                style={{ 
-                  backgroundColor: colorMap[categoria.categoria] || '#3B82F6',
-                  width: '40px',
-                  height: '40px',
-                  borderRadius: '8px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: 'white',
-                  fontSize: '1.2rem'
-                }}
+              <div
+                className="horizontal-product-icon"
+                style={{ backgroundColor: colorMap[categoria.categoria] || '#3B82F6' }}
               >
                 {iconMap[categoria.categoria] || <FaBoxOpen />}
               </div>
               <div className="horizontal-product-info">
-                <h4 style={{ margin: '0 0 5px 0', fontSize: '1rem', color: '#1F2937' }}>
-                  {categoria.categoria}
-                </h4>
-                <p style={{ margin: 0, fontSize: '0.9rem', color: '#6B7280' }}>
+                <h4>{categoria.categoria}</h4>
+                <p>
                   <strong>{categoria.cantidad_productos}</strong> productos
                 </p>
               </div>
             </div>
           ))}
         </div>
-      </div>
 
-      <div className="dashboard-stats-container">
-        <div className="content-card productos-bajo-stock">
-          <h3><FiAlertCircle style={{ color: '#ef4444' }} /> Productos en Bajo Stock</h3>
-          <div className="productos-bajo-stock-list">
-            {productosBajoStock.length > 0 ? (
-              productosBajoStock.map(producto => (
-                <div 
-                  key={producto.id_producto} 
-                  className="producto-bajo-stock-card"
-                  style={{
-                    backgroundColor: producto.stock_producto <= 2 ? '#fee2e2' : '#fff',
-                    borderLeft: `4px solid ${producto.stock_producto <= 2 ? '#ef4444' : '#f97316'}`,
-                  }}
-                >
-                  <div className="producto-bajo-stock-info">
-                    <h3>{producto.nombre_producto}</h3>
-                    <p className="marca">{producto.marca_producto}</p>
-                    <p className="stock" style={{ color: producto.stock_producto <= 2 ? '#dc2626' : '#f97316' }}>
-                      <strong>Stock actual: {producto.stock_producto}</strong>
-                    </p>
-                    <p className="precio">Precio: ${producto.precio_producto}</p>
+        {/* Dos columnas: Bajo Stock y Pie Chart */}
+        <div style={{display: 'flex', gap: 32, width: '100%'}}>
+          {/* Productos en Bajo Stock */}
+          <div className="dashboard-chart-card" style={{flex: 1, minWidth: 320, maxWidth: 480}}>
+            <h3>Productos en Bajo Stock</h3>
+            <div className="productos-bajo-stock-list">
+              {productosBajoStock.length > 0 ? (
+                productosBajoStock.map(producto => (
+                  <div
+                    key={producto.id_producto}
+                    className={`producto-bajo-stock-card${producto.stock_producto <= 2 ? ' critical' : ''}`}
+                  >
+                    <div className="producto-bajo-stock-info">
+                      <h3>{producto.nombre_producto}</h3>
+                      <p className="marca">{producto.marca_producto}</p>
+                      <p className="stock" style={{ color: producto.stock_producto <= 2 ? '#dc2626' : '#f97316' }}>
+                        <strong>Stock actual: {producto.stock_producto}</strong>
+                      </p>
+                      <p className="precio">Precio: ${producto.precio_producto}</p>
+                    </div>
                   </div>
-                </div>
-              ))
-            ) : (
-              <p className="no-productos">No hay productos con bajo stock</p>
-            )}
+                ))
+              ) : (
+                <p className="no-productos">No hay productos con bajo stock</p>
+              )}
+            </div>
           </div>
-        </div>
-
-        <div className="content-card categorias-vendidas">
-          <h3>Categorías Más Vendidas</h3>
-          <div className="grafica-pie-container">
-            <Pie ref={chartRef} data={datosGrafica} options={opcionesGrafica} />
+          {/* Pie Chart Categorías Más Vendidas */}
+          <div className="dashboard-chart-card" style={{flex: 1, minWidth: 320, maxWidth: 480}}>
+            <h3>Categorías Más Vendidas</h3>
+            <div className="grafica-pie-container">
+              <Pie ref={chartRef} data={datosGrafica} options={opcionesGrafica} />
+            </div>
           </div>
-        </div>
-      </div>
-
-      <div className="stats-container">
-        <div className="stats-card">
-          <h4>Total de Productos</h4>
-          <p className="stats-number">{totalProductos}</p>
-        </div>
-
-        <div className="stats-card">
-          <h4>Categorías Activas</h4>
-          <p className="stats-number">{categorias.length}</p>
         </div>
       </div>
     </div>

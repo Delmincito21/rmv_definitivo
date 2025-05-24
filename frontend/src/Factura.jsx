@@ -55,7 +55,7 @@ const Factura = ({ venta, id_venta: propIdVenta }) => {
                     } else {
                         detallesData = await detallesResponse.json();
                     }
-                } catch (e) {
+                } catch {
                     detallesData = [];
                 }
 
@@ -70,7 +70,9 @@ const Factura = ({ venta, id_venta: propIdVenta }) => {
                             nombreProducto = productoData.nombre_producto || nombreProducto;
                             garantiaProducto = productoData.garantia || garantiaProducto;
                         }
-                    } catch (e) { }
+                    } catch  { 
+                        console.error('Error al obtener el producto:', detalle.id_producto);
+                    }
                     return {
                         ...detalle,
                         producto: {
@@ -97,7 +99,7 @@ const Factura = ({ venta, id_venta: propIdVenta }) => {
 
                 // 7. Calcular el total sumando los subtotales
                 const total = detallesData.reduce((acc, d) => acc + (parseFloat(d.subtotal_detalle_venta) || 0), 0);
-                const itbis = total * 0.18;
+                // const itbis = total * 0.18;
 
                 // 8. Construir el objeto completo de la factura
                 const facturaCompleta = {
@@ -172,7 +174,7 @@ const Factura = ({ venta, id_venta: propIdVenta }) => {
                         <img src={logo} alt="RefriElectric Martin Vasquez SRL" className="logo" />
                         <div>
                             <h1>RefriElectric Martin Vasquez SRL</h1>
-                            <p style={{ fontWeight: 'bold', margin: 0 }}>RNC: 133081504</p>
+                            <p style={{ fontWeight: 'bold', margin: 0 }}>RNC: 133-081-504</p>
                         </div>
                     </div>
                     <div className="factura-info">

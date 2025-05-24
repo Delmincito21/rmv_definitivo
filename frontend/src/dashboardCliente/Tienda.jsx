@@ -106,7 +106,7 @@ const Tienda = () => {
   const [productoSeleccionado, setProductoSeleccionado] = useState(null);
   const [userInfo, setUserInfo] = useState(null);
   const navigate = useNavigate();
-  const { addToCart } = useCart();
+  const { addToCart, cartItems } = useCart();
 
   const toggleSidebar = () => {
     setIsCollapsed(!isCollapsed);
@@ -216,7 +216,25 @@ const Tienda = () => {
           <li>
             <NavLink to="/Carrito" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>
               <FaShoppingCart className="nav-icon" />
-              <span className="nav-text">Carrito</span>
+              <span className="nav-text">
+                Carrito
+                {cartItems.length > 0 && (
+                  <span style={{
+                    background: '#27639b',
+                    color: '#fff',
+                    borderRadius: '50%',
+                    padding: '2px 8px',
+                    marginLeft: 8,
+                    fontWeight: 'bold',
+                    fontSize: 13,
+                    minWidth: 22,
+                    display: 'inline-block',
+                    textAlign: 'center'
+                  }}>
+                    {cartItems.length}
+                  </span>
+                )}
+              </span>
             </NavLink>
           </li>
           <li>

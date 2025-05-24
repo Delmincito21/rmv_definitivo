@@ -4,6 +4,7 @@ import { FaShop } from "react-icons/fa6";
 import { NavLink, useNavigate } from "react-router-dom";
 import Swal from 'sweetalert2';
 import './Tienda.css';
+import { useCart } from '../context/CartContext';
 
 const MisPedidos = () => {
   const userId = localStorage.getItem('userId');
@@ -22,6 +23,7 @@ const MisPedidos = () => {
   const [ordenAscendente, setOrdenAscendente] = useState(false);
   const navigate = useNavigate();
   const [userInfo, setUserInfo] = useState(null);
+  const { cartItems } = useCart();
 
   // Cargar pedidos del usuario
   useEffect(() => {
@@ -79,23 +81,37 @@ const MisPedidos = () => {
   }, [pedidos, busqueda, filtroEstado, ordenarPor, ordenAscendente]);
 
   // Cargar detalles completos de un pedido
-  const verDetalles = (id_venta) => {
+  const verDetalles = async (id_venta) => {
     setShowModal(true);
     setDetalles([]);
     setPedidoSeleccionado(null);
     setPago(null);
     setEnvio(null);
-    fetch(`http://localhost:3000/pedido/detalle/${id_venta}`)
-      .then(res => res.json())
-      .then(data => {
-        setDetalles(data.detalles || []);
-        setPago(data.pago || null);
-        setEnvio(data.envio || null);
-        setPedidoSeleccionado(pedidos.find(p => p.id_venta === id_venta));
-      })
-      .catch(err => {
-        Swal.fire('Error', 'No se pudieron cargar los detalles del pedido', 'error');
-      });
+    try {
+      // 1. Detalles de productos
+      const detallesRes = await fetch(`http://localhost:3000/pedido/detalle/${id_venta}`);
+      const detallesData = await detallesRes.json();
+      setDetalles(detallesData);
+
+      // 2. Pago
+      const pagoRes = await fetch(`http://localhost:3000/pago/venta/${id_venta}`);
+      const pagoArray = await pagoRes.json();
+      setPago(Array.isArray(pagoArray) ? pagoArray[0] : pagoArray);
+
+      // 3. Envío (requiere buscar la orden primero)
+      const ordenRes = await fetch(`http://localhost:3000/orden/venta/${id_venta}`);
+      const orden = await ordenRes.json();
+      if (orden && orden.id_orden) {
+        const envioRes = await fetch(`http://localhost:3000/envios/orden/${orden.id_orden}`);
+        const envioData = await envioRes.json();
+        setEnvio(envioData);
+      } else {
+        setEnvio(null);
+      }
+      setPedidoSeleccionado(pedidos.find(p => p.id_venta === id_venta));
+    } catch (err) {
+      Swal.fire('Error', 'No se pudieron cargar los detalles del pedido', 'error');
+    }
   };
 
   const cerrarModal = () => {
@@ -139,6 +155,18 @@ const MisPedidos = () => {
       });
   }, [userId]);
 
+  useEffect(() => {
+    if (!userId) return;
+    fetch(`http://localhost:3000/carrito/usuario/${userId}`)
+      .then(res => res.json())
+      .then(data => {
+        setCartItems(data);
+      })
+      .catch(() => {
+        setCartItems([]);
+      });
+  }, [userId]);
+
   console.log("pedidos:", pedidos);
   console.log("pedidosFiltrados:", pedidosFiltrados);
 
@@ -155,17 +183,15 @@ const MisPedidos = () => {
             ◄
           </span>
         </div>
-
-        {/* Información del usuario */}
         {userInfo && (
           <div className="user-info">
-            <div className="user-avatar">
-              <FaUser size={40} />
-            </div>
+            <div className="user-avatar" onClick={() => navigate("/editar-perfil")}> <FaUser size={40} /> </div>
             <h3 className="username">{userInfo.nombre_clientes}</h3>
             <p className="user-email">{userInfo.correo_clientes}</p>
           </div>
         )}
+
+        {/* Información del usuario */}
 
         <ul className="menu-items">
           {/* <li>
@@ -183,7 +209,25 @@ const MisPedidos = () => {
           <li>
             <NavLink to="/Carrito" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>
               <FaShoppingCart className="nav-icon" />
-              <span className="nav-text">Carrito</span>
+              <span className="nav-text">
+                Carrito
+                {cartItems.length > 0 && (
+                  <span style={{
+                    background: '#27639b',
+                    color: '#fff',
+                    borderRadius: '50%',
+                    padding: '2px 8px',
+                    marginLeft: 8,
+                    fontWeight: 'bold',
+                    fontSize: 13,
+                    minWidth: 22,
+                    display: 'inline-block',
+                    textAlign: 'center'
+                  }}>
+                    {cartItems.length}
+                  </span>
+                )}
+              </span>
             </NavLink>
           </li>
           <li>
@@ -441,7 +485,7 @@ const MisPedidos = () => {
             }}>
               <div style={{ background: '#fff', borderRadius: 12, padding: 32, minWidth: 350, maxWidth: 500, boxShadow: '0 4px 24px #2563eb22', position: 'relative' }}>
                 <button onClick={cerrarModal} style={{ position: 'absolute', top: 12, right: 16, background: 'none', border: 'none', fontSize: 22, cursor: 'pointer', color: '#27639b' }}>×</button>
-                <h3 style={{ color: '#27639b', marginBottom: 12 }}>Detalle del Pedido #{pedidoSeleccionado.id_venta}</h3>
+                <h3 style={{ color: '#27639b', marginBottom: 12 }}>Detalle del pedido n.º {pedidoSeleccionado.id_venta}</h3>
                 <p><b>Fecha:</b> {new Date(pedidoSeleccionado.fecha_venta).toLocaleString()}</p>
                 <p><b>Estado:</b> {pedidoSeleccionado.estado_venta}</p>
                 <table style={{ width: '100%', borderCollapse: 'collapse', margin: '12px 0' }}>
@@ -450,7 +494,7 @@ const MisPedidos = () => {
                       <th style={{ padding: 6 }}>Producto</th>
                       <th style={{ padding: 6 }}>Cantidad</th>
                       <th style={{ padding: 6 }}>Precio</th>
-                      <th style={{ padding: 6 }}>Subtotal</th>
+                      <th style={{ padding: 6 }}>Total parcial</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -458,8 +502,8 @@ const MisPedidos = () => {
                       <tr key={idx}>
                         <td style={{ padding: 6 }}>{item.nombre_producto || item.id_producto}</td>
                         <td style={{ padding: 6 }}>{item.cantidad_detalle_venta}</td>
-                        <td style={{ padding: 6 }}>${item.precio_unitario_detalle_venta}</td>
-                        <td style={{ padding: 6 }}>${item.subtotal_detalle_venta}</td>
+                        <td style={{ padding: 6 }}>${Number(item.precio_unitario_detalle_venta).toFixed(2)}</td>
+                        <td style={{ padding: 6 }}>${Number(item.subtotal_detalle_venta).toFixed(2)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -471,13 +515,14 @@ const MisPedidos = () => {
                     <p><b>Método de pago:</b> {pago.metodo_pago}</p>
                     <p><b>Estado del pago:</b> {pago.estado_pago}</p>
                     <p><b>Referencia:</b> {pago.referencia}</p>
+                    <p><b>Banco Emisor:</b> {pago.banco_emisor}</p>
                   </div>
                 )}
                 {envio && (
                   <div style={{ marginTop: 12 }}>
                     <p><b>Dirección de envío:</b> {envio.direccion_entrega_envio}</p>
                     <p><b>Estado del envío:</b> {envio.estado_envio}</p>
-                    <p><b>Fecha estimada de envío:</b> {new Date(envio.fecha_estimada_envio).toLocaleDateString()}</p>
+                    <p><b>Fecha estimada de envío:</b> {envio.fecha_estimada_envio ? new Date(envio.fecha_estimada_envio).toLocaleDateString() : ''}</p>
                   </div>
                 )}
               </div>

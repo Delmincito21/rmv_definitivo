@@ -222,10 +222,10 @@ const EditarPerfil = () => {
                                         type="text"
                                         name="nombre_clientes"
                                         value={cliente.nombre_clientes}
-                                        onChange={handleChange}
                                         placeholder="Nombre"
                                         required
                                         maxLength="50"
+                                        disabled
                                     />
                                 </div>
                                 <div className="input-group">
@@ -259,9 +259,9 @@ const EditarPerfil = () => {
                                         type="email"
                                         name="correo_clientes"
                                         value={cliente.correo_clientes}
-                                        onChange={handleChange}
                                         placeholder="Correo electrónico"
                                         required
+                                        disabled
                                     />
                                 </div>
                             </div>

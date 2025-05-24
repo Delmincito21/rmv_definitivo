@@ -1240,7 +1240,11 @@ app.put('/detalle-ventas/:id_venta/:id_producto', async (req, res) => {
 app.get('/dashboard/proximos-envios', async (req, res) => {
     console.log('Recibida petición a /dashboard/proximos-envios');
     try {
-        const [envios] = await db.query('SELECT * FROM vw_proximos_envios');
+        const [envios] = await db.query(`
+            SELECT * FROM vw_proximos_envios 
+            WHERE semana_entrega = WEEK(CURDATE(), 1) 
+              AND año_entrega = YEAR(CURDATE())
+        `);
         console.log('Envíos obtenidos:', envios);
         res.json(envios);
     } catch (error) {

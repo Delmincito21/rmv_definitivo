@@ -98,9 +98,11 @@ const Inicio = () => {
             }
 
             // Actualizar la lista de próximos envíos
-            setProximosEnvios(prevEnvios => 
+            setProximosEnvios(prevEnvios =>
                 prevEnvios.filter(envio => envio.id_envio !== idEnvio)
             );
+
+            alert('¡Entrega confirmada exitosamente!');
         } catch (error) {
             console.error('Error al confirmar entrega:', error);
             alert(error.message);
@@ -216,15 +218,16 @@ const Inicio = () => {
             <div className="proximos-envios-container">
                 <h2><FiTruck /> Próximos Envíos del Día</h2>
                 <div className="envios-grid">
-                    {proximosEnvios.length > 0 ? (
-                        proximosEnvios.map((envio) => (
+                    {proximosEnvios
+                        .filter(envio => envio && envio.id_envio !== undefined && envio.id_envio !== null)
+                        .map((envio) => (
                             <div key={envio.id_envio.toString()} className="envio-card">
                                 <div className="envio-info">
                                     <h3>{envio.cliente}</h3>
                                     <p><strong>Dirección:</strong> {envio.direccion}</p>
                                     <p><strong>Entrega:</strong> {envio.entrega_completa}</p>
                                 </div>
-                                <button 
+                                <button
                                     className="confirmar-btn"
                                     onClick={() => confirmarEntrega(envio.id_envio)}
                                 >
@@ -232,9 +235,7 @@ const Inicio = () => {
                                 </button>
                             </div>
                         ))
-                    ) : (
-                        <p className="no-envios">No hay envíos programados para hoy</p>
-                    )}
+                    }
                 </div>
             </div>
         </div>

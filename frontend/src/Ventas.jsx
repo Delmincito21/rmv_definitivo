@@ -506,7 +506,7 @@ const Ventas = () => {
 
       if (!idPago) {
         // Crear nuevo pago
-        const response = await fetch('http://localhost:3000/pagos', {
+        const response = await fetch('http://localhost:3000/pago', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -524,7 +524,7 @@ const Ventas = () => {
         setDatosPagoActual({ ...datosPago, id_pago: idPago });
       } else {
         // Actualizar pago existente
-        const response = await fetch(`http://localhost:3000/pagos/${idPago}`, {
+        const response = await fetch(`http://localhost:3000/pago/${idPago}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',

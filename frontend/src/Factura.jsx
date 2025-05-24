@@ -10,6 +10,7 @@ const Factura = ({ venta, id_venta: propIdVenta }) => {
     const location = useLocation();
     const params = useParams();
     const [facturaVenta, setFacturaVenta] = useState(null);
+    const [pago, setPago] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
@@ -61,18 +62,21 @@ const Factura = ({ venta, id_venta: propIdVenta }) => {
                 // 4. Para cada detalle, obtener el nombre del producto
                 detallesData = await Promise.all(detallesData.map(async (detalle) => {
                     let nombreProducto = 'Producto no especificado';
+                    let garantiaProducto = 'No especificado';
                     try {
                         const productoResponse = await fetch(`http://localhost:3000/productos/${detalle.id_producto}`);
                         if (productoResponse.ok) {
                             const productoData = await productoResponse.json();
                             nombreProducto = productoData.nombre_producto || nombreProducto;
+                            garantiaProducto = productoData.garantia || garantiaProducto;
                         }
                     } catch (e) { }
                     return {
                         ...detalle,
                         producto: {
                             nombre: nombreProducto,
-                            precio: detalle.precio_unitario_detalle_venta
+                            precio: detalle.precio_unitario_detalle_venta,
+                            garantia: garantiaProducto
                         }
                     };
                 }));
@@ -89,9 +93,11 @@ const Factura = ({ venta, id_venta: propIdVenta }) => {
                 const pagoResponse = await fetch(`http://localhost:3000/pago/venta/${id_venta}`);
                 const pagoArray = await pagoResponse.json();
                 const pagoData = Array.isArray(pagoArray) ? pagoArray[0] : pagoArray;
+                setPago(pagoData);
 
                 // 7. Calcular el total sumando los subtotales
                 const total = detallesData.reduce((acc, d) => acc + (parseFloat(d.subtotal_detalle_venta) || 0), 0);
+                const itbis = total * 0.18;
 
                 // 8. Construir el objeto completo de la factura
                 const facturaCompleta = {
@@ -164,7 +170,10 @@ const Factura = ({ venta, id_venta: propIdVenta }) => {
                 <div className="factura-header">
                     <div className="logo-section">
                         <img src={logo} alt="RefriElectric Martin Vasquez SRL" className="logo" />
-                        <h1>RefriElectric Martin Vasquez SRL</h1>
+                        <div>
+                            <h1>RefriElectric Martin Vasquez SRL</h1>
+                            <p style={{ fontWeight: 'bold', margin: 0 }}>RNC: 133081504</p>
+                        </div>
                     </div>
                     <div className="factura-info">
                         <p><strong>Factura #:</strong> {facturaVenta.id_venta}</p>
@@ -175,11 +184,15 @@ const Factura = ({ venta, id_venta: propIdVenta }) => {
                 <div className="cliente-info">
                     <h2>Información del Cliente</h2>
                     <div className="cliente-details">
-                        <p><strong>Cliente:</strong> {facturaVenta.cliente.nombre_clientes}</p>
-                        <p><strong>Dirección:</strong> {facturaVenta.cliente.direccion_clientes}</p>
-                        <p><strong>Teléfono:</strong> {facturaVenta.cliente.telefono_clientes}</p>
-                        <p><strong>Correo:</strong> {facturaVenta.cliente.correo_clientes}</p>
-                        <p><strong>Método de Pago:</strong> {facturaVenta.metodo_pago}</p>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap' }}>
+                            <p><strong>Cliente:</strong> {facturaVenta.cliente.nombre_clientes}</p>
+                            <p><strong>Teléfono:</strong> {facturaVenta.cliente.telefono_clientes}</p>
+                            <p><strong>Método de Pago:</strong> {facturaVenta.metodo_pago}</p>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', marginTop: 8 }}>
+                            <p><strong>Banco Emisor:</strong> {pago?.banco_emisor || 'No especificado'}</p>
+                            <p><strong>ID Referencia:</strong> {pago?.referencia || 'No especificado'}</p>
+                        </div>
                     </div>
                 </div>
 
@@ -194,6 +207,7 @@ const Factura = ({ venta, id_venta: propIdVenta }) => {
                                     <th>Producto</th>
                                     <th>Cantidad</th>
                                     <th>Precio Unitario</th>
+                                    <th style={{ minWidth: 120 }}>Garantía</th>
                                     <th>Total</th>
                                 </tr>
                             </thead>
@@ -203,6 +217,7 @@ const Factura = ({ venta, id_venta: propIdVenta }) => {
                                         <td>{detalle.producto.nombre}</td>
                                         <td>{detalle.cantidad_detalle_venta}</td>
                                         <td>{formatCurrency(detalle.precio_unitario_detalle_venta)}</td>
+                                        <td>{detalle.producto.garantia || 'No especificado'}</td>
                                         <td>{formatCurrency(detalle.subtotal_detalle_venta)}</td>
                                     </tr>
                                 ))}
@@ -217,6 +232,14 @@ const Factura = ({ venta, id_venta: propIdVenta }) => {
                         <span>{formatCurrency(facturaVenta.total)}</span>
                     </div>
                     <div className="total-row">
+                        <span>ITBIS:</span>
+                        <span>{formatCurrency(facturaVenta.total * 0.18)}</span>
+                    </div>
+                    <div className="total-row">
+                        <span>Envío:</span>
+                        <span>{formatCurrency(0)}</span>
+                    </div>
+                    <div className="total-row">
                         <span><strong>Total:</strong></span>
                         <span><strong>{formatCurrency(facturaVenta.total)}</strong></span>
                     </div>
@@ -224,8 +247,8 @@ const Factura = ({ venta, id_venta: propIdVenta }) => {
 
                 <div className="factura-footer">
                     <p>¡Gracias por su compra!</p>
-                    <p>Para cualquier consulta, contáctenos al: (809) 411-1805</p>
-                    <p>Email: info@refrielectric.com</p>
+                    <p>Para cualquier consulta, contáctenos al: (809) 401-1312</p>
+                    <p>Email: refrielectricmv@gmail.com</p>
                 </div>
 
                 <div className="factura-buttons">

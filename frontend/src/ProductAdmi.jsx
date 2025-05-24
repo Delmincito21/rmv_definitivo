@@ -30,12 +30,13 @@ function AgregarProductoForm({ onCancel }) {
     garantia: '',
     id_categoria: '',
     id_suplidor: '',
-    estado: 'activo'
+    estado: 'activo',
+    imagen_url: ''
   });
 
   const [loading, setLoading] = useState(false);
-  const [setError] = useState(null);
-  const [setCategorias] = useState([]);
+  const [error, setError] = useState(null);
+  const [categorias, setCategorias] = useState([]);
   const [mostrarSuplidores, setMostrarSuplidores] = useState(false);
 
   const handleChange = (e) => {
@@ -254,13 +255,14 @@ function AgregarProductoForm({ onCancel }) {
 
         {/* Quinta fila horizontal */}
         <div className="form-row">
-          <div className="form-field wide">
-            <label>Imagen del Producto</label>
+          <div className="form-field">
+            <label>URL de la Imagen</label>
             <input
-              type="file"
-              name="imagen_producto"
-              accept="image/*"
+              type="text"
+              name="imagen_url"
+              value={formData.imagen_url}
               onChange={handleChange}
+              placeholder="https://..."
               required
             />
           </div>
@@ -718,7 +720,7 @@ function DashboardCategorias() {
     <div className="dashboard-main-wrapper">
       <div className="dashboard-content">
         {/* Cards de categorías arriba */}
-        <div className="horizontal-products-container" style={{marginBottom: 32}}>
+        <div className="horizontal-products-container" style={{ marginBottom: 32 }}>
           {categorias.map(categoria => (
             <div
               key={categoria.id_categoria_producto}
@@ -742,9 +744,9 @@ function DashboardCategorias() {
         </div>
 
         {/* Dos columnas: Bajo Stock y Pie Chart */}
-        <div style={{display: 'flex', gap: 32, width: '100%'}}>
+        <div style={{ display: 'flex', gap: 32, width: '100%' }}>
           {/* Productos en Bajo Stock */}
-          <div className="dashboard-chart-card" style={{flex: 1, minWidth: 320, maxWidth: 480}}>
+          <div className="dashboard-chart-card" style={{ flex: 1, minWidth: 320, maxWidth: 480 }}>
             <h3>Productos en Bajo Stock</h3>
             <div className="productos-bajo-stock-list">
               {productosBajoStock.length > 0 ? (
@@ -769,7 +771,7 @@ function DashboardCategorias() {
             </div>
           </div>
           {/* Pie Chart Categorías Más Vendidas */}
-          <div className="dashboard-chart-card" style={{flex: 1, minWidth: 320, maxWidth: 480}}>
+          <div className="dashboard-chart-card" style={{ flex: 1, minWidth: 320, maxWidth: 480 }}>
             <h3>Categorías Más Vendidas</h3>
             <div className="grafica-pie-container">
               <Pie ref={chartRef} data={datosGrafica} options={opcionesGrafica} />

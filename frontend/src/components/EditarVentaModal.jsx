@@ -37,7 +37,7 @@ const EditarVentaModal = ({ isOpen, onClose, ventaId, onVentaUpdate }) => {
         setDetalleVentaData(Array.isArray(detallesData) ? detallesData : []);
 
         // Cargar pago
-        const pagoRes = await fetch(`http://localhost:3000/pagos/venta/${ventaId}`);
+        const pagoRes = await fetch(`http://localhost:3000/pago/venta/${ventaId}`);
         if (!pagoRes.ok) throw new Error('Error al obtener el pago');
         const pagoData = await pagoRes.json();
         console.log('3. Datos de pago cargados:', pagoData);
@@ -379,7 +379,7 @@ const EditarVentaModal = ({ isOpen, onClose, ventaId, onVentaUpdate }) => {
 
         case 'pago': {
           if (pagoData && pagoData.id_pago) {
-            const pagoResponse = await fetch(`http://localhost:3000/pagos/${pagoData.id_pago}`, {
+            const pagoResponse = await fetch(`http://localhost:3000/pago/${pagoData.id_pago}`, {
               method: 'PUT',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({

@@ -22,7 +22,8 @@ class Producto {
             garantia,
             id_categoria,
             id_suplidor,
-            estado
+            estado,
+            imagen_url
         } = productoData;
 
         try {
@@ -38,8 +39,9 @@ class Producto {
                     garantia, 
                     id_categoria, 
                     id_suplidor, 
-                    estado
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                    estado,
+                    imagen_url
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
                 [
                     nombre_producto,
                     descripcion_producto,
@@ -51,7 +53,8 @@ class Producto {
                     garantia,
                     id_categoria,
                     id_suplidor,
-                    estado || 'activo'
+                    estado || 'activo',
+                    imagen_url
                 ]
             );
             return result;

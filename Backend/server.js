@@ -12,6 +12,8 @@ const Pago = require('./models/Pago.js');
 const bcrypt = require('bcrypt');
 const clientes = require('./models/clientes');
 const nodemailer = require('nodemailer');
+const multer = require('multer');
+const crypto = require('crypto');
 // Abre la consola de Node.js con: node
 
 
@@ -512,9 +514,10 @@ app.post('/ventas', async (req, res) => {
 
         await connection.commit();
 
-        res.status(201).json({
-            message: 'Venta creada exitosamente',
-            id: id_venta
+        res.json({
+            success: true,
+            id: id_venta,
+            message: 'Venta creada exitosamente'
         });
     } catch (error) {
         await connection.rollback();
@@ -1750,17 +1753,20 @@ app.post('/procesar-compra', async (req, res) => {
             });
         }
 
-        // 3. Registrar el pago
-        await Pago.create({
-            id_venta,
-            monto_pago: pago.monto_pago,
-            fecha_pago: pago.fecha_pago,
-            metodo_pago: pago.metodo_pago,
-            referencia: pago.referencia,
-            banco_emisor: pago.banco_emisor,
-            estado_pago: pago.estado_pago,
-            estado: 'activo'
-        });
+        // 3. Registrar el pago SOLO si NO es transferencia
+        if (pago.metodo_pago !== 'Transferencia') {
+            await Pago.create({
+                id_venta,
+                monto_pago: pago.monto_pago,
+                fecha_pago: pago.fecha_pago,
+                metodo_pago: pago.metodo_pago,
+                referencia: pago.referencia,
+                banco_emisor: pago.banco_emisor,
+                estado_pago: pago.estado_pago,
+                estado: 'activo'
+            });
+        }
+        // Si es transferencia, el pago se insertará cuando suban el comprobante
 
         // 4. Crear la orden
         const ordenResult = await Orden.create({
@@ -1846,7 +1852,7 @@ app.post('/procesar-compra', async (req, res) => {
         });
 
         // 5. Responder al frontend
-        res.json({ success: true, message: 'Compra procesada y correo enviado correctamente' });
+        res.json({ success: true, id: id_venta, message: 'Compra procesada y correo enviado correctamente' });
 
     } catch (error) {
         await connection.rollback();
@@ -1941,4 +1947,79 @@ app.post('/cambiar-password', async (req, res) => {
     } catch (error) {
         res.status(500).json({ error: 'Error al cambiar la contraseña', details: error.message });
     }
+});
+
+const upload = multer({ storage: multer.memoryStorage() });
+
+app.post('/pago/transferencia', upload.single('voucher'), async (req, res) => {
+    try {
+        const { id_venta, monto_pago, fecha_pago, referencia, banco_emisor } = req.body;
+        const token = crypto.randomBytes(32).toString('hex');
+
+        // Formatea la fecha para MySQL
+        let fecha_pago_mysql = fecha_pago;
+        if (fecha_pago_mysql) {
+            fecha_pago_mysql = new Date(fecha_pago_mysql).toISOString().slice(0, 19).replace('T', ' ');
+        }
+
+        // Inserta el pago en la base de datos
+        const [result] = await db.query(
+            'INSERT INTO pago (id_venta, monto_pago, fecha_pago, metodo_pago, referencia_transaccion_pago, estado_pago, referencia, banco_emisor, estado) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            [
+                id_venta,
+                monto_pago,
+                fecha_pago_mysql || new Date().toISOString().slice(0, 19).replace('T', ' '),
+                'Transferencia',
+                token,
+                'pendiente',
+                referencia,
+                banco_emisor,
+                'activo'
+            ]
+        );
+
+        const id_pago = result.insertId;
+
+        // Construye el enlace de validación
+        const urlValidar = `http://localhost:3000/validar-pago/${id_pago}/${token}`;
+
+        // Envía el correo al admin con el voucher adjunto (usando buffer)
+        await transporter.sendMail({
+            from: '"RMV Vouchers" <refrielectricmv@gmail.com>',
+            to: 'refrielectricmv@gmail.com',
+            subject: 'Nuevo comprobante de transferencia recibido',
+            html: `
+                <p>Referencia: ${referencia}</p>
+                <p>Banco: ${banco_emisor}</p>
+                <p><a href="${urlValidar}" style="background:#27639b;color:#fff;padding:10px 18px;border-radius:6px;text-decoration:none;">Validar pago</a></p>
+            `,
+            attachments: [
+                {
+                    filename: req.file.originalname,
+                    content: req.file.buffer
+                }
+            ]
+        });
+
+        res.json({ success: true, message: 'Comprobante recibido y enviado al administrador.' });
+    } catch (error) {
+        console.error('Error al recibir comprobante:', error);
+        res.status(500).json({ success: false, message: 'Error al recibir el comprobante.', error: error.message });
+    }
+});
+
+app.get('/validar-pago/:id/:token', async (req, res) => {
+    const { id, token } = req.params;
+    // Busca el pago por id y token
+    const [pagos] = await db.query('SELECT * FROM pago WHERE id_pago = ? AND referencia_transaccion_pago = ?', [id, token]);
+    if (pagos.length === 0) {
+        return res.status(400).send('Enlace inválido o ya usado.');
+    }
+    // Verifica si ya está validado
+    if (pagos[0].estado_pago === 'validado') {
+        return res.send('Este pago ya fue validado.');
+    }
+    // Marca el pago como validado
+    await db.query('UPDATE pago SET estado_pago = "validado" WHERE id_pago = ?', [id]);
+    res.send('¡Pago validado correctamente!');
 });

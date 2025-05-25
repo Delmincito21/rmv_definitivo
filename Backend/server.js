@@ -180,6 +180,14 @@ app.get('/ventas', async (req, res) => {
             JOIN usuarios u ON v.id_usuario = u.id_usuario
             JOIN clientes c ON u.id_usuario = c.id_usuario
             WHERE v.estado = 'activo'
+            ORDER BY 
+                CASE v.estado_venta 
+                    WHEN 'pendiente' THEN 1
+                    WHEN 'completa' THEN 2
+                    WHEN 'cancelada' THEN 3
+                    ELSE 4
+                END,
+                v.fecha_venta DESC
         `;
 
         const [results] = await db.query(query);
@@ -891,6 +899,8 @@ app.get('/envios', async (req, res) => {
 
 app.post('/envios', async (req, res) => {
     try {
+        // Asegurar provincia_envio siempre tiene valor
+        if (!req.body.provincia_envio) req.body.provincia_envio = 'Santiago';
         const result = await Envio.create(req.body);
         res.status(201).json({
             message: 'Envío creado exitosamente',
@@ -967,12 +977,16 @@ app.put('/envios/:id', async (req, res) => {
             });
         }
 
+        // Asegurar provincia_envio siempre tiene valor
+        const provincia = req.body.provincia_envio || 'Santiago';
+
         const dataToUpdate = {
             fecha_estimada_envio: req.body.fecha_estimada_envio ?
                 new Date(req.body.fecha_estimada_envio).toISOString().slice(0, 19).replace('T', ' ') :
                 null,
             direccion_entrega_envio: req.body.direccion_entrega_envio,
             estado_envio: req.body.estado_envio,
+            provincia_envio: provincia,
             estado: req.body.estado || 'activo'
         };
 

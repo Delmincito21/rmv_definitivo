@@ -41,81 +41,40 @@ const EditarVentaModal = ({ isOpen, onClose, ventaId, onVentaUpdate }) => {
         if (!pagoRes.ok) throw new Error('Error al obtener el pago');
         const pagoData = await pagoRes.json();
         console.log('3. Datos de pago cargados:', pagoData);
-        setPagoData(pagoData || {});
+        if (pagoData && pagoData.length > 0) {
+          const pago = pagoData[0];
+          if (pago.fecha_pago) {
+            const fechaPago = new Date(pago.fecha_pago);
+            pago.fecha_pago = fechaPago.toISOString().slice(0, 16);
+          }
+          setPagoData(pago);
+        } else {
+          setPagoData({});
+        }
 
         // Cargar orden
-        console.log('4. Intentando cargar orden para venta:', ventaId);
         const ordenRes = await fetch(`http://localhost:3000/orden/venta/${ventaId}`);
-        if (!ordenRes.ok) {
-          console.warn('No se encontró orden para la venta:', ventaId);
-          setOrdenData({});
-          setEnvioData({});
-          setCurrentEnvioId(null);
-          return;
-        }
+        if (!ordenRes.ok) throw new Error('Error al obtener la orden');
+        const ordenData = await ordenRes.json();
+        console.log('4. Datos de orden cargados:', ordenData);
+        setOrdenData(ordenData || {});
 
-        let ordenData;
-        try {
-          ordenData = await ordenRes.json();
-          console.log('5. Datos de orden cargados:', ordenData);
-        } catch (e) {
-          console.error('Error al parsear orden:', e);
-          setOrdenData({});
-          setEnvioData({});
-          setCurrentEnvioId(null);
-          return;
-        }
-
-        if (!ordenData || !ordenData.id_orden) {
-          console.warn('6. No se encontraron datos válidos de orden');
-          setOrdenData({});
-          setEnvioData({});
-          setCurrentEnvioId(null);
-          return;
-        }
-
-        setOrdenData(ordenData);
-
-        // Si hay orden, cargar envío
-        try {
-          console.log('7. Intentando cargar envío para orden:', ordenData.id_orden);
+        // Cargar envío si existe orden
+        if (ordenData && ordenData.id_orden) {
           const envioRes = await fetch(`http://localhost:3000/envios/orden/${ordenData.id_orden}`);
-          
-          if (!envioRes.ok) {
-            console.warn('8. No se encontró envío para la orden:', ordenData.id_orden);
-            setEnvioData({});
-            setCurrentEnvioId(null);
-            return;
-          }
-
-          const envioData = await envioRes.json();
-          console.log('9. Datos de envío cargados:', envioData);
-
-          if (envioData && envioData.id_envio) {
-            console.log('10. Procesando datos de envío válidos');
-            const envioProcessed = {
-              ...envioData,
-              id_envio: envioData.id_envio,
-              fecha_estimada_envio: envioData.fecha_estimada_envio ? 
-                new Date(envioData.fecha_estimada_envio).toISOString().slice(0, 16) : '',
-              estado_envio: envioData.estado_envio || 'pendiente',
-              estado: envioData.estado || 'activo'
-            };
-            console.log('11. Datos de envío procesados:', envioProcessed);
-            setEnvioData(envioProcessed);
+          if (envioRes.ok) {
+            const envioData = await envioRes.json();
+            console.log('5. Datos de envío cargados:', envioData);
+            if (envioData && envioData.fecha_estimada_envio) {
+              const fechaEnvio = new Date(envioData.fecha_estimada_envio);
+              envioData.fecha_estimada_envio = fechaEnvio.toISOString().slice(0, 16);
+            }
+            setEnvioData(envioData);
             setCurrentEnvioId(envioData.id_envio);
-          } else {
-            console.warn('12. Datos de envío inválidos:', envioData);
-            setEnvioData({});
-            setCurrentEnvioId(null);
           }
-        } catch (envioError) {
-          console.error('13. Error al procesar envío:', envioError);
-          setEnvioData({});
-          setCurrentEnvioId(null);
         }
       } catch (error) {
-        console.error('14. Error general al cargar datos:', error);
+        console.error('Error al cargar los datos:', error);
         alert('Error al cargar los datos: ' + error.message);
         setVentaData({});
         setDetalleVentaData([]);
@@ -749,6 +708,17 @@ const EditarVentaModal = ({ isOpen, onClose, ventaId, onVentaUpdate }) => {
                   value={envioData?.direccion_entrega_envio || ''}
                   onChange={e => setEnvioData({...envioData, direccion_entrega_envio: e.target.value})}
                 />
+              </div>
+              <div className="form-group">
+                <label>Provincia</label>
+                <select
+                  value={envioData?.provincia_envio || ''}
+                  onChange={e => setEnvioData({...envioData, provincia_envio: e.target.value})}
+                >
+                  <option value="">Seleccione una provincia</option>
+                  <option value="Santiago">Santiago</option>
+                  <option value="Santo Domingo">Santo Domingo</option>
+                </select>
               </div>
               <div className="form-group">
                 <label>Estado del Envío</label>

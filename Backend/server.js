@@ -172,11 +172,11 @@ app.get('/ventas', async (req, res) => {
                 (
                     SELECT COALESCE(SUM(dv.subtotal_detalle_venta), 0)
                     FROM detalle_venta dv
-                WHERE dv.id_venta = v.id_venta AND dv.estado = 'activo'
+                    WHERE dv.id_venta = v.id_venta AND dv.estado = 'activo'
                 ) as total
             FROM venta v
             JOIN usuarios u ON v.id_usuario = u.id_usuario
-            JOIN clientes c ON u.id_usuario = c.id_clientes
+            JOIN clientes c ON u.id_usuario = c.id_usuario
             WHERE v.estado = 'activo'
         `;
 

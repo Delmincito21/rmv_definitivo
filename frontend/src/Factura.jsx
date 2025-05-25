@@ -70,7 +70,7 @@ const Factura = ({ venta, id_venta: propIdVenta }) => {
                             nombreProducto = productoData.nombre_producto || nombreProducto;
                             garantiaProducto = productoData.garantia || garantiaProducto;
                         }
-                    } catch  { 
+                    } catch {
                         console.error('Error al obtener el producto:', detalle.id_producto);
                     }
                     return {
@@ -186,12 +186,12 @@ const Factura = ({ venta, id_venta: propIdVenta }) => {
                 <div className="cliente-info">
                     <h2>Información del Cliente</h2>
                     <div className="cliente-details">
-                        <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap' }}>
+                        <div style={{ marginTop: 0 }}>
                             <p><strong>Cliente:</strong> {facturaVenta.cliente.nombre_clientes}</p>
                             <p><strong>Teléfono:</strong> {facturaVenta.cliente.telefono_clientes}</p>
                             <p><strong>Método de Pago:</strong> {facturaVenta.metodo_pago}</p>
                         </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', marginTop: 8 }}>
+                        <div style={{ marginTop: 8 }}>
                             <p><strong>Banco Emisor:</strong> {pago?.banco_emisor || 'No especificado'}</p>
                             <p><strong>ID Referencia:</strong> {pago?.referencia || 'No especificado'}</p>
                         </div>

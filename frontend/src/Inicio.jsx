@@ -109,6 +109,16 @@ const Inicio = () => {
         }
     };
 
+    // Elimina envíos duplicados por id_envio
+    const enviosUnicos = [];
+    const idsVistos = new Set();
+    for (const envio of proximosEnvios) {
+        if (!idsVistos.has(envio.id_envio)) {
+            enviosUnicos.push(envio);
+            idsVistos.add(envio.id_envio);
+        }
+    }
+
     if (loading) {
         return <div className="loading-container">Cargando datos...</div>;
     }
@@ -218,7 +228,7 @@ const Inicio = () => {
             <div className="proximos-envios-container">
                 <h2><FiTruck /> Próximos Envíos del Día</h2>
                 <div className="envios-grid">
-                    {proximosEnvios
+                    {enviosUnicos
                         .filter(envio => envio && envio.id_envio !== undefined && envio.id_envio !== null)
                         .map((envio) => (
                             <div key={envio.id_envio.toString()} className="envio-card">

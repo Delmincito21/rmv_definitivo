@@ -4,18 +4,31 @@ import './Ventas.css';
 import EditarVentaModal from './components/EditarVentaModal';
 import { useNavigate } from 'react-router-dom';
 
-// Componente de Pago
-const PagoForm = ({ total, onSubmit, setPaso, id_venta }) => {
-  const [datosPago, setDatosPago] = useState({
-    monto_pago: total || 0,
-    fecha_pago: new Date().toISOString().slice(0, 16),
-    metodo_pago: 'transferencia',
-    referencia: '',
-    banco_emisor: '',
-    estado_pago: 'pendiente',
-    id_venta: id_venta
-  });
+// Función para obtener la fecha y hora actual de República Dominicana (GMT-4) en formato YYYY-MM-DDTHH:mm
+function getNowDateTimeLocalRD() {
+  const now = new Date();
+  // Ajustar a GMT-4 (RD)
+  const utc = now.getTime() + now.getTimezoneOffset() * 60000;
+  const rd = new Date(utc - 4 * 60 * 60000);
 
+  // Formatear a YYYY-MM-DDTHH:mm
+  const year = rd.getFullYear();
+  const month = String(rd.getMonth() + 1).padStart(2, '0');
+  const day = String(rd.getDate()).padStart(2, '0');
+  const hours = String(rd.getHours()).padStart(2, '0');
+  const minutes = String(rd.getMinutes()).padStart(2, '0');
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+}
+
+// Cálculo del costo de envío según provincia
+function getCostoEnvio(provincia) {
+  if (provincia === 'Santiago') return 500;
+  if (provincia === 'Santo Domingo') return 1500;
+  return 0;
+}
+
+// Componente de Pago
+const PagoForm = ({ total, onSubmit, setPaso, id_venta, datosPago, setDatosPago, costoEnvio, pagoKey }) => {
   const [errores, setErrores] = useState({});
 
   const validarPago = () => {
@@ -37,10 +50,10 @@ const PagoForm = ({ total, onSubmit, setPaso, id_venta }) => {
     return Object.keys(nuevosErrores).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (validarPago()) {
-      onSubmit(datosPago);
+      await onSubmit(datosPago);
     }
   };
 
@@ -64,17 +77,29 @@ const PagoForm = ({ total, onSubmit, setPaso, id_venta }) => {
             onChange={(e) => setDatosPago({ ...datosPago, monto_pago: e.target.value })}
             placeholder="0.00"
             step="0.01"
+            readOnly
           />
+          <div style={{ marginTop: 8, color: '#176bb3', fontWeight: 'bold' }}>
+            Total de productos: ${total - costoEnvio} <br />
+            Envío: ${costoEnvio} <br />
+            <span style={{ color: '#2c3e50' }}>Total a pagar: ${total}</span>
+          </div>
           {errores.monto_pago && <div className="error-message">{errores.monto_pago}</div>}
         </div>
 
         <div className="form-field">
           <label>Fecha de Pago</label>
-          <input
-            type="datetime-local"
-            value={datosPago.fecha_pago}
-            onChange={(e) => setDatosPago({ ...datosPago, fecha_pago: e.target.value })}
-          />
+          <div className="date-input-container">
+            <input
+              key={pagoKey}
+              type="datetime-local"
+              value={datosPago.fecha_pago}
+              onChange={(e) => setDatosPago({ ...datosPago, fecha_pago: e.target.value })}
+            />
+            <span style={{ fontSize: '0.85em', color: '#176bb3', marginLeft: 8 }}>
+              Hora actual RD (GMT-4)
+            </span>
+          </div>
         </div>
       </div>
 
@@ -128,7 +153,7 @@ const PagoForm = ({ total, onSubmit, setPaso, id_venta }) => {
 
       <div className="form-actions">
         <button type="submit" className="submit-btn">
-          <FaCreditCard /> Procesar Pago
+          Confirmar Pago
         </button>
       </div>
     </form>
@@ -136,16 +161,10 @@ const PagoForm = ({ total, onSubmit, setPaso, id_venta }) => {
 };
 
 // Componente de Envío
-const EnvioForm = ({ onSubmit, setPaso, id_orden }) => {
-  const [datosEnvio, setDatosEnvio] = useState({
-    fecha_estimada_envio: '',
-    direccion_entrega_envio: '',
-    estado_envio: 'pendiente',
-    estado: 'activo',
-    id_orden: id_orden
-  });
-
+const EnvioForm = ({ onSubmit, setPaso, id_orden, datosEnvio, setDatosEnvio }) => {
   const [errores, setErrores] = useState({});
+
+  const minFecha = getNowDateTimeLocalRD();
 
   const validarEnvio = () => {
     const nuevosErrores = {};
@@ -158,14 +177,36 @@ const EnvioForm = ({ onSubmit, setPaso, id_orden }) => {
       nuevosErrores.direccion_entrega_envio = 'La dirección es requerida';
     }
 
+    if (!datosEnvio.provincia_envio) {
+      nuevosErrores.provincia_envio = 'La provincia es requerida';
+    }
+
     setErrores(nuevosErrores);
     return Object.keys(nuevosErrores).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (validarEnvio()) {
-      onSubmit(datosEnvio);
+      if (!id_orden) {
+        alert('Error: No se pudo obtener el id de la orden. Intenta de nuevo.');
+        return;
+      }
+      const envioConOrden = { ...datosEnvio, id_orden };
+      try {
+        const response = await fetch('http://localhost:3000/envios', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(envioConOrden)
+        });
+        if (!response.ok) {
+          throw new Error('Error al procesar el envío');
+        }
+        setDatosEnvio(envioConOrden); // Guardar datos de envío en el estado
+        onSubmit(envioConOrden);
+      } catch (error) {
+        alert('Error al guardar el envío: ' + error.message);
+      }
     }
   };
 
@@ -192,6 +233,8 @@ const EnvioForm = ({ onSubmit, setPaso, id_orden }) => {
     }
   };
 
+  const costoEnvio = getCostoEnvio(datosEnvio.provincia_envio);
+
   return (
     <form onSubmit={handleSubmit} className="envio-form">
       <button type="button" className="back-btn" onClick={handleVolver}>
@@ -200,12 +243,17 @@ const EnvioForm = ({ onSubmit, setPaso, id_orden }) => {
       <h3 className="section-subtitle">Información de Envío</h3>
 
       <div className="form-row">
+        <div className="form-field">
+          <label>ID de la Orden</label>
+          <input type="text" value={id_orden || ''} readOnly style={{ backgroundColor: '#f0f0f0' }} />
+        </div>
         <div className={`form-field ${errores.fecha_estimada_envio ? 'error' : ''}`}>
           <label>Fecha de Entrega</label>
           <input
             type="datetime-local"
             value={datosEnvio.fecha_estimada_envio}
             onChange={(e) => setDatosEnvio({ ...datosEnvio, fecha_estimada_envio: e.target.value })}
+            min={minFecha}
           />
           {errores.fecha_estimada_envio && <div className="error-message">{errores.fecha_estimada_envio}</div>}
         </div>
@@ -220,11 +268,27 @@ const EnvioForm = ({ onSubmit, setPaso, id_orden }) => {
           />
           {errores.direccion_entrega_envio && <div className="error-message">{errores.direccion_entrega_envio}</div>}
         </div>
+
+        <div className={`form-field ${errores.provincia_envio ? 'error' : ''}`}>
+          <label>Provincia</label>
+          <select
+            value={datosEnvio.provincia_envio}
+            onChange={e => setDatosEnvio({ ...datosEnvio, provincia_envio: e.target.value })}
+          >
+            <option value="">Seleccione una provincia</option>
+            <option value="Santiago">Santiago</option>
+            <option value="Santo Domingo">Santo Domingo</option>
+          </select>
+          {errores.provincia_envio && <div className="error-message">{errores.provincia_envio}</div>}
+          <div style={{ marginTop: 8, color: '#176bb3', fontWeight: 'bold' }}>
+            Total a pagar del envío: {costoEnvio > 0 ? `$${costoEnvio}` : '--'}
+          </div>
+        </div>
       </div>
 
       <div className="form-actions">
         <button type="submit" className="submit-btn">
-          <FaTruck /> Confirmar Envío
+          Continuar al Pago
         </button>
       </div>
     </form>
@@ -235,7 +299,7 @@ const EnvioForm = ({ onSubmit, setPaso, id_orden }) => {
 const Ventas = () => {
   const [datosVenta, setDatosVenta] = useState({
     id_usuario: '',
-    fecha_venta: new Date().toISOString().slice(0, 16),
+    fecha_venta: getNowDateTimeLocalRD(),
     estado_venta: 'pendiente',
     estado: 'activo',
     total: 0,
@@ -246,9 +310,11 @@ const Ventas = () => {
     id_producto: '',
     cantidad: '',
     precio: '',
-    subtotal: 0
+    subtotal: 0,
+    nombre_producto: ''
   }]);
 
+  const [nombreUsuario, setNombreUsuario] = useState('');
   const [errores, setErrores] = useState({
     datosVenta: {},
     detalles: [{}]
@@ -261,11 +327,53 @@ const Ventas = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [ordenId, setOrdenId] = useState(null);
+  const [ordenIdLocal, setOrdenIdLocal] = useState(null);
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [selectedVentaId, setSelectedVentaId] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [datosPagoActual, setDatosPagoActual] = useState(null);
+  const [datosPago, setDatosPago] = useState({
+    monto_pago: 0,
+    fecha_pago: getNowDateTimeLocalRD(),
+    metodo_pago: 'transferencia',
+    referencia: '',
+    banco_emisor: '',
+    estado_pago: 'pendiente',
+    id_venta: null
+  });
   const navigate = useNavigate();
+
+  // Para forzar el refresco de la fecha en el input
+  const [ventaKey, setVentaKey] = useState(0);
+  const [pagoKey, setPagoKey] = useState(0);
+
+  const [datosEnvio, setDatosEnvio] = useState({
+    fecha_estimada_envio: '',
+    direccion_entrega_envio: '',
+    provincia_envio: '',
+    estado_envio: 'pendiente',
+    estado: 'activo',
+    id_orden: null
+  });
+
+  useEffect(() => {
+    if (mostrarFormulario && paso === 'venta') {
+      setDatosVenta(prev => ({ ...prev, fecha_venta: getNowDateTimeLocalRD() }));
+      setVentaKey(prev => prev + 1); // Forzar refresco del input
+    }
+  }, [mostrarFormulario, paso]);
+
+  useEffect(() => {
+    if (paso === 'pago') {
+      setDatosPago(prev => ({
+        ...prev,
+        fecha_pago: getNowDateTimeLocalRD(),
+        monto_pago: calcularTotal() + getCostoEnvio(datosEnvio.provincia_envio),
+        id_venta: datosVenta.id_venta
+      }));
+      setPagoKey(prev => prev + 1); // Forzar refresco del input
+    }
+  }, [paso]);
 
   useEffect(() => {
     fetch('http://localhost:3000/ventas')
@@ -318,18 +426,24 @@ const Ventas = () => {
       [campo]: valor
     };
 
-    // Si el campo que cambió es id_producto, obtener el precio automáticamente
+    // Si el campo que cambió es id_producto, obtener el precio y nombre automáticamente
     if (campo === 'id_producto' && valor) {
       try {
-        const response = await fetch(`http://localhost:3000/productos/${valor}/precio`);
-        if (response.ok) {
-          const data = await response.json();
-          nuevosDetalles[index].precio = data.precio;
+        const [precioResponse, productoResponse] = await Promise.all([
+          fetch(`http://localhost:3000/productos/${valor}/precio`),
+          fetch(`http://localhost:3000/productos/${valor}`)
+        ]);
+
+        if (precioResponse.ok && productoResponse.ok) {
+          const precioData = await precioResponse.json();
+          const productoData = await productoResponse.json();
+          nuevosDetalles[index].precio = precioData.precio;
+          nuevosDetalles[index].nombre_producto = productoData.nombre_producto;
         } else {
-          console.error('Error al obtener el precio del producto');
+          console.error('Error al obtener la información del producto');
         }
       } catch (error) {
-        console.error('Error al obtener el precio:', error);
+        console.error('Error al obtener la información:', error);
       }
     }
 
@@ -354,7 +468,8 @@ const Ventas = () => {
       id_producto: '',
       cantidad: '',
       precio: '',
-      subtotal: 0
+      subtotal: 0,
+      nombre_producto: ''
     }]);
     setErrores(prev => ({
       ...prev,
@@ -425,14 +540,15 @@ const Ventas = () => {
     return esValido;
   };
 
+  let idOrdenLocal = null; // variable local para el id_orden
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (validarFormulario()) {
       try {
         let idVenta = datosVenta.id_venta;
-
         if (!idVenta) {
-          // Si no hay ID de venta, crear una nueva
+          // Crear nueva venta
           const ventaParaEnviar = {
             id_usuario: parseInt(datosVenta.id_usuario),
             fecha_venta: datosVenta.fecha_venta,
@@ -446,19 +562,13 @@ const Ventas = () => {
               estado: 'activo'
             }))
           };
-
           const ventaResponse = await fetch('http://localhost:3000/ventas', {
             method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(ventaParaEnviar)
           });
-
           const responseData = await ventaResponse.json();
-          if (!ventaResponse.ok) {
-            throw new Error(responseData.details || responseData.error || 'Error al crear la venta');
-          }
+          if (!ventaResponse.ok) throw new Error(responseData.details || responseData.error || 'Error al crear la venta');
           idVenta = responseData.id || responseData.insertId;
         } else {
           // Actualizar venta existente
@@ -475,129 +585,95 @@ const Ventas = () => {
               estado: 'activo'
             }))
           };
-
           const ventaResponse = await fetch(`http://localhost:3000/ventas/${idVenta}`, {
             method: 'PUT',
-            headers: {
-              'Content-Type': 'application/json',
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(ventaParaEnviar)
           });
-
           if (!ventaResponse.ok) {
             const errorData = await ventaResponse.json();
             throw new Error(errorData.details || errorData.error || 'Error al actualizar la venta');
           }
         }
-
         setDatosVenta(prev => ({ ...prev, id_venta: idVenta }));
-        setPaso('pago');
+        // Crear la orden y guardar el id_orden en el estado
+        const ordenData = {
+          id_usuario: parseInt(datosVenta.id_usuario),
+          id_venta: idVenta,
+          total_orden: calcularTotal() + getCostoEnvio(datosEnvio.provincia_envio),
+          estado_orden: 'pendiente',
+          fecha_orden: datosVenta.fecha_venta,
+          estado: 'activo'
+        };
+        const ordenResponse = await fetch('http://localhost:3000/orden', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(ordenData)
+        });
+        if (!ordenResponse.ok) {
+          const errorData = await ordenResponse.json();
+          throw new Error(errorData.details || errorData.error || 'Error al crear la orden');
+        }
+        const ordenResult = await ordenResponse.json();
+        setOrdenId(ordenResult.id); // guardar en estado
+        // NO hagas setPaso('envio') aquí
       } catch (error) {
         console.error('Error completo:', error);
         alert(error.message);
-        return; // No continuar si hay error
+        return;
       }
     }
   };
 
+  // useEffect para cambiar a 'envio' solo cuando ordenId esté listo
+  useEffect(() => {
+    if (ordenId && paso === 'venta') {
+      setPaso('envio');
+    }
+  }, [ordenId]);
+
   const handlePagoSubmit = async (datosPago) => {
     try {
       let idPago = datosPagoActual?.id_pago;
-
       if (!idPago) {
         // Crear nuevo pago
         const response = await fetch('http://localhost:3000/pago', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(datosPago)
         });
-
         if (!response.ok) {
           const errorData = await response.json();
           throw new Error(errorData.details || errorData.error || 'Error al procesar el pago');
         }
-
-        const pagoResponse = await response.json();
-        idPago = pagoResponse.id;
-        setDatosPagoActual({ ...datosPago, id_pago: idPago });
       } else {
         // Actualizar pago existente
         const response = await fetch(`http://localhost:3000/pago/${idPago}`, {
           method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(datosPago)
         });
-
         if (!response.ok) {
           const errorData = await response.json();
           throw new Error(errorData.details || errorData.error || 'Error al actualizar el pago');
         }
       }
-
-      // Crear la orden con estado "completada"
-      const ordenData = {
-        id_usuario: parseInt(datosVenta.id_usuario),
-        id_venta: datosVenta.id_venta,
-        total_orden: datosPago.monto_pago,
-        estado_orden: 'completada',
-        fecha_orden: datosVenta.fecha_venta,
-        estado: 'activo'
-      };
-
-      const ordenResponse = await fetch('http://localhost:3000/orden', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(ordenData)
-      });
-
-      if (!ordenResponse.ok) {
-        const errorData = await ordenResponse.json();
-        throw new Error(errorData.details || errorData.error || 'Error al crear la orden');
-      }
-
-      const ordenResult = await ordenResponse.json();
-      setOrdenId(ordenResult.id);
-      setPaso('envio');
-
-    } catch (error) {
-      console.error('Error:', error);
-      alert(error.message);
-      return; // No continuar si hay error
-    }
-  };
-
-  const handleEnvioSubmit = async (datosEnvio) => {
-    try {
-      const response = await fetch('http://localhost:3000/envios', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(datosEnvio)
-      });
-
-      if (!response.ok) {
-        throw new Error('Error al procesar el envío');
-      }
-
-      alert('Venta completada exitosamente');
+      alert('Venta exitosa');
       setMostrarFormulario(false);
       setPaso('venta');
-
       // Recargar la lista de ventas
       const ventasResponse = await fetch('http://localhost:3000/ventas');
       const ventasData = await ventasResponse.json();
       setVentas(ventasData);
     } catch (error) {
       console.error('Error:', error);
-      alert('Error al procesar el envío: ' + error.message);
+      alert(error.message);
+      return;
     }
+  };
+
+  const handleEnvioSubmit = async (datosEnvioForm) => {
+    setPaso('pago');
   };
 
   const handleVolverAVenta = async () => {
@@ -726,6 +802,27 @@ const Ventas = () => {
     });
   };
 
+  const handleUsuarioChange = async (valor) => {
+    setDatosVenta(prev => ({ ...prev, id_usuario: valor }));
+    
+    if (valor) {
+      try {
+        const response = await fetch(`http://localhost:3000/usuario/${valor}`);
+        if (response.ok) {
+          const data = await response.json();
+          setNombreUsuario(data.nombre_clientes || 'Usuario no encontrado');
+        } else {
+          setNombreUsuario('Usuario no encontrado');
+        }
+      } catch (error) {
+        console.error('Error al obtener información del usuario:', error);
+        setNombreUsuario('Error al cargar usuario');
+      }
+    } else {
+      setNombreUsuario('');
+    }
+  };
+
   return (
     <div className="ventas-container">
       <div className="dashboard-header">
@@ -766,15 +863,12 @@ const Ventas = () => {
                   <input
                     type="text"
                     value={datosVenta.id_usuario}
-                    onChange={(e) => {
-                      setDatosVenta({ ...datosVenta, id_usuario: e.target.value });
-                      setErrores({
-                        ...errores,
-                        datosVenta: { ...errores.datosVenta, id_usuario: '' }
-                      });
-                    }}
+                    onChange={(e) => handleUsuarioChange(e.target.value)}
                     placeholder="Ingrese ID de usuario"
                   />
+                  {nombreUsuario && (
+                    <div className="info-text">Usuario: {nombreUsuario}</div>
+                  )}
                   {errores.datosVenta?.id_usuario && (
                     <div className="error-message">{errores.datosVenta.id_usuario}</div>
                   )}
@@ -784,6 +878,7 @@ const Ventas = () => {
                   <label>Fecha de Venta</label>
                   <div className="date-input-container">
                     <input
+                      key={ventaKey}
                       type="datetime-local"
                       value={datosVenta.fecha_venta}
                       onChange={(e) => {
@@ -794,6 +889,9 @@ const Ventas = () => {
                         });
                       }}
                     />
+                    <span style={{ fontSize: '0.85em', color: '#176bb3', marginLeft: 8 }}>
+                      Hora actual RD (GMT-4)
+                    </span>
                     <FaCalendarAlt className="calendar-icon" />
                   </div>
                   {errores.datosVenta?.fecha_venta && (
@@ -827,6 +925,9 @@ const Ventas = () => {
                         onChange={(e) => handleDetalleChange(index, 'id_producto', e.target.value)}
                         placeholder="Ingrese ID del producto"
                       />
+                      {detalle.nombre_producto && (
+                        <div className="info-text">Producto: {detalle.nombre_producto}</div>
+                      )}
                       {errores.detalles[index]?.id_producto && (
                         <div className="error-message">{errores.detalles[index].id_producto}</div>
                       )}
@@ -907,20 +1008,32 @@ const Ventas = () => {
             </form>
           )}
 
+          {paso === 'envio' && (
+            ordenId ? (
+              <EnvioForm
+                onSubmit={handleEnvioSubmit}
+                setPaso={setPaso}
+                id_orden={ordenId}
+                datosEnvio={datosEnvio}
+                setDatosEnvio={setDatosEnvio}
+              />
+            ) : (
+              <div style={{ padding: 32, textAlign: 'center', color: '#176bb3', fontWeight: 'bold' }}>
+                Cargando id de la orden...
+              </div>
+            )
+          )}
+
           {paso === 'pago' && (
             <PagoForm
-              total={calcularTotal()}
+              total={calcularTotal() + getCostoEnvio(datosEnvio.provincia_envio)}
               onSubmit={handlePagoSubmit}
               setPaso={handleVolverAVenta}
               id_venta={datosVenta.id_venta}
-            />
-          )}
-
-          {paso === 'envio' && (
-            <EnvioForm
-              onSubmit={handleEnvioSubmit}
-              setPaso={setPaso}
-              id_orden={ordenId}
+              datosPago={datosPago}
+              setDatosPago={setDatosPago}
+              costoEnvio={getCostoEnvio(datosEnvio.provincia_envio)}
+              pagoKey={pagoKey}
             />
           )}
         </div>

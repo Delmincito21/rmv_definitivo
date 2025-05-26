@@ -226,7 +226,7 @@ const Inicio = () => {
 
             {/* Próximos Envíos */}
             <div className="proximos-envios-container">
-                <h2><FiTruck /> Próximos Envíos del Día</h2>
+                <h2><FiTruck /> Próximos Envíos de la SEMANA</h2>
                 <div className="envios-grid">
                     {enviosUnicos
                         .filter(envio => envio && envio.id_envio !== undefined && envio.id_envio !== null)

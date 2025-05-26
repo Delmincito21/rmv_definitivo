@@ -31,10 +31,24 @@ const MisPedidos = () => {
     setLoading(true);
     fetch(`http://localhost:3000/ventas/usuario/${userId}`)
       .then(res => res.json())
-      .then(data => {
-        console.log("Pedidos recibidos:", data);
-        setPedidos(data);
-        setPedidosFiltrados(data);
+      .then(async data => {
+        // Para cada pedido, buscar su orden y su envío
+        const pedidosConEnvio = await Promise.all(data.map(async pedido => {
+          try {
+            const ordenRes = await fetch(`http://localhost:3000/orden/venta/${pedido.id_venta}`);
+            const orden = await ordenRes.json();
+            if (orden && orden.id_orden) {
+              const envioRes = await fetch(`http://localhost:3000/envios/orden/${orden.id_orden}`);
+              if (envioRes.ok) {
+                const envio = await envioRes.json();
+                return { ...pedido, envio_estado: envio.estado_envio, envio_fecha: envio.fecha_estimada_envio };
+              }
+            }
+          } catch (e) {}
+          return { ...pedido, envio_estado: null, envio_fecha: null };
+        }));
+        setPedidos(pedidosConEnvio);
+        setPedidosFiltrados(pedidosConEnvio);
       })
       .catch(err => {
         Swal.fire('Error', 'No se pudieron cargar tus pedidos', 'error');
@@ -429,6 +443,11 @@ const MisPedidos = () => {
                   </div>
                   <div style={{ color: '#666', fontSize: 14, marginBottom: 4 }}>
                     {new Date(pedido.fecha_venta).toLocaleString()}
+                  </div>
+                  {/* Estado y fecha de envío */}
+                  <div style={{ color: '#27639b', fontSize: 14, marginBottom: 4, display: 'flex', gap: 16, alignItems: 'center' }}>
+                    <span><b>Estado envío:</b> {pedido.envio_estado ? pedido.envio_estado : 'No disponible'}</span>
+                    <span><b>Fecha estimada:</b> {pedido.envio_fecha ? new Date(pedido.envio_fecha).toLocaleDateString() : '--'}</span>
                   </div>
                   <div style={{ fontWeight: 600, fontSize: 16, color: '#2196F3', marginBottom: 8 }}>
                     Total: ${pedido.total || 0}

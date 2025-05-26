@@ -32,35 +32,36 @@ function PagoTransferencia({ onSubmit, id_venta, monto }) {
     };
 
     return (
-        <form onSubmit={handleSubmit} style={{ maxWidth: 400, margin: '0 auto' }}>
-            <h3>Datos para Transferencia</h3>
+        <form onSubmit={handleSubmit} style={{ maxWidth: 420, margin: '0 auto', background: '#fff', borderRadius: 18, boxShadow: '0 8px 32px #2563eb22', padding: 32 }}>
+            <h3 style={{ color: '#176bb3', fontSize: 24, fontWeight: 700, marginBottom: 18, textAlign: 'center' }}>Datos para Transferencia</h3>
             <div style={{ background: '#f1f5f9', padding: 16, borderRadius: 8, marginBottom: 16 }}>
-                <p><b>Banco:</b> BHD</p>
-                <p><b>Tipo de cuenta:</b> Ahorro</p>
-                <p><b>Número de cuenta:</b> 1234567890</p>
-                <p><b>Titular:</b> Refrielectric MV S.R.L</p>
+                <p style={{ color: '#222', fontSize: 16 }}><b>Banco:</b> BHD</p>
+                <p style={{ color: '#222', fontSize: 16 }}><b>Tipo de cuenta:</b> Ahorro</p>
+                <p style={{ color: '#222', fontSize: 16 }}><b>Número de cuenta:</b> 1234567890</p>
+                <p style={{ color: '#222', fontSize: 16 }}><b>Titular:</b> Refrielectric MV S.R.L</p>
             </div>
-            <div style={{ marginBottom: 12 }}>
-                <label>Referencia de la transferencia:</label>
+            <div style={{ marginBottom: 18 }}>
+                <label style={{ color: '#222', fontWeight: 600, fontSize: 18, marginBottom: 8 }}>Referencia de la transferencia:</label>
                 <input
                     type="text"
                     value={referencia}
                     onChange={e => setReferencia(e.target.value)}
                     required
-                    style={{ width: '100%' }}
+                    style={{ width: '100%', background: '#fff', color: '#222', fontSize: 17, border: '1.5px solid #dbeafe', borderRadius: 8, padding: '12px 14px', marginBottom: 8 }}
                 />
             </div>
-            <div style={{ marginBottom: 12 }}>
-                <label>Sube el comprobante (voucher):</label>
+            <div style={{ marginBottom: 18 }}>
+                <label style={{ color: '#222', fontWeight: 600, fontSize: 18, marginBottom: 8 }}>Sube el comprobante (voucher):</label>
                 <input
                     type="file"
                     accept="image/*,application/pdf"
                     onChange={handleFileChange}
                     required
+                    style={{ background: '#fff', color: '#222', fontSize: 16, border: '1.5px solid #dbeafe', borderRadius: 8, padding: '10px 8px' }}
                 />
             </div>
-            {error && <div style={{ color: 'red', marginBottom: 8 }}>{error}</div>}
-            <button type="submit">Enviar comprobante</button>
+            {error && <div style={{ color: 'red', marginBottom: 8, fontSize: 16 }}>{error}</div>}
+            <button type="submit" style={{ background: '#176bb3', color: '#fff', border: 'none', padding: '12px 28px', borderRadius: 8, fontWeight: 600, fontSize: 17, cursor: 'pointer', width: '100%', marginTop: 8 }}>Enviar comprobante</button>
         </form>
     );
 }

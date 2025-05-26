@@ -914,76 +914,104 @@ const Ventas = () => {
 
               <h3 className="section-subtitle">Detalles de la Venta</h3>
 
-              {detalles.map((detalle, index) => (
-                <div key={index} className="detalle-venta-container">
+              {/* Formulario para agregar/editar el producto actual (último de la lista) */}
+              {detalles.length > 0 && (
+                <div className="detalle-venta-container">
                   <div className="form-row">
-                    <div className={`form-field ${errores.detalles[index]?.id_producto ? 'error' : ''}`}>
+                    <div className={`form-field ${errores.detalles[detalles.length-1]?.id_producto ? 'error' : ''}`}>
                       <label>ID Producto</label>
                       <input
                         type="text"
-                        value={detalle.id_producto}
-                        onChange={(e) => handleDetalleChange(index, 'id_producto', e.target.value)}
+                        value={detalles[detalles.length-1].id_producto}
+                        onChange={(e) => handleDetalleChange(detalles.length-1, 'id_producto', e.target.value)}
                         placeholder="Ingrese ID del producto"
                       />
-                      {detalle.nombre_producto && (
-                        <div className="info-text">Producto: {detalle.nombre_producto}</div>
+                      {detalles[detalles.length-1].nombre_producto && (
+                        <div className="info-text">Producto: {detalles[detalles.length-1].nombre_producto}</div>
                       )}
-                      {errores.detalles[index]?.id_producto && (
-                        <div className="error-message">{errores.detalles[index].id_producto}</div>
+                      {errores.detalles[detalles.length-1]?.id_producto && (
+                        <div className="error-message">{errores.detalles[detalles.length-1].id_producto}</div>
                       )}
                     </div>
-
-                    <div className={`form-field ${errores.detalles[index]?.cantidad ? 'error' : ''}`}>
+                    <div className={`form-field ${errores.detalles[detalles.length-1]?.cantidad ? 'error' : ''}`}>
                       <label>Cantidad</label>
                       <input
                         type="number"
-                        value={detalle.cantidad}
-                        onChange={(e) => handleDetalleChange(index, 'cantidad', e.target.value)}
+                        value={detalles[detalles.length-1].cantidad}
+                        onChange={(e) => handleDetalleChange(detalles.length-1, 'cantidad', e.target.value)}
                         placeholder="0"
                         min="0"
                       />
-                      {errores.detalles[index]?.cantidad && (
-                        <div className="error-message">{errores.detalles[index].cantidad}</div>
+                      {errores.detalles[detalles.length-1]?.cantidad && (
+                        <div className="error-message">{errores.detalles[detalles.length-1].cantidad}</div>
                       )}
                     </div>
-
-                    <div className={`form-field ${errores.detalles[index]?.precio ? 'error' : ''}`}>
+                    <div className={`form-field ${errores.detalles[detalles.length-1]?.precio ? 'error' : ''}`}>
                       <label>Precio Unitario</label>
                       <input
                         type="number"
-                        value={detalle.precio}
-                        onChange={(e) => handleDetalleChange(index, 'precio', e.target.value)}
+                        value={detalles[detalles.length-1].precio}
+                        onChange={(e) => handleDetalleChange(detalles.length-1, 'precio', e.target.value)}
                         placeholder="0.00"
                         step="0.01"
                         min="0"
                       />
-                      {errores.detalles[index]?.precio && (
-                        <div className="error-message">{errores.detalles[index].precio}</div>
+                      {errores.detalles[detalles.length-1]?.precio && (
+                        <div className="error-message">{errores.detalles[detalles.length-1].precio}</div>
                       )}
                     </div>
-
                     <div className="form-field subtotal">
                       <label>Subtotal</label>
                       <input
                         type="text"
-                        value={detalle.subtotal.toFixed(2)}
+                        value={Number(detalles[detalles.length-1].subtotal).toFixed(2)}
                         readOnly
                         placeholder="0.00"
                       />
                     </div>
-
-                    {detalles.length > 1 && (
-                      <button
-                        type="button"
-                        className="btn-remove"
-                        onClick={() => eliminarDetalle(index)}
-                      >
-                        <FaMinus />
-                      </button>
-                    )}
                   </div>
                 </div>
-              ))}
+              )}
+
+              {/* Tabla de productos ya agregados (todos menos el último) */}
+              {detalles.length > 1 && (
+                <div className="table-container" style={{ marginBottom: 20 }}>
+                  <table className="data-table">
+                    <thead>
+                      <tr>
+                        <th>ID Producto</th>
+                        <th>Nombre</th>
+                        <th>Cantidad</th>
+                        <th>Precio Unitario</th>
+                        <th>Subtotal</th>
+                        <th>Acción</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {detalles.slice(0, -1).map((detalle, index) => (
+                        <tr key={index}>
+                          <td>{detalle.id_producto}</td>
+                          <td>{detalle.nombre_producto}</td>
+                          <td>{detalle.cantidad}</td>
+                          <td>{Number(detalle.precio).toFixed(2)}</td>
+                          <td>{Number(detalle.subtotal).toFixed(2)}</td>
+                          <td>
+                            <button
+                              type="button"
+                              className="btn-remove"
+                              onClick={() => eliminarDetalle(index)}
+                              title="Eliminar producto"
+                              style={{ background: 'none', color: '#e74c3c', border: 'none', fontSize: 22, fontWeight: 'bold', lineHeight: 1, padding: 0, minWidth: 32 }}
+                            >
+                              <span style={{ color: '#e74c3c', fontWeight: 'bold', fontSize: 22 }}>×</span>
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
 
               <div className="add-item-container">
                 <button

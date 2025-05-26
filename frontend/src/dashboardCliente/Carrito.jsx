@@ -28,6 +28,10 @@ function Carrito() {
   const [mostrarPayPal, setMostrarPayPal] = useState(false);
   const [userInfo, setUserInfo] = useState(null);
   const [metodoPago, setMetodoPago] = useState('paypal');
+  const [provincia, setProvincia] = useState('');
+  const [showDireccionModal, setShowDireccionModal] = useState(false);
+  const [direccionTemp, setDireccionTemp] = useState('');
+  const [provinciaTemp, setProvinciaTemp] = useState('');
 
   // Asegurarse de que el carrito esté actualizado para el usuario actual
   useEffect(() => {
@@ -126,27 +130,31 @@ function Carrito() {
     }
   };
 
-  const pedirDireccionEnvio = async () => {
-    const { value: direccion } = await Swal.fire({
-      title: 'Dirección de envío',
-      input: 'text',
-      inputLabel: 'Por favor ingresa tu dirección de envío',
-      inputPlaceholder: 'Dirección completa',
-      confirmButtonText: 'Continuar con el pago',
-      showCancelButton: true,
-      cancelButtonText: 'Cancelar',
-      inputValidator: (value) => {
-        if (!value) {
-          return 'La dirección de envío es obligatoria';
-        }
-      }
-    });
-    if (direccion) {
-      setDireccionEnvio(direccion);
-      setMostrarPayPal(true);
-      console.log('Dirección guardada:', direccion);
-      console.log('mostrarPayPal:', true);
-    }
+  // Cálculo de costo de envío
+  const getCostoEnvio = (prov) => {
+    if (prov === 'Santiago') return 500;
+    if (prov === 'Santo Domingo') return 1500;
+    return 0;
+  };
+
+  // Total con envío
+  const totalConEnvio = getCartTotal() + getCostoEnvio(provincia);
+
+  // Reemplaza pedirDireccionEnvio para mostrar modal propio
+  const pedirDireccionEnvio = () => {
+    setDireccionTemp(direccionEnvio);
+    setProvinciaTemp(provincia);
+    setShowDireccionModal(true);
+  };
+
+  // Guardar dirección y provincia y mostrar métodos de pago
+  const handleDireccionSubmit = (e) => {
+    e.preventDefault();
+    if (!direccionTemp || !provinciaTemp) return;
+    setDireccionEnvio(direccionTemp);
+    setProvincia(provinciaTemp);
+    setShowDireccionModal(false);
+    setMostrarPayPal(true);
   };
 
   const handlePagoTransferencia = async (formData) => {
@@ -354,11 +362,11 @@ function Carrito() {
                 </div>
                 <div className="summary-row">
                   <span>Envío:</span>
-                  <span>Gratis</span>
+                  <span>{provincia ? `$${getCostoEnvio(provincia)}` : '--'}</span>
                 </div>
                 <div className="summary-row total">
                   <span>Total:</span>
-                  <span>${getCartTotal().toFixed(2)}</span>
+                  <span>${totalConEnvio.toFixed(2)}</span>
                 </div>
 
                 <p className="shipping-note">Envío e impuestos calculados al finalizar la compra.</p>
@@ -403,7 +411,7 @@ function Carrito() {
                             createOrder={(data, actions) => {
                               return actions.order.create({
                                 purchase_units: [{
-                                  amount: { value: getCartTotal().toString() }
+                                  amount: { value: totalConEnvio.toString() }
                                 }]
                               });
                             }}
@@ -411,17 +419,19 @@ function Carrito() {
                               const details = await actions.order.capture();
                               if (details.status === 'COMPLETED') {
                                 const datosPago = {
-                                  monto_pago: getCartTotal(),
+                                  monto_pago: totalConEnvio,
                                   fecha_pago: new Date().toISOString(),
                                   metodo_pago: 'PayPal',
                                   referencia: details.id,
                                   banco_emisor: details.payer.email_address,
                                   estado_pago: details.status,
-                                  direccion_envio: direccionEnvio // <-- Aquí va la dirección
+                                  direccion_envio: direccionEnvio,
+                                  provincia_envio: provincia
                                 };
                                 handleCheckout(datosPago);
-                                setMostrarPayPal(false); // Oculta el botón después del pago
+                                setMostrarPayPal(false);
                                 setDireccionEnvio('');
+                                setProvincia('');
                               } else {
                                 Swal.fire('Pago no completado', 'El pago con PayPal no se completó correctamente.', 'error');
                               }
@@ -429,14 +439,21 @@ function Carrito() {
                             onCancel={() => {
                               setMostrarPayPal(false);
                               setDireccionEnvio('');
+                              setProvincia('');
                             }}
                           />
                         </PayPalScriptProvider>
                       )}
                       {metodoPago === 'transferencia' && (
                         <PagoTransferencia
-                          onSubmit={handlePagoTransferencia}
-                          monto={getCartTotal()}
+                          onSubmit={formData => {
+                            // Agregar provincia a formData
+                            formData.append('provincia_envio', provincia);
+                            handlePagoTransferencia(formData);
+                            setProvincia('');
+                            setDireccionEnvio('');
+                          }}
+                          monto={totalConEnvio}
                         />
                       )}
                     </>
@@ -448,6 +465,45 @@ function Carrito() {
           )}
         </div>
       </main>
+
+      {/* Modal para dirección y provincia */}
+      {showDireccionModal && (
+        <div className="modal-pago-overlay" style={{ zIndex: 9999 }}>
+          <div className="modal-pago-content" style={{ background: '#fff', borderRadius: 18, padding: 36, minWidth: 340, maxWidth: 420, boxShadow: '0 8px 32px #2563eb22', display: 'flex', flexDirection: 'column', alignItems: 'stretch' }}>
+            <h2 className="modal-pago-title" style={{ color: '#176bb3', fontSize: 26, fontWeight: 700, marginBottom: 18, textAlign: 'center' }}>Dirección de envío</h2>
+            <form className="modal-pago-form" onSubmit={handleDireccionSubmit}>
+              <label style={{ color: '#222', fontWeight: 600, fontSize: 18, marginBottom: 8 }}>Dirección completa</label>
+              <input
+                type="text"
+                value={direccionTemp}
+                onChange={e => setDireccionTemp(e.target.value)}
+                placeholder="Dirección completa"
+                required
+                style={{ background: '#fff', color: '#222', fontSize: 17, border: '1.5px solid #dbeafe', borderRadius: 8, padding: '12px 14px', marginBottom: 18 }}
+              />
+              <label style={{ color: '#222', fontWeight: 600, fontSize: 18, marginBottom: 8 }}>Provincia</label>
+              <select
+                value={provinciaTemp}
+                onChange={e => setProvinciaTemp(e.target.value)}
+                required
+                style={{ background: '#fff', color: '#222', fontSize: 17, border: '1.5px solid #dbeafe', borderRadius: 8, padding: '12px 14px', marginBottom: 18 }}
+              >
+                <option value="">Seleccione una provincia</option>
+                <option value="Santiago">Santiago</option>
+                <option value="Santo Domingo">Santo Domingo</option>
+              </select>
+              <div style={{ margin: '12px 0', color: '#176bb3', fontWeight: 'bold', fontSize: 18 }}>
+                Costo de envío: {getCostoEnvio(provinciaTemp) > 0 ? `$${getCostoEnvio(provinciaTemp)}` : '--'}<br />
+                Total a pagar: ${ (getCartTotal() + getCostoEnvio(provinciaTemp)).toFixed(2) }
+              </div>
+              <div className="modal-pago-actions" style={{ display: 'flex', justifyContent: 'flex-end', gap: 16, marginTop: 18 }}>
+                <button type="button" className="modal-pago-cancel" onClick={() => setShowDireccionModal(false)} style={{ background: '#e5e7eb', color: '#222', border: 'none', padding: '10px 24px', borderRadius: 8, fontWeight: 500, fontSize: 16, cursor: 'pointer' }}>Cancelar</button>
+                <button type="submit" className="modal-pago-submit" style={{ background: '#176bb3', color: '#fff', border: 'none', padding: '10px 24px', borderRadius: 8, fontWeight: 600, fontSize: 16, cursor: 'pointer' }}>Continuar</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

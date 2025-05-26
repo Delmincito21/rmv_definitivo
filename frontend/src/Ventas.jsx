@@ -905,7 +905,7 @@ const Ventas = () => {
                     value={datosVenta.estado_venta}
                     onChange={(e) => setDatosVenta({ ...datosVenta, estado_venta: e.target.value })}
                   >
-                    <option value="pendiente">Pendiente</option>
+                    <option value="pendiente">Pendiente Pagar</option>
                     <option value="completa">Completa</option>
                     <option value="cancelada">Cancelada</option>
                   </select>

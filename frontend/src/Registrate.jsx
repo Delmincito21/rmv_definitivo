@@ -47,7 +47,20 @@ const RegistroCliente = () => {
       }
 
       alert('Cliente registrado con éxito!');
-      navigate('/Tienda');
+
+      const loginResponse = await fetch('http://localhost:3000/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nombre_usuario: cliente.nombre_usuario, pin_usuario: cliente.pin_usuario })
+      });
+      const loginData = await loginResponse.json();
+
+      localStorage.clear();
+      localStorage.setItem('userId', String(loginData.id_usuario));
+      localStorage.setItem('token', loginData.token);
+      localStorage.setItem('userData', JSON.stringify(loginData));
+
+      navigate('/Tienda', { replace: true });
     } catch (error) {
       alert('Error al registrar el cliente: ' + error.message);
     }
@@ -114,7 +127,7 @@ const RegistroCliente = () => {
                   required
                   className="input-field"
                 />
-              </div> 
+              </div>
               <div className="form-row">
                 <input
                   type="text"

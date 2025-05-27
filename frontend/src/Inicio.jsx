@@ -235,7 +235,7 @@ const Inicio = () => {
                                 <div className="envio-info">
                                     <h3>{envio.cliente}</h3>
                                     <p><strong>Dirección:</strong> {envio.direccion}</p>
-                                    <p><strong>Entrega:</strong> {envio.entrega_completa}</p>
+                                    <p><strong>Entrega Estimada:</strong> {envio.entrega_completa}</p>
                                 </div>
                                 <button
                                     className="confirmar-btn"

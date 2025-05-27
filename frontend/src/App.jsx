@@ -15,6 +15,7 @@ import MisPedidos from './dashboardCliente/MisPedidos';
 import EditarPerfil from './dashboardCliente/EditarPerfil';
 import Factura from './Factura';
 import ProtectedRoute from './components/ProtectedRoute';
+import AdminLayout from './AdminLayout';
 
 function App() {
   return (
@@ -22,35 +23,44 @@ function App() {
       <CartProvider>
         <Routes>
           <Route path="/" element={<Navigate to="/Bienvenido" replace />} />
+          {/* Rutas públicas */}
           <Route path="/Bienvenido" element={<Bienvenido />} />
           <Route path="/loginCliente" element={<LoginCliente />} />
           <Route path="/registrate" element={<RegistroCliente />} />
           <Route path="/reset-password" element={<ResetPassword />} />
 
-          {/* Rutas protegidas para administradores */}
-          <Route path="/AdminDashboard" element={
+          {/* Layout de administrador */}
+          <Route path="/admin" element={
             <ProtectedRoute allowedRoles={['administrador']}>
-              <AdminDashboard />
+              <AdminLayout />
+            </ProtectedRoute>
+          }>
+            <Route index element={
+              <Inicio />
+            } />
+            <Route path="inicio" element={
+              <Inicio />
+            } />
+            <Route path="ventas" element={
+              <Ventas />
+            } />
+            <Route path="clientes" element={
+              <Clientes />
+            } />
+            <Route path="factura" element={
+              <Factura />
+            } />
+          </Route>
+
+          {/* Rutas de productos (fuera del AdminLayout) */}
+          <Route path="/admin/productos" element={
+            <ProtectedRoute allowedRoles={['administrador']}>
+              <ProductAdmi />
             </ProtectedRoute>
           } />
           <Route path="/ProductAdmi" element={
             <ProtectedRoute allowedRoles={['administrador']}>
               <ProductAdmi />
-            </ProtectedRoute>
-          } />
-          <Route path="/Ventas" element={
-            <ProtectedRoute allowedRoles={['administrador']}>
-              <Ventas />
-            </ProtectedRoute>
-          } />
-          <Route path="/Clientes" element={
-            <ProtectedRoute allowedRoles={['administrador']}>
-              <Clientes />
-            </ProtectedRoute>
-          } />
-          <Route path="/Inicio" element={
-            <ProtectedRoute allowedRoles={['administrador']}>
-              <Inicio />
             </ProtectedRoute>
           } />
 
@@ -75,11 +85,6 @@ function App() {
               <EditarPerfil />
             </ProtectedRoute>
           } />
-          <Route path="/Factura" element={
-            <ProtectedRoute allowedRoles={['cliente']}>
-              <Factura />
-            </ProtectedRoute>
-          } />
           <Route path="/factura/:id_venta" element={
             <ProtectedRoute allowedRoles={['cliente']}>
               <Factura />
@@ -90,16 +95,5 @@ function App() {
     </Router>
   );
 }
-
-const LayoutWithSidebar = ({ children }) => {
-  return (
-    <div className="admin-layout">
-      <AdminDashboard />
-      <div className="main-content-with-sidebar">
-        {children}
-      </div>
-    </div>
-  );
-};
 
 export default App;

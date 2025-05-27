@@ -71,7 +71,7 @@ const LoginCliente = () => {
 
       // Navegar según el rol
       if (data.rol === 'administrador') {
-        navigate('/Inicio', { replace: true });
+        navigate('/admin/inicio', { replace: true });
       } else {
         navigate('/Tienda', { replace: true });
       }

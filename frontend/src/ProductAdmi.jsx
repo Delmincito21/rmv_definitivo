@@ -878,7 +878,7 @@ export default function ProductAdmin() {
         </nav>
 
         <div className="sidebar-footer">
-          <button onClick={() => navigate('/Inicio')} className="exit-btn">
+          <button onClick={() => navigate('/admin/inicio')} className="exit-btn">
             <FaSignOutAlt className="exit-icon" />
             <span>Salir del Panel</span>
           </button>

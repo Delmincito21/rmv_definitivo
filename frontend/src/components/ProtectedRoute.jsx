@@ -1,4 +1,5 @@
 import { Navigate, useLocation } from 'react-router-dom';
+import { useEffect } from 'react';
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const location = useLocation();
@@ -12,6 +13,8 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
     localStorage.removeItem('userData');
     localStorage.removeItem('token');
     localStorage.removeItem('userId');
+    
+    // Redirigir a login y limpiar el historial
     return <Navigate to="/loginCliente" replace state={{ from: location }} />;
   }
 
@@ -21,7 +24,7 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
     if (userRole === 'cliente') {
       return <Navigate to="/Tienda" replace />;
     } else if (userRole === 'administrador') {
-      return <Navigate to="/Inicio" replace />;
+      return <Navigate to="/admin/inicio" replace />;
     }
     // Si no tiene un rol válido, redirigir al login
     return <Navigate to="/loginCliente" replace />;

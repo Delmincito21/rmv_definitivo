@@ -14,6 +14,7 @@ import ResetPassword from './ResetPassword';
 import MisPedidos from './dashboardCliente/MisPedidos';
 import EditarPerfil from './dashboardCliente/EditarPerfil';
 import Factura from './Factura';
+import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
   return (
@@ -21,28 +22,69 @@ function App() {
       <CartProvider>
         <Routes>
           <Route path="/" element={<Navigate to="/Bienvenido" replace />} />
-          <Route path="/AdminDashboard" element={<AdminDashboard />} />
           <Route path="/Bienvenido" element={<Bienvenido />} />
           <Route path="/loginCliente" element={<LoginCliente />} />
           <Route path="/registrate" element={<RegistroCliente />} />
-          <Route path="/Tienda" element={<Tienda />} />
-          <Route path="/Carrito" element={<Carrito />} />
           <Route path="/reset-password" element={<ResetPassword />} />
-          <Route path="/MisPedidos" element={<MisPedidos />} />
-          <Route path="/editar-perfil" element={<EditarPerfil />} />
-          <Route path="/Factura" element={<Factura />} />
-          <Route path="/factura/:id_venta" element={<Factura />} />
 
-          {/* Rutas con sidebar */}
-          <Route element={<LayoutWithSidebar />}>
-            <Route path="/Inicio" element={<Inicio />} />
-            <Route path="/Clientes" element={<Clientes />} />
-            <Route path="/Ventas" element={<Ventas />} />
-            <Route path="/Tienda" element={<Tienda />} />
-          </Route>
+          {/* Rutas protegidas para administradores */}
+          <Route path="/AdminDashboard" element={
+            <ProtectedRoute allowedRoles={['administrador']}>
+              <AdminDashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/ProductAdmi" element={
+            <ProtectedRoute allowedRoles={['administrador']}>
+              <ProductAdmi />
+            </ProtectedRoute>
+          } />
+          <Route path="/Ventas" element={
+            <ProtectedRoute allowedRoles={['administrador']}>
+              <Ventas />
+            </ProtectedRoute>
+          } />
+          <Route path="/Clientes" element={
+            <ProtectedRoute allowedRoles={['administrador']}>
+              <Clientes />
+            </ProtectedRoute>
+          } />
+          <Route path="/Inicio" element={
+            <ProtectedRoute allowedRoles={['administrador']}>
+              <Inicio />
+            </ProtectedRoute>
+          } />
 
-          {/* Rutas sin sidebar */}
-          <Route path="/ProductAdmi" element={<ProductAdmi />} />
+          {/* Rutas protegidas para clientes */}
+          <Route path="/Tienda" element={
+            <ProtectedRoute allowedRoles={['cliente']}>
+              <Tienda />
+            </ProtectedRoute>
+          } />
+          <Route path="/Carrito" element={
+            <ProtectedRoute allowedRoles={['cliente']}>
+              <Carrito />
+            </ProtectedRoute>
+          } />
+          <Route path="/MisPedidos" element={
+            <ProtectedRoute allowedRoles={['cliente']}>
+              <MisPedidos />
+            </ProtectedRoute>
+          } />
+          <Route path="/editar-perfil" element={
+            <ProtectedRoute allowedRoles={['cliente']}>
+              <EditarPerfil />
+            </ProtectedRoute>
+          } />
+          <Route path="/Factura" element={
+            <ProtectedRoute allowedRoles={['cliente']}>
+              <Factura />
+            </ProtectedRoute>
+          } />
+          <Route path="/factura/:id_venta" element={
+            <ProtectedRoute allowedRoles={['cliente']}>
+              <Factura />
+            </ProtectedRoute>
+          } />
         </Routes>
       </CartProvider>
     </Router>

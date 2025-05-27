@@ -192,7 +192,13 @@ const EnvioForm = ({ onSubmit, setPaso, id_orden, datosEnvio, setDatosEnvio }) =
         alert('Error: No se pudo obtener el id de la orden. Intenta de nuevo.');
         return;
       }
-      const envioConOrden = { ...datosEnvio, id_orden };
+      const envioConOrden = {
+        ...datosEnvio,
+        id_orden,
+        provincia_envio: datosEnvio.provincia_envio
+      };
+      console.log('Provincia seleccionada antes de enviar:', datosEnvio.provincia_envio);
+      console.log('Objeto que se enviará:', envioConOrden);
       try {
         const response = await fetch('http://localhost:3000/envios', {
           method: 'POST',
@@ -274,6 +280,7 @@ const EnvioForm = ({ onSubmit, setPaso, id_orden, datosEnvio, setDatosEnvio }) =
           <select
             value={datosEnvio.provincia_envio}
             onChange={e => setDatosEnvio({ ...datosEnvio, provincia_envio: e.target.value })}
+            required
           >
             <option value="">Seleccione una provincia</option>
             <option value="Santiago">Santiago</option>
@@ -837,7 +844,7 @@ const Ventas = () => {
 
   const handleUsuarioChange = async (valor) => {
     setDatosVenta(prev => ({ ...prev, id_usuario: valor }));
-    
+
     if (valor) {
       try {
         const response = await fetch(`http://localhost:3000/usuario/${valor}`);
@@ -951,53 +958,53 @@ const Ventas = () => {
               {detalles.length > 0 && (
                 <div className="detalle-venta-container">
                   <div className="form-row">
-                    <div className={`form-field ${errores.detalles[detalles.length-1]?.id_producto ? 'error' : ''}`}>
+                    <div className={`form-field ${errores.detalles[detalles.length - 1]?.id_producto ? 'error' : ''}`}>
                       <label>ID Producto</label>
                       <input
                         type="text"
-                        value={detalles[detalles.length-1].id_producto}
-                        onChange={(e) => handleDetalleChange(detalles.length-1, 'id_producto', e.target.value)}
+                        value={detalles[detalles.length - 1].id_producto}
+                        onChange={(e) => handleDetalleChange(detalles.length - 1, 'id_producto', e.target.value)}
                         placeholder="Ingrese ID del producto"
                       />
-                      {detalles[detalles.length-1].nombre_producto && (
-                        <div className="info-text">Producto: {detalles[detalles.length-1].nombre_producto}</div>
+                      {detalles[detalles.length - 1].nombre_producto && (
+                        <div className="info-text">Producto: {detalles[detalles.length - 1].nombre_producto}</div>
                       )}
-                      {errores.detalles[detalles.length-1]?.id_producto && (
-                        <div className="error-message">{errores.detalles[detalles.length-1].id_producto}</div>
+                      {errores.detalles[detalles.length - 1]?.id_producto && (
+                        <div className="error-message">{errores.detalles[detalles.length - 1].id_producto}</div>
                       )}
                     </div>
-                    <div className={`form-field ${errores.detalles[detalles.length-1]?.cantidad ? 'error' : ''}`}>
+                    <div className={`form-field ${errores.detalles[detalles.length - 1]?.cantidad ? 'error' : ''}`}>
                       <label>Cantidad</label>
                       <input
                         type="number"
-                        value={detalles[detalles.length-1].cantidad}
-                        onChange={(e) => handleDetalleChange(detalles.length-1, 'cantidad', e.target.value)}
+                        value={detalles[detalles.length - 1].cantidad}
+                        onChange={(e) => handleDetalleChange(detalles.length - 1, 'cantidad', e.target.value)}
                         placeholder="0"
                         min="0"
                       />
-                      {errores.detalles[detalles.length-1]?.cantidad && (
-                        <div className="error-message">{errores.detalles[detalles.length-1].cantidad}</div>
+                      {errores.detalles[detalles.length - 1]?.cantidad && (
+                        <div className="error-message">{errores.detalles[detalles.length - 1].cantidad}</div>
                       )}
                     </div>
-                    <div className={`form-field ${errores.detalles[detalles.length-1]?.precio ? 'error' : ''}`}>
+                    <div className={`form-field ${errores.detalles[detalles.length - 1]?.precio ? 'error' : ''}`}>
                       <label>Precio Unitario</label>
                       <input
                         type="number"
-                        value={detalles[detalles.length-1].precio}
-                        onChange={(e) => handleDetalleChange(detalles.length-1, 'precio', e.target.value)}
+                        value={detalles[detalles.length - 1].precio}
+                        onChange={(e) => handleDetalleChange(detalles.length - 1, 'precio', e.target.value)}
                         placeholder="0.00"
                         step="0.01"
                         min="0"
                       />
-                      {errores.detalles[detalles.length-1]?.precio && (
-                        <div className="error-message">{errores.detalles[detalles.length-1].precio}</div>
+                      {errores.detalles[detalles.length - 1]?.precio && (
+                        <div className="error-message">{errores.detalles[detalles.length - 1].precio}</div>
                       )}
                     </div>
                     <div className="form-field subtotal">
                       <label>Subtotal</label>
                       <input
                         type="text"
-                        value={Number(detalles[detalles.length-1].subtotal).toFixed(2)}
+                        value={Number(detalles[detalles.length - 1].subtotal).toFixed(2)}
                         readOnly
                         placeholder="0.00"
                       />

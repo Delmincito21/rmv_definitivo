@@ -13,6 +13,7 @@ const Factura = ({ venta, id_venta: propIdVenta }) => {
     const [pago, setPago] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [envio, setEnvio] = useState(null);
 
     useEffect(() => {
         const fetchVentaData = async () => {
@@ -97,17 +98,33 @@ const Factura = ({ venta, id_venta: propIdVenta }) => {
                 const pagoData = Array.isArray(pagoArray) ? pagoArray[0] : pagoArray;
                 setPago(pagoData);
 
-                // 7. Calcular el total sumando los subtotales
+                // 7. Obtener la información del envío
+                const ordenResponse = await fetch(`http://localhost:3000/orden/venta/${id_venta}`);
+                if (ordenResponse.ok) {
+                    const ordenData = await ordenResponse.json();
+                    if (ordenData && ordenData.id_orden) {
+                        const envioResponse = await fetch(`http://localhost:3000/envios/orden/${ordenData.id_orden}`);
+                        if (envioResponse.ok) {
+                            const envioData = await envioResponse.json();
+                            setEnvio(envioData);
+                            console.log('ENVÍO EN FACTURA:', envioData);
+                        }
+                    }
+                }
+
+                // 8. Calcular el total sumando los subtotales
                 const total = detallesData.reduce((acc, d) => acc + (parseFloat(d.subtotal_detalle_venta) || 0), 0);
                 // const itbis = total * 0.18;
 
-                // 8. Construir el objeto completo de la factura
+                // 9. Construir el objeto completo de la factura
+                const costoEnvio = envio ? getCostoEnvio(envio.provincia_envio) : 0;
                 const facturaCompleta = {
                     ...ventaInfo,
                     cliente: clienteData,
                     detalles: detallesData,
                     metodo_pago: pagoData?.metodo_pago || 'No especificado',
-                    total
+                    total,
+                    costoEnvio
                 };
 
                 setFacturaVenta(facturaCompleta);
@@ -165,6 +182,15 @@ const Factura = ({ venta, id_venta: propIdVenta }) => {
         const destino = location.state?.volverA || '/Ventas';
         navigate(destino);
     };
+
+    const getCostoEnvio = (provincia) => {
+        if (!provincia) return 0;
+        if (provincia === 'Santiago') return 500;
+        if (provincia === 'Santo Domingo') return 1500;
+        return 0;
+    };
+
+    const costoEnvio = envio ? getCostoEnvio(envio.provincia_envio) : 0;
 
     return (
         <div className="factura-container">
@@ -239,11 +265,11 @@ const Factura = ({ venta, id_venta: propIdVenta }) => {
                     </div>
                     <div className="total-row">
                         <span>Envío:</span>
-                        <span>{formatCurrency(0)}</span>
+                        <span>{formatCurrency(costoEnvio)}</span>
                     </div>
                     <div className="total-row">
                         <span><strong>Total:</strong></span>
-                        <span><strong>{formatCurrency(facturaVenta.total)}</strong></span>
+                        <span><strong>{formatCurrency(facturaVenta.total + costoEnvio)}</strong></span>
                     </div>
                 </div>
 

@@ -899,8 +899,17 @@ app.get('/envios', async (req, res) => {
 
 app.post('/envios', async (req, res) => {
     try {
-        // Asegurar provincia_envio siempre tiene valor
-        if (!req.body.provincia_envio) req.body.provincia_envio = 'Santiago';
+        // Normalizar provincia
+        if (req.body.provincia_envio) {
+            let prov = req.body.provincia_envio.trim();
+            if (prov.toLowerCase() === 'santiago') prov = 'Santiago';
+            else if (prov.toLowerCase() === 'santo domingo') prov = 'Santo Domingo';
+            else prov = 'Santiago'; // Valor por defecto si no es válido
+            req.body.provincia_envio = prov;
+        } else {
+            req.body.provincia_envio = 'Santiago';
+        }
+
         const result = await Envio.create(req.body);
         res.status(201).json({
             message: 'Envío creado exitosamente',
@@ -957,6 +966,17 @@ app.get('/envios/orden/:id', async (req, res) => {
 
 app.put('/envios/:id', async (req, res) => {
     try {
+        // Normalizar provincia
+        if (req.body.provincia_envio) {
+            let prov = req.body.provincia_envio.trim();
+            if (prov.toLowerCase() === 'santiago') prov = 'Santiago';
+            else if (prov.toLowerCase() === 'santo domingo') prov = 'Santo Domingo';
+            else prov = 'Santiago'; // Valor por defecto si no es válido
+            req.body.provincia_envio = prov;
+        } else {
+            req.body.provincia_envio = 'Santiago';
+        }
+
         console.log('Datos recibidos para actualizar envío:', {
             id: req.params.id,
             body: req.body
@@ -977,16 +997,13 @@ app.put('/envios/:id', async (req, res) => {
             });
         }
 
-        // Asegurar provincia_envio siempre tiene valor
-        const provincia = req.body.provincia_envio || 'Santiago';
-
         const dataToUpdate = {
             fecha_estimada_envio: req.body.fecha_estimada_envio ?
                 new Date(req.body.fecha_estimada_envio).toISOString().slice(0, 19).replace('T', ' ') :
                 null,
             direccion_entrega_envio: req.body.direccion_entrega_envio,
             estado_envio: req.body.estado_envio,
-            provincia_envio: provincia,
+            provincia_envio: req.body.provincia_envio,
             estado: req.body.estado || 'activo'
         };
 
@@ -1742,7 +1759,7 @@ app.listen(PORT, () => {
 app.post('/procesar-compra', async (req, res) => {
     const connection = await db.getConnection();
     try {
-        const { id_usuario, items, total, pago, direccion_envio } = req.body;
+        const { id_usuario, items, total, pago, direccion_envio, provincia_envio } = req.body;
 
         await connection.beginTransaction();
 
@@ -1802,6 +1819,7 @@ app.post('/procesar-compra', async (req, res) => {
             id_orden,
             direccion_entrega_envio: direccion_envio,
             fecha_estimada_envio: fechaEstimada.toISOString().slice(0, 19).replace('T', ' '),
+            provincia_envio: provincia_envio || 'Santiago', // <-- AGREGA ESTA LÍNEA
             estado_envio: 'pendiente',
             estado: 'activo'
         });

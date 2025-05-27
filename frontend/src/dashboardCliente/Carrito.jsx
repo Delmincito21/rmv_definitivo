@@ -103,7 +103,8 @@ function Carrito() {
           items: cartItems,
           total: getCartTotal(),
           pago: datosPago,
-          direccion_envio: datosPago.direccion_envio || ''
+          direccion_envio: datosPago.direccion_envio || '',
+          provincia_envio: provincia
         })
       });
 
@@ -178,7 +179,8 @@ function Carrito() {
             banco_emisor: formData.get('banco_emisor'),
             estado: 'activo'
           },
-          direccion_envio: direccionEnvio
+          direccion_envio: direccionEnvio,
+          provincia_envio: provincia
         })
       });
 
@@ -189,6 +191,8 @@ function Carrito() {
 
       // 2. Enviar el comprobante con el id_venta
       formData.append('id_venta', ventaData.id);
+
+      formData.append('provincia_envio', provincia);
 
       const response = await fetch('http://localhost:3000/pago/transferencia', {
         method: 'POST',
@@ -447,7 +451,6 @@ function Carrito() {
                       {metodoPago === 'transferencia' && (
                         <PagoTransferencia
                           onSubmit={formData => {
-                            // Agregar provincia a formData
                             formData.append('provincia_envio', provincia);
                             handlePagoTransferencia(formData);
                             setProvincia('');
@@ -494,7 +497,7 @@ function Carrito() {
               </select>
               <div style={{ margin: '12px 0', color: '#176bb3', fontWeight: 'bold', fontSize: 18 }}>
                 Costo de envío: {getCostoEnvio(provinciaTemp) > 0 ? `$${getCostoEnvio(provinciaTemp)}` : '--'}<br />
-                Total a pagar: ${ (getCartTotal() + getCostoEnvio(provinciaTemp)).toFixed(2) }
+                Total a pagar: ${(getCartTotal() + getCostoEnvio(provinciaTemp)).toFixed(2)}
               </div>
               <div className="modal-pago-actions" style={{ display: 'flex', justifyContent: 'flex-end', gap: 16, marginTop: 18 }}>
                 <button type="button" className="modal-pago-cancel" onClick={() => setShowDireccionModal(false)} style={{ background: '#e5e7eb', color: '#222', border: 'none', padding: '10px 24px', borderRadius: 8, fontWeight: 500, fontSize: 16, cursor: 'pointer' }}>Cancelar</button>

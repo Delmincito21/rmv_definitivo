@@ -14,6 +14,7 @@ class Envio {
         const {
             fecha_estimada_envio,
             direccion_entrega_envio,
+            provincia_envio,
             estado_envio = 'pendiente',
             estado = 'activo',
             id_orden
@@ -24,13 +25,15 @@ class Envio {
                 `INSERT INTO envios (
                     fecha_estimada_envio,
                     direccion_entrega_envio,
+                    provincia_envio,
                     estado_envio,
                     estado,
                     id_orden
-                ) VALUES (?, ?, ?, ?, ?)`,
+                ) VALUES (?, ?, ?, ?, ?, ?)`,
                 [
                     fecha_estimada_envio,
                     direccion_entrega_envio,
+                    provincia_envio,
                     estado_envio,
                     estado,
                     id_orden

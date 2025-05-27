@@ -375,20 +375,49 @@ const Ventas = () => {
     }
   }, [paso]);
 
+  // Función para cargar ventas con estado de envío
+  const cargarVentasConEnvio = async () => {
+    try {
+      const res = await fetch('http://localhost:3000/ventas');
+      const data = await res.json();
+      const ventasConEnvio = await Promise.all(data.map(async venta => {
+        try {
+          const ordenRes = await fetch(`http://localhost:3000/orden/venta/${venta.id_venta}`);
+          let ordenData = await ordenRes.json();
+          let estadoEnvio = 'No hay envío';
+          let id_orden = null;
+          if (Array.isArray(ordenData) && ordenData.length > 0) {
+            id_orden = ordenData[0].id_orden;
+          } else if (ordenData && ordenData.id_orden) {
+            id_orden = ordenData.id_orden;
+          }
+          if (id_orden) {
+            const envioRes = await fetch(`http://localhost:3000/envios/orden/${id_orden}`);
+            let envioData = await envioRes.json();
+            if (Array.isArray(envioData) && envioData.length > 0 && envioData[0].estado_envio) {
+              estadoEnvio = envioData[0].estado_envio;
+            } else if (envioData && envioData.estado_envio) {
+              estadoEnvio = envioData.estado_envio;
+            } else {
+              estadoEnvio = 'Envío pendiente';
+            }
+          }
+          return { ...venta, estadoEnvio };
+        } catch (error) {
+          return { ...venta, estadoEnvio: 'Error al cargar envío' };
+        }
+      }));
+      setVentas(ventasConEnvio);
+      setVentasFiltradas(ventasConEnvio);
+      setLoading(false);
+    } catch (err) {
+      setError('No se pudo cargar la lista de ventas');
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    fetch('http://localhost:3000/ventas')
-      .then(res => res.json())
-      .then(data => {
-        console.log('Ventas obtenidas del backend:', data);
-        setVentas(data);
-        setVentasFiltradas(data);
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error('Error al cargar las ventas:', err);
-        setError('No se pudo cargar la lista de ventas');
-        setLoading(false);
-      });
+    cargarVentasConEnvio();
   }, []);
 
   useEffect(() => {
@@ -517,6 +546,11 @@ const Ventas = () => {
 
     // Validar detalles
     detalles.forEach((detalle, index) => {
+      // Si hay más de un detalle y este es el último (el que está en el formulario), omitir validaciones
+      if (detalles.length > 1 && index === detalles.length - 1) {
+        return;
+      }
+
       if (!detalle.id_producto.toString().trim()) {
         nuevosErrores.detalles[index].id_producto = 'El ID del producto es requerido';
         esValido = false;
@@ -547,6 +581,17 @@ const Ventas = () => {
     if (validarFormulario()) {
       try {
         let idVenta = datosVenta.id_venta;
+        // Filtra los detalles para asegurar que tengan un id_producto válido antes de enviar
+        const detallesValidos = detalles.filter(detalle =>
+          detalle.id_producto && parseInt(detalle.id_producto) > 0
+        );
+
+        // Si no hay detalles válidos, muestra un error y sale
+        if (detallesValidos.length === 0) {
+          alert('Debe agregar al menos un producto con ID válido.');
+          return;
+        }
+
         if (!idVenta) {
           // Crear nueva venta
           const ventaParaEnviar = {
@@ -554,7 +599,7 @@ const Ventas = () => {
             fecha_venta: datosVenta.fecha_venta,
             estado_venta: datosVenta.estado_venta,
             estado: 'activo',
-            detalles: detalles.map(detalle => ({
+            detalles: detallesValidos.map(detalle => ({
               id_producto: parseInt(detalle.id_producto),
               cantidad_detalle_venta: parseInt(detalle.cantidad),
               precio_unitario_detalle_venta: parseFloat(detalle.precio),
@@ -577,7 +622,7 @@ const Ventas = () => {
             fecha_venta: datosVenta.fecha_venta,
             estado_venta: datosVenta.estado_venta,
             estado: 'activo',
-            detalles: detalles.map(detalle => ({
+            detalles: detallesValidos.map(detalle => ({
               id_producto: parseInt(detalle.id_producto),
               cantidad_detalle_venta: parseInt(detalle.cantidad),
               precio_unitario_detalle_venta: parseFloat(detalle.precio),
@@ -662,9 +707,7 @@ const Ventas = () => {
       setMostrarFormulario(false);
       setPaso('venta');
       // Recargar la lista de ventas
-      const ventasResponse = await fetch('http://localhost:3000/ventas');
-      const ventasData = await ventasResponse.json();
-      setVentas(ventasData);
+      cargarVentasConEnvio();
     } catch (error) {
       console.error('Error:', error);
       alert(error.message);
@@ -761,10 +804,8 @@ const Ventas = () => {
         }
 
         alert('Se ha cambiado el estado exitosamente');
-        // Recargar la lista de ventas
-        const ventasResponse = await fetch('http://localhost:3000/ventas');
-        const ventasData = await ventasResponse.json();
-        setVentas(ventasData);
+        // Recargar la lista de ventas con estado de envío
+        cargarVentasConEnvio();
       } catch (error) {
         console.error('Error:', error);
         alert('Error al cambiar el estado de la venta: ' + error.message);
@@ -780,16 +821,8 @@ const Ventas = () => {
   const handleCloseModal = () => {
     setModalIsOpen(false);
     setSelectedVentaId(null);
-    // Recargar la lista de ventas
-    fetch('http://localhost:3000/ventas')
-      .then(res => res.json())
-      .then(data => {
-        setVentas(data);
-        setVentasFiltradas(data);
-      })
-      .catch(err => {
-        console.error('Error al recargar las ventas:', err);
-      });
+    // Recargar la lista de ventas con estado de envío
+    cargarVentasConEnvio();
   };
 
   const handleVentaUpdate = (ventaActualizada) => {
@@ -998,12 +1031,12 @@ const Ventas = () => {
                           <td>
                             <button
                               type="button"
-                              className="btn-remove"
+                              className="btn-remove-product"
                               onClick={() => eliminarDetalle(index)}
                               title="Eliminar producto"
-                              style={{ background: 'none', color: '#e74c3c', border: 'none', fontSize: 22, fontWeight: 'bold', lineHeight: 1, padding: 0, minWidth: 32 }}
+                              style={{ background: '#e74c3c', color: '#fff', border: 'none', padding: '5px 10px', borderRadius: '5px', cursor: 'pointer', fontSize: '14px', fontWeight: 'bold' }}
                             >
-                              <span style={{ color: '#e74c3c', fontWeight: 'bold', fontSize: 22 }}>×</span>
+                              Eliminar
                             </button>
                           </td>
                         </tr>
@@ -1095,7 +1128,8 @@ const Ventas = () => {
                     <td>{venta.cliente}</td>
                     <td>${venta.total}</td>
                     <td>
-                      <span className={`estado ${venta.estado_venta}`}>{venta.estado_venta}</span>
+                      {/* Mostrar estado del envío en lugar del estado de la venta */}
+                      <span className={`estado ${venta.estadoEnvio ? venta.estadoEnvio.toLowerCase().replace(/ /g, '-') : 'no-envio'}`}>{venta.estadoEnvio || 'No hay envío'}</span>
                     </td>
                     <td className="actions-cell">
                       <button

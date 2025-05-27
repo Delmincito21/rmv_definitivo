@@ -447,7 +447,7 @@ const MisPedidos = () => {
                   {/* Estado y fecha de envío */}
                   <div style={{ color: '#27639b', fontSize: 14, marginBottom: 4, display: 'flex', gap: 16, alignItems: 'center' }}>
                     <span><b>Estado envío:</b> {pedido.envio_estado ? pedido.envio_estado : 'No disponible'}</span>
-                    <span><b>Fecha estimada:</b> {pedido.envio_fecha ? new Date(pedido.envio_fecha).toLocaleDateString() : '--'}</span>
+                    <span><b>Fecha estimada de entrega:</b> {pedido.envio_fecha ? new Date(pedido.envio_fecha).toLocaleDateString() : '--'}</span>
                   </div>
                   <div style={{ fontWeight: 600, fontSize: 16, color: '#2196F3', marginBottom: 8 }}>
                     Total: ${pedido.total || 0}

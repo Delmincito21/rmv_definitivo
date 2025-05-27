@@ -23,7 +23,7 @@ const LoginCliente = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(''); // Limpiar errores previos
+    setError('');
     setLoading(true);
 
     try {
@@ -48,12 +48,15 @@ const LoginCliente = () => {
 
       // Establecer los nuevos valores
       localStorage.setItem('userId', String(data.id_usuario));
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('userData', JSON.stringify(data));
+      localStorage.setItem('token', data.token); // Guardar el token
+      localStorage.setItem('userData', JSON.stringify({
+        id_usuario: data.id_usuario,
+        rol: data.rol
+      }));
 
       // Disparar evento personalizado para notificar el cambio de usuario
       window.dispatchEvent(new CustomEvent('userChanged', {
-        detail: { userId: data.id || data.id_usuario || data.userId }
+        detail: { userId: data.id_usuario }
       }));
 
       // Mostrar mensaje de bienvenida
@@ -68,12 +71,11 @@ const LoginCliente = () => {
 
       // Navegar según el rol
       if (data.rol === 'administrador') {
-        navigate('/Inicio');
+        navigate('/Inicio', { replace: true });
       } else {
-        navigate('/Tienda');
+        navigate('/Tienda', { replace: true });
       }
 
-      console.log("ID guardado en localStorage:", localStorage.getItem('userId'));
     } catch (error) {
       setError('Error al iniciar sesión: ' + error.message);
       Swal.fire({
@@ -117,7 +119,7 @@ const LoginCliente = () => {
       } catch (error) {
         Swal.fire(
           'Error',
-          `No se pudo enviar el correo de recuperación. Intenta de nuevo. Detalle: ${error.message}`,
+          'No se pudo enviar el correo de recuperación. Intenta de nuevo. Detalle: ${error.message}',
           'error'
         );
       }

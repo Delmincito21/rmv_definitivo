@@ -2115,7 +2115,6 @@ app.get('/validar-pago/:id/:token', async (req, res) => {
     res.send('¡Pago validado correctamente!');
 });
 
-<<<<<<< HEAD
 app.get('/dashboard/ventas-hoy', async (req, res) => {
     try {
         const [result] = await db.query(`
@@ -2132,7 +2131,6 @@ app.get('/dashboard/ventas-hoy', async (req, res) => {
 });
 
 
-=======
 // Nuevo endpoint para verificar si un nombre de usuario existe
 app.get('/check-username/:nombre_usuario', async (req, res) => {
     const { nombre_usuario } = req.params;
@@ -2157,4 +2155,3 @@ app.get('/check-username/:nombre_usuario', async (req, res) => {
         res.status(500).json({ error: 'Error al verificar usuario', details: error.message });
     }
 });
->>>>>>> 7b905aeac45f26dfaaecde0341a32ca53b4d3875

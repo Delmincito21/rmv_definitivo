@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Outlet, NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
     FaHome,
@@ -16,11 +16,31 @@ import "./Dashboard.css";
 
 const AdminDashboard = () => {
     const [sidebarOpen, setSidebarOpen] = useState(true);
+    const [ventasHoy, setVentasHoy] = useState(0);
     const location = useLocation();
     const navigate = useNavigate();
 
     // Verificar si estamos en la ruta base del dashboard
     const showWelcome = location.pathname === "/admin" || location.pathname === "/admin/";
+
+    useEffect(() => {
+        const fetchVentasHoy = async () => {
+            try {
+                const response = await fetch('http://localhost:3000/dashboard/ventas-hoy');
+                if (response.ok) {
+                    const data = await response.json();
+                    setVentasHoy(data.ventas_hoy);
+                }
+            } catch (error) {
+                console.error('Error al obtener ventas del día:', error);
+            }
+        };
+
+        fetchVentasHoy();
+        // Actualizar cada minuto
+        const interval = setInterval(fetchVentasHoy, 60000);
+        return () => clearInterval(interval);
+    }, []);
 
     const handleLogout = () => {
         Swal.fire({
@@ -71,7 +91,12 @@ const AdminDashboard = () => {
                         <li>
                             <NavLink to="/admin/ventas" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>
                                 <FaCashRegister className="nav-icon" />
-                                <span className="nav-text">Ventas</span>
+                                <span className="nav-text">
+                                    Ventas
+                                    {ventasHoy > 0 && (
+                                        <span className="ventas-badge">{ventasHoy}</span>
+                                    )}
+                                </span>
                             </NavLink>
                         </li>
 

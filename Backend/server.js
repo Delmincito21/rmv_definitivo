@@ -1277,7 +1277,7 @@ app.get('/dashboard/proximos-envios', async (req, res) => {
         const [envios] = await db.query(`
             SELECT * FROM vw_proximos_envios 
             WHERE semana_entrega = WEEK(CURDATE(), 1) 
-              AND año_entrega = YEAR(CURDATE())
+              AND anio_entrega = YEAR(CURDATE()) //cambien eso a año que no me dejo poner la trapo de ñ.
         `);
         console.log('Envíos obtenidos:', envios);
         res.json(envios);
@@ -2114,3 +2114,20 @@ app.get('/validar-pago/:id/:token', async (req, res) => {
     await db.query('UPDATE pago SET estado_pago = "validado" WHERE id_pago = ?', [id]);
     res.send('¡Pago validado correctamente!');
 });
+
+app.get('/dashboard/ventas-hoy', async (req, res) => {
+    try {
+        const [result] = await db.query(`
+            SELECT COUNT(*) as ventas_hoy
+            FROM venta
+            WHERE DATE(fecha_venta) = CURDATE()
+            AND estado = 'activo'
+        `);
+        res.json(result[0]);
+    } catch (error) {
+        console.error('Error al obtener ventas del día:', error);
+        res.status(500).json({ error: 'Error al obtener ventas del día' });
+    }
+});
+
+

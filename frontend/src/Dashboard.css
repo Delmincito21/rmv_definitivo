@@ -2537,8 +2537,6 @@ html {
     padding: 8px;
     border-radius: 6px;
     font-weight: 600;
-    background: #fff;
-    border-left: 4px solid #f97316;
 }
 
 .producto-bajo-stock-card.critical {
@@ -2644,4 +2642,21 @@ html {
         width: 100%;
         margin-bottom: 4px;
     }
+}
+
+.nav-text {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.ventas-badge {
+    background-color: #e74c3c;
+    color: white;
+    border-radius: 12px;
+    padding: 2px 8px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    min-width: 20px;
+    text-align: center;
 }

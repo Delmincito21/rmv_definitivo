@@ -727,8 +727,7 @@ const EditarVentaModal = ({ isOpen, onClose, ventaId, onVentaUpdate }) => {
                   onChange={e => setEnvioData({...envioData, estado_envio: e.target.value})}
                 >
                   <option value="pendiente">Pendiente</option>
-                  <option value="en_proceso">En Proceso</option>
-                  <option value="enviado">Enviado</option>
+                  <option value="caminando">Caminando</option>
                   <option value="entregado">Entregado</option>
                 </select>
               </div>

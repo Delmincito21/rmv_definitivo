@@ -160,7 +160,19 @@ function Carrito() {
 
   const handlePagoTransferencia = async (formData) => {
     try {
-      // 1. Crear la venta y todo el proceso igual que PayPal
+      // Mostrar confirmación antes de proceder
+      const result = await Swal.fire({
+        title: '¿Confirmar pago?',
+        text: '¿Estás seguro que deseas proceder con este pago por transferencia?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Sí, continuar',
+        cancelButtonText: 'Cancelar'
+      });
+
+      if (!result.isConfirmed) return;
+
+      // 1. Crear la venta
       const ventaResponse = await fetch('http://localhost:3000/procesar-compra', {
         method: 'POST',
         headers: {
@@ -184,6 +196,10 @@ function Carrito() {
         })
       });
 
+      if (!ventaResponse.ok) {
+        throw new Error('Error al crear la venta');
+      }
+
       const ventaData = await ventaResponse.json();
       if (!ventaData.id) {
         throw new Error('No se pudo crear la venta');
@@ -191,25 +207,40 @@ function Carrito() {
 
       // 2. Enviar el comprobante con el id_venta
       formData.append('id_venta', ventaData.id);
-
-      formData.append('provincia_envio', provincia);
-
-      const response = await fetch('http://localhost:3000/pago/transferencia', {
+      const pagoResponse = await fetch('http://localhost:3000/pago/transferencia', {
         method: 'POST',
         body: formData
       });
 
-      const data = await response.json();
-      if (data.success) {
-        Swal.fire('¡Comprobante enviado!', 'Será validado por un administrador.', 'success');
-        await clearCart();
-        navigate('/MisPedidos');
-      } else {
-        Swal.fire('Error', 'No se pudo enviar el comprobante.', 'error');
+      if (!pagoResponse.ok) {
+        throw new Error('Error al enviar el comprobante');
       }
+
+      const pagoData = await pagoResponse.json();
+      if (!pagoData.success) {
+        throw new Error(pagoData.message || 'Error al procesar el pago');
+      }
+
+      // Éxito
+      await Swal.fire({
+        title: '¡Comprobante enviado!',
+        text: 'Tu comprobante ha sido recibido y será validado por un administrador.',
+        icon: 'success',
+        confirmButtonText: 'Entendido'
+      });
+
+      await clearCart();
+      navigate('/MisPedidos');
     } catch (error) {
-      console.error('Error al procesar el pago:', error);
-      Swal.fire('Error', 'No se pudo procesar el pago.', 'error');
+      console.error('Error en handlePagoTransferencia:', error);
+      Swal.fire({
+        title: 'Error',
+        text: error.message || 'Ocurrió un error al procesar tu pago',
+        icon: 'error'
+      });
+
+      // Revertir cambios si es necesario
+      // Aquí podrías llamar a un endpoint para eliminar la venta si falló el proceso
     }
   };
 
@@ -447,15 +478,46 @@ function Carrito() {
                         </PayPalScriptProvider>
                       )}
                       {metodoPago === 'transferencia' && (
-                        <PagoTransferencia
-                          onSubmit={formData => {
-                            formData.append('provincia_envio', provincia);
-                            handlePagoTransferencia(formData);
-                            setProvincia('');
-                            setDireccionEnvio('');
-                          }}
-                          monto={totalConEnvio}
-                        />
+                        <div style={{ position: 'relative' }}>
+                          {processingCheckout && (
+                            <div style={{
+                              position: 'absolute',
+                              top: 0,
+                              left: 0,
+                              right: 0,
+                              bottom: 0,
+                              backgroundColor: 'rgba(255,255,255,0.7)',
+                              display: 'flex',
+                              justifyContent: 'center',
+                              alignItems: 'center',
+                              zIndex: 10
+                            }}>
+                              <div style={{ textAlign: 'center' }}>
+                                <p>Procesando tu pago...</p>
+                                <p>Por favor no cierres esta página</p>
+                              </div>
+                            </div>
+                          )}
+                          <PagoTransferencia
+                            onSubmit={async (formData) => {
+                              if (processingCheckout) return;
+
+                              try {
+                                setProcessingCheckout(true);
+                                formData.append('provincia_envio', provincia);
+                                await handlePagoTransferencia(formData);
+                                setProvincia('');
+                                setDireccionEnvio('');
+                              } catch (error) {
+                                console.error('Error en el proceso de pago:', error);
+                              } finally {
+                                setProcessingCheckout(false);
+                              }
+                            }}
+                            monto={totalConEnvio}
+                            isSubmitting={processingCheckout}
+                          />
+                        </div>
                       )}
                     </>
                   )}

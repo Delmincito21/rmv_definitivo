@@ -373,8 +373,6 @@ function Carrito() {
                   <span>${totalConEnvio.toFixed(2)}</span>
                 </div>
 
-                <p className="shipping-note">Envío e impuestos calculados al finalizar la compra.</p>
-
                 <div style={{ marginBottom: 16 }}>
                   <label>
                     <input

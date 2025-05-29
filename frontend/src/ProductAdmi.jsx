@@ -176,15 +176,20 @@ function AgregarProductoForm({ onCancel }) {
         {/* Tercera fila horizontal */}
         <div className="form-row">
           <div className="form-field">
-            <label>ID Categoría</label>
-            <input
-              type="number"
+            <label>Categoría</label>
+            <select
               name="id_categoria"
               value={formData.id_categoria}
               onChange={handleChange}
-              placeholder="ID de la categoría"
               required
-            />
+            >
+              <option value="">Seleccione una categoría</option>
+              {categorias.map(categoria => (
+                <option key={categoria.id_categoria_producto} value={categoria.id_categoria_producto}>
+                  {categoria.id_categoria_producto} - {categoria.nombre_categoria_producto}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="form-field">

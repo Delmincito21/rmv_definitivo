@@ -1896,6 +1896,65 @@ app.post('/procesar-compra', async (req, res) => {
 });
 
 // Obtener todas las ventas de un usuario específico
+app.get('/categorias_productos/:id', async (req, res) => {
+    try {
+        console.log('ID recibido:', req.params.id);
+        const id = parseInt(req.params.id);
+        console.log('ID convertido:', id);
+        
+        if (isNaN(id)) {
+            console.error('ID no es un número válido');
+            return res.status(400).json({ error: 'ID no válido' });
+        }
+
+        const [categorias] = await db.query(
+            `SELECT * FROM categorias_productos WHERE id_categoria_producto = ? AND estado = 'activo'`,
+            [id]
+        );
+
+        console.log('Resultados de la consulta:', categorias);
+        console.log('Tipo de datos:', typeof categorias);
+        
+        if (!Array.isArray(categorias)) {
+            console.error('La consulta no devolvió un array');
+            return res.status(500).json({ error: 'Error en la estructura de datos' });
+        }
+
+        if (categorias.length === 0) {
+            console.log('No se encontraron categorías para el ID:', id);
+            return res.status(404).json({ error: 'Categoría no encontrada' });
+        }
+
+        console.log('Categoría encontrada:', categorias[0]);
+        res.json(categorias);
+    } catch (error) {
+        console.error('Error al obtener la categoría:', error);
+        console.error('Stack trace:', error.stack);
+        
+        if (error.code === 'ER_BAD_FIELD_ERROR') {
+            return res.status(400).json({ error: 'Campo no válido en la consulta' });
+        }
+
+        res.status(500).json({ 
+            error: 'Error interno del servidor',
+            details: error.message
+        });
+    }
+});
+
+// Nueva ruta para obtener todas las categorías activas
+app.get('/categorias_productos', async (req, res) => {
+    try {
+        const [categorias] = await db.query(
+            `SELECT * FROM categorias_productos WHERE estado = 'activo'`
+        );
+        res.json(categorias);
+    } catch (error) {
+        console.error('Error al obtener las categorías:', error);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
 app.get('/ventas/usuario/:id', async (req, res) => {
     const { id } = req.params;
     try {

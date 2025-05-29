@@ -87,12 +87,12 @@ const AdminDashboard = () => {
                                 <span className="nav-text">Clientes</span>
                             </NavLink>
                         </li>
-                        <li>
+                        {/* <li>
                             <NavLink to="/admin/factura" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>
                                 <FaFileInvoiceDollar className="nav-icon" />
                                 <span className="nav-text">Facturas</span>
                             </NavLink>
-                        </li>
+                        </li> */}
                     </ul>
                 </nav>
 

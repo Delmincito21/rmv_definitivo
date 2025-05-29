@@ -428,7 +428,7 @@ const MisPedidos = () => {
                   position: 'relative',
                 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontWeight: 'bold', color: '#27639b', fontSize: 18 }}>#{pedido.id_venta}</span>
+                    <span style={{ fontWeight: 'bold', color: '#27639b', fontSize: 18 }}>Numero de la orden #{pedido.id_venta}</span>
                     <span style={{
                       padding: '4px 10px',
                       borderRadius: 12,

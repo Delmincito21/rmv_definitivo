@@ -127,11 +127,13 @@ const Tienda = () => {
           axios.get(`http://localhost:3000/usuario/${userId}`)
         ]);
 
-        console.log("Datos de productos recibidos:", productosRes.data);
-        setProductos(productosRes.data);
+        const productosActivos = productosRes.data.filter(producto => producto.estado === 'activo');
+        console.log("Productos activos:", productosActivos);
+        setProductos(productosActivos);
         setCategorias(categoriasRes.data);
         setUserInfo(userRes.data);
         setLoading(false);
+
       } catch (err) {
         console.error('Error al cargar los datos:', err);
         setError('Error al cargar los datos. Por favor, intente más tarde.');

@@ -3,6 +3,7 @@ import { FaCalendarAlt, FaMinus, FaPlus, FaArrowLeft, FaCreditCard, FaTruck } fr
 import './Ventas.css';
 import EditarVentaModal from './components/EditarVentaModal';
 import { useNavigate } from 'react-router-dom';
+import Factura from './Factura';
 
 // Función para obtener la fecha y hora actual de República Dominicana (GMT-4) en formato YYYY-MM-DDTHH:mm
 function getNowDateTimeLocalRD() {
@@ -181,6 +182,15 @@ const EnvioForm = ({ onSubmit, setPaso, id_orden, datosEnvio, setDatosEnvio }) =
       nuevosErrores.provincia_envio = 'La provincia es requerida';
     }
 
+    // Validar que el estado de envío sea uno de los permitidos por la base de datos
+    const estadosEnvioValidos = ['pendiente', 'caminando', 'entregado'];
+    if (!datosEnvio.estado_envio || !estadosEnvioValidos.includes(datosEnvio.estado_envio)) {
+      nuevosErrores.estado_envio = 'Estado de envío inválido';
+      // Si el estado no es válido, forzarlo a 'pendiente' para evitar error de truncamiento
+      setDatosEnvio(prev => ({ ...prev, estado_envio: 'pendiente' }));
+      // esValido = false; // No fallamos la validación por esto, solo corregimos el valor si es necesario
+    }
+
     setErrores(nuevosErrores);
     return Object.keys(nuevosErrores).length === 0;
   };
@@ -290,6 +300,20 @@ const EnvioForm = ({ onSubmit, setPaso, id_orden, datosEnvio, setDatosEnvio }) =
           <div style={{ marginTop: 8, color: '#176bb3', fontWeight: 'bold' }}>
             Total a pagar del envío: {costoEnvio > 0 ? `$${costoEnvio}` : '--'}
           </div>
+        </div>
+      </div>
+
+      <div className="form-row">
+        <div className="form-field">
+          <label>Estado de Envío</label>
+          <select
+            value={datosEnvio.estado_envio}
+            onChange={(e) => setDatosEnvio({ ...datosEnvio, estado_envio: e.target.value })} >
+            <option value="pendiente">Pendiente</option>
+            <option value="caminando">Caminando</option>
+            <option value="entregado">Entregado</option>
+            {/* <option value="enviado">Enviado</option> REMOVIDA */}
+          </select>
         </div>
       </div>
 
@@ -1141,7 +1165,7 @@ const Ventas = () => {
                     <td className="actions-cell">
                       <button
                         className="action-button view"
-                        onClick={() => navigate(`/factura/${venta.id_venta}`, { state: { volverA: '/Ventas' } })}
+                        onClick={() => navigate(`/admin/factura/${venta.id_venta}`, { state: { volverA: '/admin/ventas' } })}
                       >
                         Ver Detalles
                       </button>

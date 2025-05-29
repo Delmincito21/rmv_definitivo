@@ -32,6 +32,14 @@ const RegistroCliente = () => {
       alert('El usuario y la contraseña son obligatorios');
       return;
     }
+
+    // Validación del correo electrónico
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!emailRegex.test(cliente.correo_clientes)) {
+      alert('Por favor ingrese un correo electrónico válido (ejemplo: usuario@dominio.com)');
+      return;
+    }
+
     try {
       const response = await fetch('http://localhost:3000/clientes', {
         method: 'POST',
@@ -97,9 +105,11 @@ const RegistroCliente = () => {
                 <input
                   type="tel"
                   name="telefono_clientes"
+                  pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}"
                   value={cliente.telefono_clientes}
                   onChange={handleChange}
                   placeholder="Teléfono"
+                  title="El teléfono debe tener el formato 123-456-7890"
                   required
                   maxLength="12"
                   className="input-field"
@@ -119,13 +129,33 @@ const RegistroCliente = () => {
               </div>
               <div className="form-row">
                 <input
-                  type="email"
+                  type="text"
                   name="correo_clientes"
+                  pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}"
+                  title="El correo electrónico debe tener un formato válido (ejemplo: usuario@dominio.com)"
                   value={cliente.correo_clientes}
                   onChange={handleChange}
                   placeholder="Correo electrónico"
                   required
                   className="input-field"
+                  autoComplete="off"
+                  onBlur={(e) => {
+                    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+                    if (!emailRegex.test(e.target.value)) {
+                      if (!e.target.value.includes('@')) {
+                        e.target.setCustomValidity('El correo debe contener el símbolo @');
+                      } else if (!e.target.value.includes('.')) {
+                        e.target.setCustomValidity('El correo debe contener un dominio válido (ejemplo: .com, .org)');
+                      } else {
+                        e.target.setCustomValidity('Formato de correo electrónico inválido');
+                      }
+                    } else {
+                      e.target.setCustomValidity('');
+                    }
+                  }}
+                  onInput={(e) => {
+                    e.target.setCustomValidity('');
+                  }}
                 />
               </div>
               <div className="form-row">
@@ -137,6 +167,29 @@ const RegistroCliente = () => {
                   placeholder="Usuario"
                   required
                   className="input-field"
+                  autoComplete="off"
+                  onBlur={async (e) => {
+                    const username = e.target.value.trim();
+                    if (!username) return;
+
+                    try {
+                      // Usar el nuevo endpoint del backend para verificar unicidad
+                      const response = await fetch(`http://localhost:3000/check-username/${encodeURIComponent(username)}`);
+                      const data = await response.json();
+
+                      if (data.exists) {
+                        e.target.setCustomValidity('Este nombre de usuario ya está en uso.');
+                      } else {
+                        e.target.setCustomValidity(''); // Nombre de usuario disponible
+                      }
+                    } catch (error) {
+                      console.error('Error verificando usuario:', error);
+                      e.target.setCustomValidity('Error al verificar usuario. Intenta de nuevo.');
+                    }
+                  }}
+                  onInput={(e) => {
+                    e.target.setCustomValidity(''); // Limpiar mensaje de error al escribir
+                  }}
                 />
               </div>
               <div className="form-row">

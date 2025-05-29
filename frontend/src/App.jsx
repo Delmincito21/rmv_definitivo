@@ -47,7 +47,7 @@ function App() {
             <Route path="clientes" element={
               <Clientes />
             } />
-            <Route path="factura" element={
+            <Route path="factura/:id_venta" element={
               <Factura />
             } />
           </Route>

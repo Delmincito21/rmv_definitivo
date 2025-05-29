@@ -1530,7 +1530,7 @@ app.get('/carrito/:userId', async (req, res) => {
     try {
         const [items] = await db.query(`
             SELECT 
-                c.id_carrito,
+             c.id_carrito,
                 c.id_producto,
                 c.cantidad,
                 productos.nombre_producto,
@@ -2113,4 +2113,29 @@ app.get('/validar-pago/:id/:token', async (req, res) => {
     // Marca el pago como validado
     await db.query('UPDATE pago SET estado_pago = "validado" WHERE id_pago = ?', [id]);
     res.send('¡Pago validado correctamente!');
+});
+
+// Nuevo endpoint para verificar si un nombre de usuario existe
+app.get('/check-username/:nombre_usuario', async (req, res) => {
+    const { nombre_usuario } = req.params;
+    console.log(`Recibida petición para verificar usuario: ${nombre_usuario}`);
+    try {
+        const [rows] = await db.query(
+            'SELECT id_usuario FROM usuarios WHERE nombre_usuario = ?',
+            [nombre_usuario]
+        );
+
+        if (rows.length > 0) {
+            // Usuario encontrado, ya existe
+            console.log(`Usuario ${nombre_usuario} encontrado.`);
+            res.json({ exists: true });
+        } else {
+            // Usuario no encontrado, está disponible
+            console.log(`Usuario ${nombre_usuario} no encontrado, disponible.`);
+            res.json({ exists: false });
+        }
+    } catch (error) {
+        console.error('Error al verificar usuario:', error);
+        res.status(500).json({ error: 'Error al verificar usuario', details: error.message });
+    }
 });

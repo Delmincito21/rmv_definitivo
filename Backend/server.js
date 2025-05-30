@@ -1614,6 +1614,7 @@ app.get('/carrito/:userId', async (req, res) => {
                 productos.nombre_producto,
                 productos.precio_producto,
                 productos.imagen_url,
+                productos.stock_producto,  -- Agregar stock_producto aquí
                 (productos.precio_producto * c.cantidad) AS subtotal
             FROM carrito c
             INNER JOIN productos ON c.id_producto = productos.id_producto

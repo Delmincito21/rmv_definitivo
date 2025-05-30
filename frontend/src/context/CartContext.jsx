@@ -41,7 +41,8 @@ export const CartProvider = ({ children }) => {
         precio_producto: Number(item.precio_producto),
         imagen: item.imagen_url,
         quantity: Number(item.cantidad),
-        subtotal: Number(item.subtotal)
+        subtotal: Number(item.subtotal),
+        stock_producto: Number(item.stock_producto)
       }));
 
       console.log('Items del carrito:', formattedItems);

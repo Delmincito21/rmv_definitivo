@@ -52,7 +52,23 @@ function Carrito() {
 
   const increaseQuantity = (itemId) => {
     const item = cartItems.find(item => item.id_producto === itemId);
-    if (item && !loading) updateQuantity(itemId, item.quantity + 1);
+    console.log('Increase Quantity called for item:', itemId);
+    console.log('Item found:', item);
+    console.log('Current quantity:', item?.quantity);
+    console.log('Stock available:', item?.stock_producto);
+    console.log('Loading state:', loading);
+    // Verificar si la nueva cantidad excede el stock disponible
+    if (item && item.quantity < item.stock_producto && !loading) {
+      console.log('Updating quantity...');
+      updateQuantity(itemId, item.quantity + 1);
+    } else if (item && item.quantity >= item.stock_producto) {
+      console.log('Stock insufficient.');
+      Swal.fire('Stock insuficiente', `Solo hay ${item.stock_producto} unidades disponibles de ${item.nombre_producto}.`, 'warning');
+    } else if (!item) {
+      console.log('Item not found in cartItems.');
+    } else if (loading) {
+      console.log('Blocked by loading state.');
+    }
   };
 
   const decreaseQuantity = (itemId) => {
@@ -89,6 +105,15 @@ function Carrito() {
     if (cartItems.length === 0) {
       Swal.fire('Carrito vacío', 'Agrega productos a tu carrito antes de continuar', 'info');
       return;
+    }
+
+    // Validar stock antes de proceder (frontend validation)
+    for (const item of cartItems) {
+      if (item.quantity > item.stock_producto) {
+        Swal.fire('Stock insuficiente', `La cantidad solicitada de ${item.nombre_producto} excede el stock disponible (${item.stock_producto}). Por favor ajusta la cantidad en el carrito.`, 'warning');
+        setProcessingCheckout(false);
+        return;
+      }
     }
 
     setProcessingCheckout(true);

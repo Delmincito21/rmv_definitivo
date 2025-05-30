@@ -274,25 +274,12 @@ function AgregarProductoForm({ onCancel }) {
   );
 }
 
-function TablaSuplidores({ onSelect }) {
-  const [suplidores, setSuplidores] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetch('http://localhost:3000/suplidores')
-      .then(res => res.json())
-      .then(data => {
-        setSuplidores(data);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
-  }, []);
-
+function TablaSuplidores({ onSelect, suplidores, loading }) {
   if (loading) return <div>Cargando suplidores...</div>;
 
   return (
     <div className="content-card" style={{ marginTop: 20 }}>
-      <h4>Suplidores</h4>
+      <h4>Seleccionar Suplidor</h4>
       <table className="data-table">
         <thead>
           <tr>
@@ -306,21 +293,27 @@ function TablaSuplidores({ onSelect }) {
           </tr>
         </thead>
         <tbody>
-          {suplidores.map(suplidor => (
-            <tr key={suplidor.id_suplidor}>
-              <td>{suplidor.id_suplidor}</td>
-              <td>{suplidor.nombre_suplidor}</td>
-              <td>{suplidor.telefono_suplidor}</td>
-              <td>{suplidor.direccion_suplidor}</td>
-              <td>{suplidor.correo_suplidor}</td>
-              <td>{suplidor.estado}</td>
-              <td>
-                <button type="button" onClick={() => onSelect(suplidor.id_suplidor)}>
-                  Seleccionar
-                </button>
-              </td>
+          {suplidores.length > 0 ? (
+            suplidores.map(suplidor => (
+              <tr key={suplidor.id_suplidor}>
+                <td>{suplidor.id_suplidor}</td>
+                <td>{suplidor.nombre_suplidor}</td>
+                <td>{suplidor.telefono_suplidor}</td>
+                <td>{suplidor.direccion_suplidor}</td>
+                <td>{suplidor.correo_suplidor}</td>
+                <td>{suplidor.estado}</td>
+                <td>
+                  <button type="button" onClick={() => onSelect(suplidor.id_suplidor)}>
+                    Seleccionar
+                  </button>
+                </td>
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <td colSpan="7">No se encontraron suplidores.</td>
             </tr>
-          ))}
+          )}
         </tbody>
       </table>
     </div>
@@ -362,15 +355,40 @@ function ModificarProductoList() {
   const [loading, setLoading] = useState(true);
   const [busqueda, setBusqueda] = useState("");
   const [productoEditando, setProductoEditando] = useState(null);
+  const [categorias, setCategorias] = useState([]);
+  const [suplidores, setSuplidores] = useState([]);
+  const [mostrarTablaSuplidores, setMostrarTablaSuplidores] = useState(false);
 
   useEffect(() => {
-    fetch('http://localhost:3000/productos')
-      .then(res => res.json())
-      .then(data => {
-        setProductos(data);
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const [productosRes, categoriasRes, suplidoresRes] = await Promise.all([
+          fetch('http://localhost:3000/productos'),
+          fetch('http://localhost:3000/categorias_productos'),
+          fetch('http://localhost:3000/suplidores')
+        ]);
+
+        if (!productosRes.ok) throw new Error('Error al cargar productos');
+        if (!categoriasRes.ok) throw new Error('Error al cargar categorías');
+        if (!suplidoresRes.ok) throw new Error('Error al cargar suplidores');
+
+        const productosData = await productosRes.json();
+        const categoriasData = await categoriasRes.json();
+        const suplidoresData = await suplidoresRes.json();
+
+        setProductos(productosData);
+        setCategorias(categoriasData);
+        setSuplidores(suplidoresData);
+
+      } catch (error) {
+        console.error('Error fetching data for ModificarProductoList:', error);
+      } finally {
         setLoading(false);
-      })
-      .catch(() => setLoading(false));
+      }
+    };
+
+    fetchData();
   }, []);
 
   const handleEditar = (producto) => {
@@ -380,12 +398,15 @@ function ModificarProductoList() {
   const handleEliminar = async (id) => {
     if (window.confirm('¿Estás seguro de que deseas inactivar este producto?')) {
       try {
-        const response = await fetch(`http://localhost:3000/productos/${id}/inactivar`, {
+        const response = await fetch(`http://localhost:3000/productos/${id}/estado`, {
           method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ estado: 'inactivo' })
         });
 
         if (!response.ok) {
-          throw new Error('Error al inactivar el producto');
+          const errorData = await response.json();
+          throw new Error(errorData.details || 'Error al inactivar el producto');
         }
 
         alert('Producto inactivado exitosamente');
@@ -398,12 +419,14 @@ function ModificarProductoList() {
         );
       } catch (error) {
         console.error('Error al inactivar el producto:', error);
-        alert('Hubo un error al inactivar el producto. Inténtalo de nuevo.');
+        alert('Hubo un error al inactivar el producto: ' + error.message);
       }
     }
   };
 
   const handleGuardarEdicion = async () => {
+    if (!productoEditando) return;
+
     try {
       const response = await fetch(`http://localhost:3000/productos/${productoEditando.id_producto}`, {
         method: 'PUT',
@@ -414,7 +437,8 @@ function ModificarProductoList() {
       });
 
       if (!response.ok) {
-        throw new Error('Error al actualizar el producto');
+        const errorData = await response.json();
+        throw new Error(errorData.details || 'Error al actualizar el producto');
       }
 
       alert('Producto actualizado exitosamente');
@@ -428,9 +452,10 @@ function ModificarProductoList() {
 
       // Salir del modo de edición
       setProductoEditando(null);
+      setMostrarTablaSuplidores(false);
     } catch (error) {
       console.error('Error al actualizar el producto:', error);
-      alert('Hubo un error al actualizar el producto. Inténtalo de nuevo.');
+      alert('Hubo un error al actualizar el producto: ' + error.message);
     }
   };
 
@@ -531,57 +556,169 @@ function ModificarProductoList() {
       </div>
       {productoEditando && (
         <div className="modal-overlay">
-          <div className="modal-content">
-            <h3>Editar Producto</h3>
-            <form>
-              <label>Nombre:</label>
-              <input
-                type="text"
-                value={productoEditando.nombre_producto}
-                onChange={(e) =>
-                  setProductoEditando((prev) => ({ ...prev, nombre_producto: e.target.value }))
-                }
-              />
-              <label>Marca:</label>
-              <input
-                type="text"
-                value={productoEditando.marca_producto}
-                onChange={(e) =>
-                  setProductoEditando((prev) => ({ ...prev, marca_producto: e.target.value }))
-                }
-              />
-              <label>Precio:</label>
-              <input
-                type="number"
-                value={productoEditando.precio_producto}
-                onChange={(e) =>
-                  setProductoEditando((prev) => ({ ...prev, precio_producto: e.target.value }))
-                }
-              />
-              <label>Stock:</label>
-              <input
-                type="number"
-                value={productoEditando.stock_producto}
-                onChange={(e) =>
-                  setProductoEditando((prev) => ({ ...prev, stock_producto: e.target.value }))
-                }
-              />
-              <label>Estado:</label>
-              <select
-                value={productoEditando.estado}
-                onChange={(e) =>
-                  setProductoEditando((prev) => ({ ...prev, estado: e.target.value }))
-                }
-              >
-                <option value="activo">Activo</option>
-                <option value="inactivo">Inactivo</option>
-              </select>
-              <div className="form-actions">
-                <button type="button" onClick={() => setProductoEditando(null)}>
+          <div className="modal-content" style={{ maxWidth: '600px' }}>
+            <h3>Editar Producto #{productoEditando.id_producto}</h3>
+            <form className="product-form-grid">
+              <div className="form-field">
+                <label>Nombre del Producto</label>
+                <input
+                  type="text"
+                  value={productoEditando.nombre_producto || ''}
+                  onChange={(e) =>
+                    setProductoEditando((prev) => ({ ...prev, nombre_producto: e.target.value }))
+                  }
+                />
+              </div>
+              <div className="form-field">
+                <label>Marca</label>
+                <input
+                  type="text"
+                  value={productoEditando.marca_producto || ''}
+                  onChange={(e) =>
+                    setProductoEditando((prev) => ({ ...prev, marca_producto: e.target.value }))
+                  }
+                />
+              </div>
+              <div className="form-field">
+                <label>Modelo</label>
+                <input
+                  type="text"
+                  value={productoEditando.modelo || ''}
+                  onChange={(e) =>
+                    setProductoEditando((prev) => ({ ...prev, modelo: e.target.value }))
+                  }
+                />
+              </div>
+              <div className="form-field">
+                <label>Color</label>
+                <input
+                  type="text"
+                  value={productoEditando.color || ''}
+                  onChange={(e) =>
+                    setProductoEditando((prev) => ({ ...prev, color: e.target.value }))
+                  }
+                />
+              </div>
+              <div className="form-field">
+                <label>Precio:</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={productoEditando.precio_producto || ''}
+                  onChange={(e) =>
+                    setProductoEditando((prev) => ({ ...prev, precio_producto: parseFloat(e.target.value) || 0 }))
+                  }
+                />
+              </div>
+              <div className="form-field">
+                <label>Stock:</label>
+                <input
+                  type="number"
+                  step="1"
+                  value={productoEditando.stock_producto || ''}
+                  onChange={(e) =>
+                    setProductoEditando((prev) => ({ ...prev, stock_producto: parseInt(e.target.value) || 0 }))
+                  }
+                />
+              </div>
+              <div className="form-field">
+                <label>Garantía:</label>
+                <input
+                  type="text"
+                  value={productoEditando.garantia || ''}
+                  onChange={(e) =>
+                    setProductoEditando((prev) => ({ ...prev, garantia: e.target.value }))
+                  }
+                />
+              </div>
+              <div className="form-field">
+                <label>Estado:</label>
+                <select
+                  value={productoEditando.estado || ''}
+                  onChange={(e) =>
+                    setProductoEditando((prev) => ({ ...prev, estado: e.target.value }))
+                  }
+                >
+                  <option value="activo">Activo</option>
+                  <option value="inactivo">Inactivo</option>
+                </select>
+              </div>
+              <div className="form-field">
+                <label>Categoría:</label>
+                <select
+                  name="id_categoria"
+                  value={productoEditando.id_categoria || ''}
+                  onChange={(e) => setProductoEditando(prev => ({ ...prev, id_categoria: parseInt(e.target.value) || null }))}
+                  required
+                >
+                  <option value="">Seleccione una categoría</option>
+                  {categorias.map(categoria => (
+                    <option key={categoria.id_categoria_producto} value={categoria.id_categoria_producto}>
+                      {categoria.id_categoria_producto} - {categoria.nombre_categoria_producto}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="form-field">
+                <label>ID Suplidor:</label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <input
+                    type="number"
+                    value={productoEditando.id_suplidor || ''}
+                    onChange={(e) => setProductoEditando(prev => ({ ...prev, id_suplidor: parseInt(e.target.value) || null }))}
+                    placeholder="ID Suplidor"
+                    style={{ flexGrow: 1 }}
+                  />
+                  <button
+                    type="button"
+                    className="btn-suplidor"
+                    onClick={() => setMostrarTablaSuplidores(!mostrarTablaSuplidores)}
+                    style={{ padding: '8px 12px' }}
+                  >
+                    {mostrarTablaSuplidores ? 'Ocultar' : 'Ver'} Suplidores
+                  </button>
+                </div>
+              </div>
+              <div className="form-field full-width">
+                <label>URL de la Imagen:</label>
+                <input
+                  type="text"
+                  value={productoEditando.imagen_url || ''}
+                  onChange={(e) =>
+                    setProductoEditando((prev) => ({ ...prev, imagen_url: e.target.value }))
+                  }
+                />
+              </div>
+              <div className="form-field full-width">
+                <label>Descripción:</label>
+                <textarea
+                  value={productoEditando.descripcion_producto || ''}
+                  onChange={(e) =>
+                    setProductoEditando((prev) => ({ ...prev, descripcion_producto: e.target.value }))
+                  }
+                  rows="3"
+                ></textarea>
+              </div>
+
+              {mostrarTablaSuplidores && (
+                <div className="form-field full-width">
+                  <TablaSuplidores
+                    onSelect={id => {
+                      setProductoEditando(prev => ({ ...prev, id_suplidor: id }));
+                      setMostrarTablaSuplidores(false);
+                    }}
+                    suplidores={suplidores}
+                    loading={loading}
+                  />
+                </div>
+              )}
+
+              <div className="form-actions full-width">
+                <button type="button" className="cancel-btn" onClick={() => { setProductoEditando(null); setMostrarTablaSuplidores(false); }}>
                   Cancelar
                 </button>
-                <button type="button" onClick={handleGuardarEdicion}>
-                  Guardar
+                <button type="button" className="submit-btn" onClick={handleGuardarEdicion}>
+                  Guardar Cambios
                 </button>
               </div>
             </form>

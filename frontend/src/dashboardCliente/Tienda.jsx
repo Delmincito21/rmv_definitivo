@@ -51,6 +51,9 @@ const ProductoDetalle = ({ producto, onClose, onAddToCart }) => {
           <div className="producto-detalle-info">
             <h2>{producto.nombre_producto}</h2>
             <p className="precio">${formatPrice(producto.precio_producto)}</p>
+            <p className="stock-info" style={{ fontSize: '0.9em', color: producto.stock_producto > 5 ? '#28a745' : producto.stock_producto > 0 ? '#ffc107' : '#dc3545', fontWeight: 'bold' }}>
+              Stock: {producto.stock_producto > 0 ? producto.stock_producto : 'Agotado'}
+            </p>
             <div className="detalles-grid">
               <div className="detalle-item">
                 <span className="label">Marca:</span>
@@ -445,6 +448,9 @@ const Tienda = () => {
                       <div style={{ fontWeight: 600, fontSize: 16, color: '#2196F3', marginBottom: 8 }}>
                         ${formatPrice(producto.precio_producto)}
                       </div>
+                      <p className="stock-info" style={{ fontSize: '0.9em', color: producto.stock_producto > 5 ? '#28a745' : producto.stock_producto > 0 ? '#ffc107' : '#dc3545', fontWeight: 'bold' }}>
+                        Stock: {producto.stock_producto > 0 ? producto.stock_producto : 'Agotado'}
+                      </p>
                       <div style={{ display: 'flex', gap: 12 }}>
                         <button
                           style={{

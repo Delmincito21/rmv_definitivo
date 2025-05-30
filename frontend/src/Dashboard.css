@@ -1611,6 +1611,7 @@ html {
     }
 }
 
+
 /* Estilo tipo Ventas para ProductAdmi */
 .form-container {
     margin-bottom: 20px;
@@ -2660,3 +2661,172 @@ html {
     min-width: 20px;
     text-align: center;
 }
+
+/* === FORMULARIO DE PRODUCTOS HORIZONTAL BONITO === */
+.product-form-card {
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 4px 24px rgba(52, 152, 219, 0.10);
+  padding: 24px 24px 20px 24px;
+  max-width: 900px;
+  margin: 20px auto;
+  animation: fadeIn 0.7s;
+  max-height: 90vh;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #3498db #f1f1f1;
+}
+
+.product-form-card::-webkit-scrollbar {
+  width: 8px;
+}
+
+.product-form-card::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.product-form-card::-webkit-scrollbar-thumb {
+  background: #3498db;
+  border-radius: 4px;
+}
+
+.product-form-card::-webkit-scrollbar-thumb:hover {
+  background: #2980b9;
+}
+
+.form-title-horizontal {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #27639b;
+  margin-bottom: 20px;
+  text-align: left;
+  letter-spacing: 0.5px;
+}
+
+.product-form-horizontal {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-row-horizontal {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 0;
+  flex-wrap: wrap;
+}
+
+.form-field-horizontal {
+  flex: 1 1 0;
+  min-width: 160px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-field-horizontal.wide {
+  flex: 2 1 0;
+  min-width: 280px;
+}
+
+.form-field-horizontal label {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 2px;
+}
+
+.form-field-horizontal input,
+.form-field-horizontal select,
+.form-field-horizontal textarea {
+  padding: 10px 12px;
+  border: 1.5px solid #e0e6ed;
+  border-radius: 7px;
+  font-size: 0.95rem;
+  background: #f8fafc;
+  color: #222;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  outline: none;
+}
+
+.form-field-horizontal input:focus,
+.form-field-horizontal select:focus,
+.form-field-horizontal textarea:focus {
+  border-color: #3498db;
+  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.13);
+}
+
+.form-field-horizontal textarea {
+  min-height: 60px;
+  resize: vertical;
+}
+
+.btn-suplidor {
+  background: #e9eef6;
+  color: #27639b;
+  border: 1px solid #bcd6f6;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  width: 100%;
+  margin-top: 4px;
+}
+.btn-suplidor:hover {
+  background: #3498db;
+  color: #fff;
+  border-color: #3498db;
+}
+
+.form-actions-horizontal {
+  display: flex;
+  justify-content: flex-end;
+  gap: 16px;
+  margin-top: 18px;
+}
+
+.cancel-btn-horizontal {
+  background: #f5f5f5;
+  color: #333;
+  border: none;
+  border-radius: 6px;
+  padding: 11px 28px;
+  font-size: 1.08rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.cancel-btn-horizontal:hover {
+  background: #e0e0e0;
+}
+
+.submit-btn-horizontal {
+  background: #27639b;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 11px 32px;
+  font-size: 1.08rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s;
+  box-shadow: 0 2px 8px rgba(52, 152, 219, 0.08);
+}
+.submit-btn-horizontal:hover {
+  background: #3498db;
+}
+
+@media (max-width: 900px) {
+  .product-form-card {
+    padding: 18px 8px 18px 8px;
+    max-width: 99vw;
+  }
+  .form-row-horizontal {
+    flex-direction: column;
+    gap: 12px;
+  }
+}
+

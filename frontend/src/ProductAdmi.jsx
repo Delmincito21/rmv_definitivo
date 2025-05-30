@@ -71,9 +71,8 @@ function AgregarProductoForm({ onCancel }) {
         throw new Error('Error al crear el producto');
       }
 
-      // const data = await response.json();
       alert('Producto creado exitosamente');
-      onCancel(); // Cierra el formulario después de crear
+      onCancel();
     } catch (err) {
       setError(err.message);
       alert('Error al crear el producto: ' + err.message);
@@ -85,34 +84,26 @@ function AgregarProductoForm({ onCancel }) {
   useEffect(() => {
     const fetchCategorias = async () => {
       try {
-        console.log('Intentando obtener categorías...');
         const response = await fetch('http://localhost:3000/categorias_productos');
-        console.log('Respuesta recibida:', response);
-
         if (!response.ok) {
           throw new Error('Error al cargar categorías');
         }
-
         const data = await response.json();
-        console.log('Datos de categorías:', data);
         setCategorias(data);
       } catch (err) {
-        console.error('Error al cargar categorías:', err);
         setError('Error al cargar las categorías');
       }
     };
-
     fetchCategorias();
   }, []);
 
   return (
-    <div className="form-container">
-      <form className="horizontal-product-form" onSubmit={handleSubmit}>
-        <h2 className="form-title">Agregar Producto</h2>
-
-        {/* Primera fila horizontal */}
-        <div className="form-row">
-          <div className="form-field">
+    <div className="product-form-card">
+      <form className="product-form-horizontal" onSubmit={handleSubmit}>
+        <h2 className="form-title-horizontal">Agregar Producto</h2>
+        {/* Primera fila */}
+        <div className="form-row-horizontal">
+          <div className="form-field-horizontal">
             <label>Nombre del Producto</label>
             <input
               type="text"
@@ -123,8 +114,7 @@ function AgregarProductoForm({ onCancel }) {
               required
             />
           </div>
-
-          <div className="form-field">
+          <div className="form-field-horizontal">
             <label>Marca</label>
             <input
               type="text"
@@ -135,21 +125,20 @@ function AgregarProductoForm({ onCancel }) {
               required
             />
           </div>
-
-          <div className="form-field">
+          <div className="form-field-horizontal">
             <label>Modelo</label>
             <input
               type="text"
               name="modelo"
               value={formData.modelo}
               onChange={handleChange}
+              placeholder="Ej: AR12TX"
             />
           </div>
         </div>
-
-        {/* Segunda fila horizontal */}
-        <div className="form-row">
-          <div className="form-field">
+        {/* Segunda fila */}
+        <div className="form-row-horizontal">
+          <div className="form-field-horizontal">
             <label>Precio ($DOP)</label>
             <input
               type="number"
@@ -161,21 +150,30 @@ function AgregarProductoForm({ onCancel }) {
               required
             />
           </div>
-
-          <div className="form-field">
+          <div className="form-field-horizontal">
             <label>Garantía</label>
             <input
               type="text"
               name="garantia"
               value={formData.garantia}
               onChange={handleChange}
+              placeholder="Ej: 1 año"
+            />
+          </div>
+          <div className="form-field-horizontal">
+            <label>Color</label>
+            <input
+              type="text"
+              name="color"
+              value={formData.color}
+              onChange={handleChange}
+              placeholder="Ej: Blanco"
             />
           </div>
         </div>
-
-        {/* Tercera fila horizontal */}
-        <div className="form-row">
-          <div className="form-field">
+        {/* Tercera fila */}
+        <div className="form-row-horizontal">
+          <div className="form-field-horizontal">
             <label>Categoría</label>
             <select
               name="id_categoria"
@@ -191,8 +189,7 @@ function AgregarProductoForm({ onCancel }) {
               ))}
             </select>
           </div>
-
-          <div className="form-field">
+          <div className="form-field-horizontal">
             <label>Stock</label>
             <input
               type="number"
@@ -203,21 +200,27 @@ function AgregarProductoForm({ onCancel }) {
               required
             />
           </div>
-
-          <div className="form-field">
-            <label>Color</label>
+          <div className="form-field-horizontal">
+            <label>ID Suplidor</label>
             <input
-              type="text"
-              name="color"
-              value={formData.color}
+              type="number"
+              name="id_suplidor"
+              value={formData.id_suplidor}
               onChange={handleChange}
+              placeholder="Ej: 1"
             />
+            <button
+              type="button"
+              className="btn-suplidor"
+              onClick={() => setMostrarSuplidores(!mostrarSuplidores)}
+            >
+              {mostrarSuplidores ? 'Ocultar' : 'Ver Suplidores'}
+            </button>
           </div>
         </div>
-
-        {/* Cuarta fila horizontal */}
-        <div className="form-row">
-          <div className="form-field wide">
+        {/* Cuarta fila */}
+        <div className="form-row-horizontal">
+          <div className="form-field-horizontal wide">
             <label>Descripción</label>
             <textarea
               name="descripcion_producto"
@@ -228,39 +231,7 @@ function AgregarProductoForm({ onCancel }) {
               required
             ></textarea>
           </div>
-
-          <div className="form-field">
-            <label>ID Suplidor</label>
-            <div style={{ display: 'flex', gap: 8 }}>
-              <input
-                type="number"
-                name="id_suplidor"
-                value={formData.id_suplidor}
-                onChange={handleChange}
-              />
-              <button
-                type="button"
-                onClick={() => setMostrarSuplidores(!mostrarSuplidores)}
-                style={{ padding: '4px 8px', fontSize: 13 }}
-              >
-                {mostrarSuplidores ? 'Ocultar' : 'Ver Suplidores'}
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {mostrarSuplidores && (
-          <TablaSuplidores
-            onSelect={id => {
-              setFormData(prev => ({ ...prev, id_suplidor: id }));
-              setMostrarSuplidores(false);
-            }}
-          />
-        )}
-
-        {/* Quinta fila horizontal */}
-        <div className="form-row">
-          <div className="form-field">
+          <div className="form-field-horizontal">
             <label>URL de la Imagen</label>
             <input
               type="text"
@@ -272,12 +243,19 @@ function AgregarProductoForm({ onCancel }) {
             />
           </div>
         </div>
-
+        {mostrarSuplidores && (
+          <TablaSuplidores
+            onSelect={id => {
+              setFormData(prev => ({ ...prev, id_suplidor: id }));
+              setMostrarSuplidores(false);
+            }}
+          />
+        )}
         {/* Botones de acción */}
-        <div className="form-actions">
+        <div className="form-actions-horizontal">
           <button
             type="button"
-            className="cancel-btn"
+            className="cancel-btn-horizontal"
             onClick={onCancel}
             disabled={loading}
           >
@@ -285,7 +263,7 @@ function AgregarProductoForm({ onCancel }) {
           </button>
           <button
             type="submit"
-            className="submit-btn"
+            className="submit-btn-horizontal"
             disabled={loading}
           >
             {loading ? 'Guardando...' : 'Guardar Producto'}

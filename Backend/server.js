@@ -560,12 +560,15 @@ app.get('/ventas/:id_venta', async (req, res) => {
 app.put('/ventas/:id', async (req, res) => {
     const connection = await db.getConnection();
     try {
-        const ventaData = { ...req.body };
+        // Extraer detalles del cuerpo de la solicitud
+        const { detalles, ...ventaData } = req.body; // 'detalles' ahora se usará para actualizar detalle_venta
         const id_venta = req.params.id;
 
         console.log('Iniciando actualización de venta:', {
             id_venta,
-            datosRecibidos: ventaData
+            datosRecibidos: req.body, // Log original para ver todo lo que llegó
+            datosParaVenta: ventaData, // Log para ver qué se usará en la tabla venta
+            detallesRecibidos: detalles // Log para ver qué detalles llegaron
         });
 
         await connection.beginTransaction();
@@ -584,7 +587,7 @@ app.put('/ventas/:id', async (req, res) => {
         }
 
         const estadoAnterior = ventaActual[0].estado_venta;
-        const nuevoEstado = ventaData.estado_venta;
+        const nuevoEstado = ventaData.estado_venta; // Usamos el estado del objeto filtrado
 
         console.log('Cambio de estado:', {
             de: estadoAnterior,
@@ -593,66 +596,124 @@ app.put('/ventas/:id', async (req, res) => {
 
         // Solo verificar stock si el estado cambia a 'completa'
         if (nuevoEstado === 'completa' && estadoAnterior !== 'completa') {
-            console.log('Verificando stock para venta completa');
-            const [detalles] = await connection.query(
-                'SELECT detalle_venta.*, productos.stock_producto FROM detalle_venta JOIN productos ON detalle_venta.id_producto = productos.id_producto WHERE detalle_venta.id_venta = ? AND detalle_venta.estado = "activo"',
-                [id_venta]
-            );
+             console.log('Verificando stock para venta completa');
+             const [detallesVentaActual] = await connection.query(
+                 'SELECT detalle_venta.*, productos.stock_producto FROM detalle_venta JOIN productos ON detalle_venta.id_producto = productos.id_producto WHERE detalle_venta.id_venta = ? AND detalle_venta.estado = "activo"',
+                 [id_venta]
+             );
 
-            console.log('Detalles de la venta:', detalles);
+             console.log('Detalles de la venta para verificación de stock:', detallesVentaActual);
 
-            // Solo verificamos que haya stock suficiente
-            for (const detalle of detalles) {
-                if (detalle.stock_producto < detalle.cantidad_detalle_venta) {
-                    await connection.rollback();
-                    return res.status(400).json({
-                        error: 'Error al actualizar la venta',
-                        details: `Stock insuficiente para el producto con ID ${detalle.id_producto}. Stock disponible: ${detalle.stock_producto}`
-                    });
-                }
-            }
+             for (const detalle of detallesVentaActual) {
+                 if (detalle.stock_producto < detalle.cantidad_detalle_venta) {
+                     await connection.rollback();
+                     return res.status(400).json({
+                         error: 'Error al actualizar la venta',
+                         details: `Stock insuficiente para el producto con ID ${detalle.id_producto}. Stock disponible: ${detalle.stock_producto}`
+                     });
+                 }
+             }
         }
         // Si se está cancelando una venta que estaba completa, devolver el stock
         else if (nuevoEstado === 'cancelada' && estadoAnterior === 'completa') {
             console.log('Verificando detalles para venta cancelada');
             try {
-                const [detalles] = await connection.query(
+                const [detallesCancelacion] = await connection.query(
                     'SELECT detalle_venta.*, productos.stock_producto FROM detalle_venta JOIN productos ON detalle_venta.id_producto = productos.id_producto WHERE detalle_venta.id_venta = ? AND detalle_venta.estado = "activo"',
                     [id_venta]
                 );
+                 console.log('Detalles encontrados para venta cancelada:', detallesCancelacion);
+                 // ** Lógica para devolver stock si es necesario **
+                 // if (detallesCancelacion.length > 0) {
+                 //     for (const detalle of detallesCancelacion) {
+                 //         await connection.query(
+                 //             'UPDATE productos SET stock_producto = stock_producto + ? WHERE id_producto = ?',
+                 //             [detalle.cantidad_detalle_venta, detalle.id_producto]
+                 //         );
+                 //     }
+                 //     console.log('Stock devuelto para venta cancelada.');
+                 // }
+                 // ** Fin lógica para devolver stock **
 
-                console.log('Detalles encontrados para venta cancelada:', detalles);
             } catch (error) {
-                console.error('Error al verificar detalles:', error);
-                throw error;
+                console.error('Error al verificar detalles para cancelación:', error);
+                throw error; // Propagar el error para que la transacción haga rollback
             }
         }
 
-        // Formatear la fecha correctamente para MySQL
+
+        // Formatear la fecha correctamente para MySQL si está presente en ventaData
         if (ventaData.fecha_venta) {
             const fecha = new Date(ventaData.fecha_venta);
             ventaData.fecha_venta = fecha.toISOString().slice(0, 19).replace('T', ' ');
         }
 
-        console.log('Actualizando datos de la venta:', ventaData);
+        console.log('Actualizando datos de la tabla "venta":', ventaData);
 
-        // Actualizar la venta
-        const [result] = await connection.query(
+        // Actualizar la tabla 'venta' con los campos permitidos
+        const [resultVenta] = await connection.query(
             'UPDATE venta SET ? WHERE id_venta = ?',
             [ventaData, id_venta]
         );
 
-        console.log('Resultado de actualización de venta:', result);
+        console.log('Resultado de actualización de tabla "venta":', resultVenta);
 
-        if (result.affectedRows === 0) {
-            await connection.rollback();
-            return res.status(404).json({ error: 'Venta no encontrada' });
+        if (resultVenta.affectedRows === 0) {
+            // Esto podría ocurrir si el ID no existe, aunque lo verificamos antes.
+            // O si los datos enviados son idénticos a los actuales y MySQL no reporta cambio.
+            // Si no se actualizó la venta pero SÍ hay detalles para actualizar,
+            // no queremos hacer rollback. Solo hacemos rollback si la venta realmente no existía.
+             const [ventaCheckAfterUpdate] = await connection.query('SELECT id_venta FROM venta WHERE id_venta = ?', [id_venta]);
+             if (ventaCheckAfterUpdate.length === 0) {
+                  await connection.rollback();
+                  return res.status(404).json({ error: 'Venta no encontrada o no se pudo actualizar' });
+             }
+             console.log('La actualización de la tabla venta no afectó filas, pero la venta existe. Continuando con detalles...');
         }
+
+        // --- Lógica para actualizar los detalles de venta ---
+        if (detalles && Array.isArray(detalles)) {
+             console.log(`Actualizando ${detalles.length} detalles de venta...`);
+             for (const detalle of detalles) {
+                 // Asegurarse de que los campos necesarios existan
+                 if (detalle.id_producto !== undefined && detalle.cantidad_detalle_venta !== undefined && detalle.subtotal_detalle_venta !== undefined) {
+                     console.log('Actualizando detalle:', {
+                         id_venta: id_venta,
+                         id_producto: detalle.id_producto,
+                         cantidad: detalle.cantidad_detalle_venta,
+                         subtotal: detalle.subtotal_detalle_venta
+                     });
+                     const [resultDetalle] = await connection.query(
+                         'UPDATE detalle_venta SET cantidad_detalle_venta = ?, subtotal_detalle_venta = ?, precio_unitario_detalle_venta = ? WHERE id_venta = ? AND id_producto = ?',
+                         [
+                             detalle.cantidad_detalle_venta,
+                             detalle.subtotal_detalle_venta,
+                             detalle.precio_unitario_detalle_venta, // Asegurar que también se actualiza el precio unitario si cambia
+                             id_venta,
+                             detalle.id_producto
+                         ]
+                     );
+                     console.log('Resultado actualización detalle:', resultDetalle);
+                      if (resultDetalle.affectedRows === 0) {
+                          // Esto podría indicar que el detalle no existe para esa venta/producto.
+                          // Dependiendo del flujo, podrías querer insertarlo o lanzar un error.
+                          // Para este caso (volver del formulario y editar), asumimos que el detalle ya existe.
+                           console.warn(`Advertencia: La actualización del detalle para id_venta ${id_venta} y id_producto ${detalle.id_producto} no afectó filas. Podría no existir.`);
+                      }
+                 } else {
+                      console.warn('Advertencia: Detalle de venta con datos incompletos recibido:', detalle);
+                 }
+             }
+              console.log('Actualización de detalles de venta completada.');
+        } else {
+             console.log('No se recibieron detalles de venta para actualizar.');
+        }
+        // --- Fin Lógica para actualizar los detalles de venta ---
+
 
         await connection.commit();
         console.log('Transacción completada exitosamente');
 
-        // Preparar mensaje de respuesta
         let mensajeStock = '';
         if (nuevoEstado === 'completa' && estadoAnterior !== 'completa') {
             mensajeStock = 'Stock actualizado';
@@ -661,21 +722,23 @@ app.put('/ventas/:id', async (req, res) => {
         }
 
         res.json({
-            message: 'Venta actualizada exitosamente',
+            message: 'Venta y detalles actualizados exitosamente', // Mensaje actualizado
             stockActualizado: mensajeStock,
             estadoAnterior,
-            nuevoEstado
+            nuevoEstado,
+            updatedDataVenta: ventaData,
+             updatedDetallesCount: detalles ? detalles.length : 0 // Indicar cuántos detalles se intentaron actualizar
         });
 
     } catch (error) {
         await connection.rollback();
-        console.error('Error detallado al actualizar la venta:', {
+        console.error('Error detallado al actualizar la venta (incluyendo detalles):', { // Log actualizado
             error: error.message,
             stack: error.stack,
             sqlMessage: error.sqlMessage
         });
         res.status(500).json({
-            error: 'Error al actualizar la venta',
+            error: 'Error al actualizar la venta', // Mensaje general
             details: error.message,
             sqlMessage: error.sqlMessage,
             stack: error.stack
@@ -966,15 +1029,12 @@ app.get('/envios/orden/:id', async (req, res) => {
 
 app.put('/envios/:id', async (req, res) => {
     try {
-        // Normalizar provincia
-        if (req.body.provincia_envio) {
-            let prov = req.body.provincia_envio.trim();
-            if (prov.toLowerCase() === 'santiago') prov = 'Santiago';
-            else if (prov.toLowerCase() === 'santo domingo') prov = 'Santo Domingo';
-            else prov = 'Santiago'; // Valor por defecto si no es válido
-            req.body.provincia_envio = prov;
-        } else {
-            req.body.provincia_envio = 'Santiago';
+        // Normalizar provincia si está presente
+        if (req.body.provincia_envio !== undefined && req.body.provincia_envio !== null) {
+            let prov = String(req.body.provincia_envio).trim(); // Asegurar que sea string antes de trim
+            if (prov.toLowerCase() === 'santiago') req.body.provincia_envio = 'Santiago';
+            else if (prov.toLowerCase() === 'santo domingo') req.body.provincia_envio = 'Santo Domingo';
+            else req.body.provincia_envio = 'Santiago'; // Valor por defecto si no es válido
         }
 
         console.log('Datos recibidos para actualizar envío:', {
@@ -997,46 +1057,64 @@ app.put('/envios/:id', async (req, res) => {
             });
         }
 
-        const dataToUpdate = {
-            fecha_estimada_envio: req.body.fecha_estimada_envio ?
-                new Date(req.body.fecha_estimada_envio).toISOString().slice(0, 19).replace('T', ' ') :
-                null,
-            direccion_entrega_envio: req.body.direccion_entrega_envio,
-            estado_envio: req.body.estado_envio,
-            provincia_envio: req.body.provincia_envio,
-            estado: req.body.estado || 'activo'
-        };
+        // Construir objeto de actualización solo con los campos presentes y definidos en req.body
+        const fieldsToUpdate = {};
+        for (const key in req.body) {
+            if (req.body[key] !== undefined) {
+                // Manejar formato de fecha si el campo es fecha_estimada_envio
+                if (key === 'fecha_estimada_envio') {
+                    fieldsToUpdate[key] = req.body[key] ?
+                        new Date(req.body[key]).toISOString().slice(0, 19).replace('T', ' ') : null;
+                } else if (key === 'estado') {
+                     // Manejar estado con valor por defecto si es necesario y está presente
+                     fieldsToUpdate[key] = req.body[key] || 'activo';
+                } else if (key === 'direccion_entrega_envio') {
+                    // Asegurarse de que la dirección no sea undefined o null
+                    fieldsToUpdate[key] = req.body[key] || '';
+                } else {
+                    fieldsToUpdate[key] = req.body[key];
+                }
+            }
+        }
 
-        console.log('Datos formateados para actualizar:', dataToUpdate);
+        // Si no hay campos para actualizar, responder apropiadamente
+        if (Object.keys(fieldsToUpdate).length === 0) {
+            return res.status(400).json({ error: 'No se proporcionaron campos para actualizar' });
+        }
 
+        console.log('Datos formateados para actualizar:', fieldsToUpdate);
+
+        // Realizar la actualización con solo los campos proporcionados
         const [result] = await db.query(
             'UPDATE envios SET ? WHERE id_envio = ?',
-            [dataToUpdate, req.params.id]
+            [fieldsToUpdate, req.params.id]
         );
 
         if (result.affectedRows === 0) {
-            return res.status(404).json({
+            return res.status(500).json({
                 error: 'No se pudo actualizar el envío',
-                message: 'La actualización no afectó ningún registro',
+                message: 'La actualización no afectó ningún registro (verificar ID y estado activo)',
                 id: req.params.id
             });
         }
 
         res.json({
             message: 'Envío actualizado exitosamente',
-            updatedData: dataToUpdate,
+            updatedData: fieldsToUpdate,
             id: req.params.id
         });
     } catch (error) {
         console.error('Error detallado al actualizar el envío:', {
             error: error.message,
             stack: error.stack,
+            sqlMessage: error.sqlMessage,
             id: req.params.id
         });
         res.status(500).json({
             error: 'Error al actualizar el envío',
             details: error.message,
             sqlMessage: error.sqlMessage,
+            stack: error.stack,
             id: req.params.id
         });
     }
@@ -1277,7 +1355,7 @@ app.get('/dashboard/proximos-envios', async (req, res) => {
         const [envios] = await db.query(`
             SELECT * FROM vw_proximos_envios 
             WHERE semana_entrega = WEEK(CURDATE(), 1) 
-              AND anio_entrega = YEAR(CURDATE()) //cambien eso a año que no me dejo poner la trapo de ñ.
+              AND año_entrega = YEAR(CURDATE())
         `);
         console.log('Envíos obtenidos:', envios);
         res.json(envios);

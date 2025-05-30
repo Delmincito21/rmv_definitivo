@@ -184,6 +184,144 @@ const MisPedidos = () => {
   console.log("pedidos:", pedidos);
   console.log("pedidosFiltrados:", pedidosFiltrados);
 
+  // Función para cancelar un pedido
+  const handleCancelPedido = async (id_venta) => {
+    Swal.fire({
+      title: '¿Estás seguro?',
+      text: "¿Realmente quieres cancelar este pedido? Esta acción no se puede deshacer.",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Sí, cancelar pedido',
+      cancelButtonText: 'No, mantener pedido'
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          const response = await fetch(`http://localhost:3000/ventas/${id_venta}/estado`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ estado_venta: 'cancelado' })
+          });
+
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Error al cancelar el pedido');
+          }
+
+          Swal.fire(
+            '¡Cancelado!',
+            'Tu pedido ha sido cancelado exitosamente. Nos estaremos comunicando contigo para el reembolso del pago.',
+            'success'
+          );
+
+          // Actualizar estado localmente
+          setPedidos(pedidos.map(p =>
+            p.id_venta === id_venta ? { ...p, estado_venta: 'cancelado' } : p
+          ));
+
+        } catch (error) {
+          console.error('Error al cancelar pedido:', error);
+          Swal.fire(
+            'Error',
+            'Hubo un problema al intentar cancelar tu pedido: ' + error.message,
+            'error'
+          );
+        }
+      }
+    });
+  };
+
+  // Función para editar la dirección de envío
+  const handleEditAddress = async (pedido) => {
+    if (pedido.envio_estado === 'caminando') {
+      Swal.fire(
+        'No permitido',
+        'No puedes editar la dirección de un pedido que ya está en camino.',
+        'info'
+      );
+      return;
+    }
+
+    // Obtener la orden para conseguir el id_envio
+    try {
+      const ordenRes = await fetch(`http://localhost:3000/orden/venta/${pedido.id_venta}`);
+      const orden = await ordenRes.json();
+
+      if (!orden || !orden.id_orden) {
+        throw new Error('No se encontró la orden relacionada con este pedido.');
+      }
+
+      // Obtener el envío para conseguir el id_envio (aunque ya lo hicimos al cargar, mejor asegurarnos)
+      const envioRes = await fetch(`http://localhost:3000/envios/orden/${orden.id_orden}`);
+      const envio = await envioRes.json();
+
+      if (!envio || !envio.id_envio) {
+        throw new Error('No se encontró la información de envío para este pedido.');
+      }
+
+      Swal.fire({
+        title: 'Editar Dirección de Envío',
+        input: 'text',
+        inputLabel: 'Nueva Dirección',
+        inputValue: pedido.envio_direccion || '', // Usar la dirección actual si existe
+        showCancelButton: true,
+        confirmButtonText: 'Guardar',
+        cancelButtonText: 'Cancelar',
+        inputValidator: (value) => {
+          if (!value) {
+            return 'Por favor ingresa una dirección';
+          }
+        }
+      }).then(async (result) => {
+        if (result.isConfirmed) {
+          const nuevaDireccion = result.value;
+          try {
+            // Usar el endpoint PUT /envios/:id para actualizar la dirección
+            console.log('Intentando actualizar envío con ID:', envio.id_envio, 'Nueva dirección:', nuevaDireccion);
+            const response = await fetch(`http://localhost:3000/envios/${envio.id_envio}`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ direccion_entrega_envio: nuevaDireccion })
+            });
+
+            if (!response.ok) {
+              const errorData = await response.json();
+              throw new Error(errorData.error || 'Error al actualizar la dirección');
+            }
+
+            Swal.fire(
+              'Actualizada!',
+              'La dirección de envío ha sido actualizada correctamente.',
+              'success'
+            );
+
+            // Actualizar estado localmente (actualizando el pedido en la lista)
+            setPedidos(pedidos.map(p =>
+              p.id_venta === pedido.id_venta ? { ...p, envio_direccion: nuevaDireccion } : p
+            ));
+
+          } catch (error) {
+            console.error('Error al actualizar dirección:', error);
+            Swal.fire(
+              'Error',
+              'Hubo un problema al actualizar la dirección: ' + error.message,
+              'error'
+            );
+          }
+        }
+      });
+
+    } catch (error) {
+      console.error('Error obteniendo datos de envío:', error);
+      Swal.fire(
+        'Error',
+        'No se pudo obtener la información de envío para editar la dirección: ' + error.message,
+        'error'
+      );
+    }
+  };
+
   return (
     <div className="dashboard-container">
       {/* Sidebar igual que en Tienda */}
@@ -452,45 +590,91 @@ const MisPedidos = () => {
                   <div style={{ fontWeight: 600, fontSize: 16, color: '#2196F3', marginBottom: 8 }}>
                     Total: ${pedido.total || 0}
                   </div>
-                  <button
-                    onClick={() => verDetalles(pedido.id_venta)}
-                    style={{
-                      background: '#27639b',
-                      color: '#fff',
-                      border: 'none',
-                      borderRadius: 8,
-                      padding: '10px 0',
-                      fontWeight: 'bold',
-                      fontSize: 15,
-                      marginTop: 8,
-                      cursor: 'pointer',
-                      transition: 'background 0.2s',
-                    }}
-                    onMouseOver={e => e.target.style.background = '#1e4c7d'}
-                    onMouseOut={e => e.target.style.background = '#27639b'}
-                  >
-                    Ver Detalles
-                  </button>
-                  <button
-                    onClick={() => navigate(`/factura/${pedido.id_venta}`, { state: { volverA: '/MisPedidos' } })}
-                    style={{
-                      background: '#43a047',
-                      color: '#fff',
-                      border: 'none',
-                      borderRadius: 8,
-                      padding: '10px 0',
-                      fontWeight: 'bold',
-                      fontSize: 15,
-                      marginTop: 8,
-                      marginLeft: 8,
-                      cursor: 'pointer',
-                      transition: 'background 0.2s',
-                    }}
-                    onMouseOver={e => e.target.style.background = '#2e7031'}
-                    onMouseOut={e => e.target.style.background = '#43a047'}
-                  >
-                    Ver Factura
-                  </button>
+                  {/* Contenedor de botones de acción */}
+                  <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                    <button
+                      onClick={() => verDetalles(pedido.id_venta)}
+                      style={{
+                        background: '#27639b',
+                        color: '#fff',
+                        border: 'none',
+                        borderRadius: 8,
+                        padding: '8px 16px', /* Ajuste de padding */
+                        fontWeight: 'bold',
+                        fontSize: 14, /* Ajuste de tamaño de fuente */
+                        cursor: 'pointer',
+                        transition: 'background 0.2s',
+                      }}
+                      onMouseOver={e => e.target.style.background = '#1e4c7d'}
+                      onMouseOut={e => e.target.style.background = '#27639b'}
+                    >
+                      Ver Detalles
+                    </button>
+
+                    {/* Botón de Cancelar Pedido */}
+                    {pedido.estado_venta !== 'cancelado' && pedido.estado_venta !== 'completado' && ( /* Mostrar solo si no está cancelado o completado */
+                      <button
+                        onClick={() => handleCancelPedido(pedido.id_venta)}
+                        style={{
+                          background: '#e74c3c',
+                          color: '#fff',
+                          border: 'none',
+                          borderRadius: 8,
+                          padding: '8px 16px', /* Ajuste de padding */
+                          fontWeight: 'bold',
+                          fontSize: 14, /* Ajuste de tamaño de fuente */
+                          cursor: 'pointer',
+                          transition: 'background 0.2s',
+                        }}
+                        onMouseOver={e => e.target.style.background = '#c0392b'}
+                        onMouseOut={e => e.target.style.background = '#e74c3c'}
+                      >
+                        Cancelar Pedido
+                      </button>
+                    )}
+
+                    {/* Botón de Editar Dirección */}
+                    {pedido.envio_estado !== null && ( /* Mostrar solo si hay info de envío */
+                      <button
+                        onClick={() => handleEditAddress(pedido)}
+                        disabled={pedido.envio_estado === 'caminando'} /* Deshabilitar si está en camino */
+                        style={{
+                          background: pedido.envio_estado === 'caminando' ? '#bdc3c7' : '#f39c12', /* Gris si deshabilitado, naranja si habilitado */
+                          color: '#fff',
+                          border: 'none',
+                          borderRadius: 8,
+                          padding: '8px 16px', /* Ajuste de padding */
+                          fontWeight: 'bold',
+                          fontSize: 14, /* Ajuste de tamaño de fuente */
+                          cursor: pedido.envio_estado === 'caminando' ? 'not-allowed' : 'pointer', /* Cursor adecuado */
+                          transition: 'background 0.2s',
+                        }}
+                        onMouseOver={e => e.target.style.background = pedido.envio_estado === 'caminando' ? '#bdc3c7' : '#e67e22'}
+                        onMouseOut={e => e.target.style.background = pedido.envio_estado === 'caminando' ? '#bdc3c7' : '#f39c12'}
+                      >
+                        Editar Dirección
+                      </button>
+                    )}
+
+                    <button
+                      onClick={() => navigate(`/factura/${pedido.id_venta}`, { state: { volverA: '/MisPedidos' } })}
+                      style={{
+                        background: '#43a047',
+                        color: '#fff',
+                        border: 'none',
+                        borderRadius: 8,
+                        padding: '8px 16px', /* Ajuste de padding */
+                        fontWeight: 'bold',
+                        fontSize: 14, /* Ajuste de tamaño de fuente */
+                        cursor: 'pointer',
+                        transition: 'background 0.2s',
+                      }}
+                      onMouseOver={e => e.target.style.background = '#2e7031'}
+                      onMouseOut={e => e.target.style.background = '#43a047'}
+                    >
+                      Ver Factura
+                    </button>
+                  </div> {/* Fin contenedor de botones */}
                 </div>
               ))}
             </div>

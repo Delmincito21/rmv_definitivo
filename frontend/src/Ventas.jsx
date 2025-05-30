@@ -58,15 +58,8 @@ const PagoForm = ({ total, onSubmit, setPaso, id_venta, datosPago, setDatosPago,
     }
   };
 
-  const handleVolver = () => {
-    setPaso('venta');
-  };
-
   return (
     <form onSubmit={handleSubmit} className="pago-form">
-      <button type="button" className="back-btn" onClick={handleVolver}>
-        <FaArrowLeft /> Volver
-      </button>
       <h3 className="section-subtitle">Información de Pago</h3>
 
       <div className="form-row">
@@ -209,43 +202,66 @@ const EnvioForm = ({ onSubmit, setPaso, id_orden, datosEnvio, setDatosEnvio }) =
       };
       console.log('Provincia seleccionada antes de enviar:', datosEnvio.provincia_envio);
       console.log('Objeto que se enviará:', envioConOrden);
+
       try {
-        const response = await fetch('http://localhost:3000/envios', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(envioConOrden)
-        });
-        if (!response.ok) {
-          throw new Error('Error al procesar el envío');
+        let response;
+        let method;
+        let url;
+
+        // --- Lógica para decidir si CREAR (POST) o ACTUALIZAR (PUT) el envío ---
+        if (datosEnvio.id_envio) { // Si ya tenemos un id_envio, ACTUALIZAMOS
+            console.log(`Actualizando envío existente con ID: ${datosEnvio.id_envio}`);
+            method = 'PUT';
+            url = `http://localhost:3000/envios/${datosEnvio.id_envio}`;
+            // Enviamos solo los campos que pueden ser actualizados si es necesario, o todo el objeto `datosEnvio`
+            // El backend ya está diseñado para tomar solo los campos presentes.
+             response = await fetch(url, {
+                 method: method,
+                 headers: { 'Content-Type': 'application/json' },
+                 body: JSON.stringify(datosEnvio) // Envía los datos actuales que incluyen id_envio
+             });
+
+        } else { // Si no tenemos id_envio, CREAMOS uno nuevo
+            console.log('Creando nuevo envío...');
+            method = 'POST';
+            url = 'http://localhost:3000/envios';
+             // Al crear, no enviamos id_envio
+             const { id_envio, ...envioParaCrear } = envioConOrden; // Excluimos id_envio si estuviera accidentalmente
+             response = await fetch(url, {
+                 method: method,
+                 headers: { 'Content-Type': 'application/json' },
+                 body: JSON.stringify(envioParaCrear) // Envía datos sin id_envio
+             });
         }
-        setDatosEnvio(envioConOrden); // Guardar datos de envío en el estado
-        onSubmit(envioConOrden);
+        // --- Fin Lógica CREAR/ACTUALIZAR ---
+
+
+        if (!response.ok) {
+           const errorData = await response.json();
+          throw new Error(errorData.message || errorData.error || `Error al ${datosEnvio.id_envio ? 'actualizar' : 'crear'} el envío`);
+        }
+
+        const responseData = await response.json();
+        console.log(`Respuesta de ${method} /envios:`, responseData);
+
+        // SI ES UNA CREACIÓN (POST), GUARDAR EL NUEVO id_envio EN EL ESTADO
+        if (method === 'POST' && responseData.id) {
+             console.log('Nuevo envío creado con ID:', responseData.id);
+             // Aquí debemos actualizar el estado datosEnvio con el id_envio devuelto por el backend
+             setDatosEnvio(prev => ({ ...prev, id_envio: responseData.id }));
+             // Llama al onSubmit con los datos de envío actualizados (incluyendo el id_envio)
+             onSubmit({...envioConOrden, id_envio: responseData.id});
+        } else {
+            // Si es una actualización (PUT) o un POST que no devolvió id (lo cual no debería pasar con el backend actual),
+            // simplemente llamamos a onSubmit con los datos actuales.
+             onSubmit(datosEnvio); // Pasar los datos de envío actualizados (incluye id_envio si ya existía)
+        }
+
+
       } catch (error) {
-        alert('Error al guardar el envío: ' + error.message);
+        console.error(`Error al ${datosEnvio.id_envio ? 'actualizar' : 'guardar'} el envío:`, error);
+        alert(`Error al ${datosEnvio.id_envio ? 'actualizar' : 'guardar'} el envío: ` + error.message);
       }
-    }
-  };
-
-  const handleVolver = async () => {
-    try {
-      // Guardar los datos del envío antes de volver
-      if (datosEnvio.id_orden) {
-        const response = await fetch(`http://localhost:3000/envios/${datosEnvio.id_orden}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(datosEnvio)
-        });
-
-        if (!response.ok) {
-          throw new Error('Error al actualizar el envío');
-        }
-      }
-      setPaso('pago');
-    } catch (error) {
-      console.error('Error al volver:', error);
-      alert('Error al guardar los cambios: ' + error.message);
     }
   };
 
@@ -253,9 +269,6 @@ const EnvioForm = ({ onSubmit, setPaso, id_orden, datosEnvio, setDatosEnvio }) =
 
   return (
     <form onSubmit={handleSubmit} className="envio-form">
-      <button type="button" className="back-btn" onClick={handleVolver}>
-        <FaArrowLeft /> Volver
-      </button>
       <h3 className="section-subtitle">Información de Envío</h3>
 
       <div className="form-row">
@@ -358,11 +371,9 @@ const Ventas = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [ordenId, setOrdenId] = useState(null);
-  const [ordenIdLocal, setOrdenIdLocal] = useState(null);
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [selectedVentaId, setSelectedVentaId] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [datosPagoActual, setDatosPagoActual] = useState(null);
   const [datosPago, setDatosPago] = useState({
     monto_pago: 0,
     fecha_pago: getNowDateTimeLocalRD(),
@@ -370,7 +381,8 @@ const Ventas = () => {
     referencia: '',
     banco_emisor: '',
     estado_pago: 'pendiente',
-    id_venta: null
+    id_venta: null,
+    id_pago: null,
   });
   const navigate = useNavigate();
 
@@ -384,7 +396,8 @@ const Ventas = () => {
     provincia_envio: '',
     estado_envio: 'pendiente',
     estado: 'activo',
-    id_orden: null
+    id_orden: null,
+    id_envio: null
   });
 
   useEffect(() => {
@@ -710,7 +723,7 @@ const Ventas = () => {
 
   const handlePagoSubmit = async (datosPago) => {
     try {
-      let idPago = datosPagoActual?.id_pago;
+      let idPago = datosPago?.id_pago;
       if (!idPago) {
         // Crear nuevo pago
         const response = await fetch('http://localhost:3000/pago', {
@@ -747,76 +760,25 @@ const Ventas = () => {
   };
 
   const handleEnvioSubmit = async (datosEnvioForm) => {
-    setPaso('pago');
-  };
+    console.log('Envío procesado en handleSubmit de Ventas:', datosEnvioForm);
+    // Ahora datosEnvioForm ya debería incluir id_envio si fue una creación
+    setDatosEnvio(datosEnvioForm); // Aseguramos que el estado se actualice con los datos del envío, incluyendo id_envio
 
-  const handleVolverAVenta = async () => {
-    try {
-      // Primero guardar los cambios actuales
-      if (datosVenta.id_venta) {
-        // Actualizar la venta
-        const ventaResponse = await fetch(`http://localhost:3000/ventas/${datosVenta.id_venta}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            id_usuario: parseInt(datosVenta.id_usuario),
-            fecha_venta: datosVenta.fecha_venta,
-            estado_venta: datosVenta.estado_venta,
-            estado: 'activo'
-          })
-        });
-
-        if (!ventaResponse.ok) throw new Error('Error al actualizar la venta');
-
-        // Actualizar los detalles
-        for (const detalle of detalles) {
-          const detalleParaEnviar = {
-            id_venta: datosVenta.id_venta,
-            id_producto: parseInt(detalle.id_producto),
-            cantidad_detalle_venta: parseInt(detalle.cantidad),
-            precio_unitario_detalle_venta: parseFloat(detalle.precio),
-            subtotal_detalle_venta: parseFloat(detalle.subtotal),
-            estado: 'activo'
-          };
-
-          await fetch(`http://localhost:3000/detalle-ventas/${datosVenta.id_venta}/${detalle.id_producto}`, {
-            method: 'PUT',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(detalleParaEnviar)
-          });
-        }
-      }
-
-      // Cargar los datos actualizados
-      const ventaResponse = await fetch(`http://localhost:3000/ventas/${datosVenta.id_venta}`);
-      if (!ventaResponse.ok) throw new Error('Error al cargar la venta');
-      const ventaData = await ventaResponse.json();
-
-      const detallesResponse = await fetch(`http://localhost:3000/detalle-ventas/venta/${datosVenta.id_venta}`);
-      if (!detallesResponse.ok) throw new Error('Error al cargar los detalles');
-      const detallesData = await detallesResponse.json();
-
-      setDatosVenta({
-        ...ventaData,
-        fecha_venta: new Date(ventaData.fecha_venta).toISOString().slice(0, 16)
-      });
-
-      setDetalles(detallesData.map(detalle => ({
-        id_producto: detalle.id_producto,
-        cantidad: detalle.cantidad_detalle_venta,
-        precio: parseFloat(detalle.precio_unitario_detalle_venta),
-        subtotal: parseFloat(detalle.subtotal_detalle_venta) || 0
-      })));
-
-      setPaso('venta');
-    } catch (error) {
-      console.error('Error al cargar los datos de la venta:', error);
-      alert('Error al cargar los datos de la venta: ' + error.message);
-    }
+    // Actualizar datosPago con el id_venta antes de pasar al formulario de pago
+     // Asegurarnos de tener el id_venta actual
+     const currentIdVenta = datosVenta.id_venta; // Asumiendo que datosVenta tiene el id_venta
+     if (currentIdVenta) {
+          setDatosPago(prev => ({
+             ...prev,
+             id_venta: currentIdVenta,
+             // Aseguramos que el monto total refleje el costo de envío calculado
+             monto_pago: calcularTotal() + getCostoEnvio(datosEnvioForm.provincia_envio) // Usar la provincia del formulario de envío
+         }));
+          setPaso('pago'); // Mover al paso de pago
+     } else {
+          console.error("Error: No se pudo obtener el ID de la venta para pasar al pago.");
+          alert("Error interno: No se pudo vincular el pago a la venta.");
+     }
   };
 
   const handleDelete = async (id_venta) => {
@@ -915,9 +877,6 @@ const Ventas = () => {
           {paso === 'venta' && (
             <form onSubmit={handleSubmit} className="horizontal-product-form">
               <div className="form-header">
-                <button type="button" className="back-btn" onClick={() => setMostrarFormulario(false)}>
-                  <FaArrowLeft /> Volver
-                </button>
                 <h2 className="form-title">Nueva Venta</h2>
               </div>
 
@@ -1118,14 +1077,14 @@ const Ventas = () => {
 
           {paso === 'pago' && (
             <PagoForm
-              total={calcularTotal() + getCostoEnvio(datosEnvio.provincia_envio)}
+              total={calcularTotal()}
               onSubmit={handlePagoSubmit}
-              setPaso={handleVolverAVenta}
+              setPaso={setPaso}
               id_venta={datosVenta.id_venta}
               datosPago={datosPago}
               setDatosPago={setDatosPago}
               costoEnvio={getCostoEnvio(datosEnvio.provincia_envio)}
-              pagoKey={pagoKey}
+              pagoKey={paso}
             />
           )}
         </div>

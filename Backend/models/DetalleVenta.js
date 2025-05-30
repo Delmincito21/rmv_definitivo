@@ -8,7 +8,7 @@ class DetalleVenta {
         } catch (error) {
             throw error;
         }
-    }
+    } 
 
     static async create(detalleVentaData) {
         const {

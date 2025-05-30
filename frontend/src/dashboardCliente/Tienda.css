@@ -980,3 +980,140 @@ button {
 .sidebar-footer {
   background: #27639b !important;
 }
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: white;
+  border-radius: 15px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
+  width: 90%;
+  max-width: 1200px;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+}
+
+.modal-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #666;
+  padding: 0.5rem;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.modal-close:hover {
+  background-color: #f0f0f0;
+  color: #333;
+}
+
+.producto-detalle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  padding: 2rem;
+}
+
+.producto-detalle-imagen {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.producto-imagen {
+  max-width: 100%;
+  max-height: 500px;
+  object-fit: contain;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.producto-detalle-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.producto-detalle-info h2 {
+  font-size: 1.8rem;
+  color: var(--tienda-text-color);
+  margin: 0;
+}
+
+.precio {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: var(--tienda-primary-color);
+}
+
+.detalles-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.detalle-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.detalle-item.full-width {
+  grid-column: span 2;
+}
+
+.label {
+  font-weight: 600;
+  color: var(--tienda-text-light);
+}
+
+.valor {
+  font-size: 1rem;
+  color: var(--tienda-text-color);
+}
+
+.descripcion {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--tienda-text-light);
+}
+
+.boton-agregar-detalle {
+  background-color: var(--tienda-primary-color);
+  color: white;
+  border: none;
+  padding: 1rem 2rem;
+  border-radius: 5px;
+  font-size: 1rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.boton-agregar-detalle:hover {
+  background-color: var(--tienda-secondary-color);
+}
+
+.boton-agregar-detalle:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}

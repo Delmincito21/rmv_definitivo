@@ -1126,13 +1126,13 @@ const Ventas = () => {
                         className="action-button view"
                         onClick={() => navigate(`/admin/factura/${venta.id_venta}`, { state: { volverA: '/admin/ventas' } })}
                       >
-                        Ver Detalles
+                        Ver Factura
                       </button>
                       <button
                         className="action-button edit"
                         onClick={() => handleEdit(venta.id_venta)}
                       >
-                        Editar
+                        Ver detalles
                       </button>
                       <button
                         className="action-button delete"

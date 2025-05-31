@@ -220,7 +220,7 @@
       height: auto;
       display: block;
     }
-  
+
     .factura-content {
       box-shadow: none;
       max-height: none;
@@ -228,23 +228,31 @@
       padding: 0;
       color: #000000 !important;
     }
-  
-    .factura-buttons {
-      display: none;
+
+    .factura-buttons,
+    .action-button {
+      display: none !important;
     }
-  
+
     body * {
       visibility: hidden;
     }
-  
-    .factura-content, .factura-content * {
+
+    .factura-content, 
+    .factura-content * {
       visibility: visible;
       color: #000000 !important;
     }
-  
+
+    /* Ocultar cualquier texto que contenga localhost */
+    :not(.factura-content) *:not(:empty):contains('localhost') {
+      display: none !important;
+    }
+
     .factura-content {
       position: absolute;
       left: 0;
       top: 0;
     }
   }
+  

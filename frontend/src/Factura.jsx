@@ -160,20 +160,41 @@ const Factura = ({ venta, id_venta: propIdVenta }) => {
         const content = document.querySelector('.factura-content');
         if (!content) return;
 
+        // Ocultar los botones temporalmente
+        const buttons = content.querySelector('.factura-buttons');
+        if (buttons) {
+            buttons.style.display = 'none';
+        }
+
         try {
-            const canvas = await html2canvas(content);
+            const canvas = await html2canvas(content, {
+                scale: 1.5,
+                useCORS: true,
+                logging: false,
+                windowWidth: 800,
+                windowHeight: 1200
+            });
+            
             const imgData = canvas.toDataURL('image/png');
             const pdf = new jsPDF({
                 orientation: 'portrait',
-                unit: 'px',
-                format: [canvas.width, canvas.height]
+                unit: 'mm',
+                format: 'a4'
             });
 
-            pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+            const imgWidth = 210; // A4 width in mm
+            const imgHeight = (canvas.height * imgWidth) / canvas.width;
+            
+            pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
             pdf.save(`factura-${facturaVenta.id_venta}.pdf`);
         } catch (error) {
             console.error('Error al generar PDF:', error);
             alert('Error al generar el PDF. Por favor, intente nuevamente.');
+        } finally {
+            // Restaurar la visibilidad de los botones
+            if (buttons) {
+                buttons.style.display = 'flex';
+            }
         }
     };
 

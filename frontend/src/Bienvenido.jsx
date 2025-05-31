@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import './App.css';
 import logo from './imagenes/lgo.png';
-import { FaShoppingCart, FaUserCheck } from 'react-icons/fa';
+import { FaShoppingCart, FaUserCheck, FaFacebook, FaInstagram, FaTwitter, FaPhone, FaEnvelope, FaMapMarkerAlt } from 'react-icons/fa';
 import { FaShop } from 'react-icons/fa6';
 
 const Bienvenido = () => {
@@ -11,9 +11,12 @@ const Bienvenido = () => {
   return (
     <div style={{
       minHeight: '100vh',
+      height: '100vh',
       background: 'linear-gradient(120deg, #e0e7ff 0%, #f8fafc 100%)',
       display: 'flex',
-      flexDirection: 'column'
+      flexDirection: 'column',
+      overflowY: 'auto',
+      overflowX: 'hidden'
     }}>
       {/* Header */}
       <header style={{
@@ -182,6 +185,82 @@ const Bienvenido = () => {
           </div>
         </div>
       </main>
+
+      {/* Footer */}
+      <footer style={{
+        background: 'white',
+        padding: '40px 20px',
+        marginTop: 'auto',
+        boxShadow: '0 -4px 20px rgba(23, 107, 179, 0.1)'
+      }}>
+        <div style={{
+          maxWidth: '1200px',
+          margin: '0 auto',
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+          gap: '40px',
+          alignItems: 'start'
+        }}>
+          {/* Logo y Nombre */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px'}}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' , paddingRight: '350px'}}>
+              <img src={logo} alt="Logo" style={{ width: '40px', height: '40px', borderRadius: '8px' }} />
+              <span style={{ fontWeight: 800, fontSize: '20px', color: '#176bb3' }}>RefriElectric MV</span>
+            </div>
+            <p style={{ color: '#666', fontSize: '14px', lineHeight: '1.6' }}>
+              Tu tienda confiable en electrodomésticos y servicios de refrigeración.
+            </p>
+          </div>
+
+          {/* Información de Contacto */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', paddingRight: '200px' }}>
+            <h3 style={{ color: '#176bb3', fontSize: '18px', fontWeight: 600, margin: 0 }}>Contacto</h3>
+            <div style={{ display: 'flex', flexDirection: 'row', gap: '20px', alignItems: 'center', flexWrap: 'nowrap' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#666', whiteSpace: 'nowrap' }}>
+                <FaPhone size={16} />
+                <span>(809) 401-1312</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#666', whiteSpace: 'nowrap' }}>
+                <FaEnvelope size={16}/>
+                <span>refrielectricmv@gmail.com</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#666', whiteSpace: 'nowrap' }}>
+                <FaMapMarkerAlt size={16} />
+                <span>Estancia Nueva, Santiago, RD</span>
+              </div>
+            </div>
+            <div style={{
+          color: '#666',
+          fontSize: '10px'
+        }}>
+          <p style={{ margin: 0 }}>© 2024 RefriElectric Martin Vasquez SRL. Todos los derechos reservados.</p>
+          <p style={{ margin: '8px 0 0 0' }}>RNC: 133-081-504</p>
+        </div>
+          </div>
+
+          {/* Redes Sociales */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' , paddingLeft: '300px'}}>
+            <h3 style={{ color: '#176bb3', fontSize: '18px', fontWeight: 600, margin: 0 }}>Síguenos</h3>
+            <div style={{ display: 'flex', gap: '20px' }}>
+              <a href="https://www.instagram.com/delmincito21" target="_blank" rel="noopener noreferrer" 
+                 style={{ color: '#176bb3', textDecoration: 'none', transition: 'color 0.3s' }}>
+                <FaInstagram size={24} />
+              </a>
+              <a href="https://www.facebook.com/4" target="_blank" rel="noopener noreferrer"
+                 style={{ color: '#176bb3', textDecoration: 'none', transition: 'color 0.3s' }}>
+                <FaFacebook size={24} />
+              </a>
+              <a href="https://x.com/" target="_blank" rel="noopener noreferrer"
+                 style={{ color: '#176bb3', textDecoration: 'none', transition: 'color 0.3s' }}>
+                <FaTwitter size={24} />
+              </a>
+            </div>
+          </div>
+        </div>
+
+        {/* Línea divisoria y copyright */}
+        
+      </footer>
     </div>
   );
 };

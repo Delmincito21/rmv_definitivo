@@ -68,7 +68,7 @@ const RegistroCliente = () => {
       localStorage.setItem('token', loginData.token);
       localStorage.setItem('userData', JSON.stringify(loginData));
 
-      navigate('/Tienda', { replace: true });
+      navigate('/loginCliente', { replace: true });
     } catch (error) {
       alert('Error al registrar el cliente: ' + error.message);
     }

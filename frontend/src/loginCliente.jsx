@@ -78,11 +78,25 @@ const LoginCliente = () => {
 
     } catch (error) {
       setError('Error al iniciar sesión: ' + error.message);
-      Swal.fire({
-        icon: 'error',
-        title: 'Error de acceso',
-        text: 'Usuario o contraseña incorrectos'
-      });
+      
+      if (error.message.includes('desactivada')) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Cuenta desactivada',
+          html: `
+            <div>
+              <p>Su cuenta está desactivada temporalmente.</p>
+              <p>Por favor, contacte al soporte para obtener más información.</p>
+            </div>
+          `
+        });
+      } else {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error de acceso',
+          text: 'Usuario o contraseña incorrectos'
+        });
+      }
     } finally {
       setLoading(false);
     }

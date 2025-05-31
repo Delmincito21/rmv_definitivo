@@ -64,6 +64,56 @@ const EditarPerfil = () => {
         setPasswordData(prev => ({ ...prev, [name]: value }));
     };
 
+    const handleDeleteAccount = async () => {
+        const result = await Swal.fire({
+            title: '¿Estás seguro?',
+            text: "Esta acción cambiará tu estado a 'inactivo' y no podrás iniciar sesión hasta que un administrador reactive tu cuenta.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc3545',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Sí, eliminar cuenta',
+            cancelButtonText: 'Cancelar'
+        });
+
+        if (result.isConfirmed) {
+            try {
+                console.log('userInfo:', userInfo);
+                if (!userInfo || !userInfo.id_clientes) {
+                    throw new Error('ID del cliente no encontrado');
+                }
+                const response = await fetch(`http://localhost:3000/clientes/${userInfo.id_clientes}/estado`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        estado: 'inactivo'
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Error al eliminar la cuenta');
+                }
+
+                // Log out the user after account is deactivated
+                localStorage.removeItem('userId');
+                navigate('/loginCliente');
+                Swal.fire(
+                    'Cuenta eliminada',
+                    'Tu cuenta ha sido desactivada. Para reactivarla, contacta a un administrador.',
+                    'success'
+                );
+            } catch (error) {
+                Swal.fire(
+                    'Error',
+                    'Hubo un error al eliminar la cuenta. Por favor, intenta de nuevo.',
+                    'error'
+                );
+            }
+        }
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setPasswordError('');
@@ -312,6 +362,26 @@ const EditarPerfil = () => {
                             </div>
                             {passwordError && <div style={{ color: 'red', marginTop: 8 }}>{passwordError}</div>}
                             {passwordSuccess && <div style={{ color: 'green', marginTop: 8 }}>{passwordSuccess}</div>}
+                        </div>
+                        <div className="delete-account-section" style={{ marginTop: 24 }}>
+                            <button 
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    handleDeleteAccount();
+                                }}
+                                className="delete-account-btn"
+                                style={{
+                                    backgroundColor: '#dc3545',
+                                    color: 'white',
+                                    border: 'none',
+                                    padding: '8px 16px',
+                                    borderRadius: '4px',
+                                    cursor: 'pointer',
+                                    marginTop: 8
+                                }}
+                            >
+                                Eliminar cuenta
+                            </button>
                         </div>
                     </form>
                 </div>

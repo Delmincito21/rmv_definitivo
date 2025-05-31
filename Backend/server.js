@@ -35,6 +35,119 @@ app.get('/test', (req, res) => {
 // Rutas del Dashboard
 console.log('Registrando rutas del dashboard...');
 
+// Ruta para inactivar la cuenta de un cliente
+app.put('/clientes/:id/estado', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const estado = 'inactivo';
+        console.log('Iniciando proceso de inactivación para cliente:', id);
+
+        // Obtener el id_usuario asociado al cliente
+        const [usuarioResult] = await db.query(
+            'SELECT id_usuario, estado as cliente_estado FROM clientes WHERE id_clientes = ?',
+            [id]
+        );
+        
+        if (usuarioResult.length === 0) {
+            console.log('No se encontró usuario asociado al cliente:', id);
+            return res.status(404).json({ 
+                error: 'Usuario no encontrado',
+                details: 'No se encontró ningún usuario asociado al cliente'
+            });
+        }
+
+        const { id_usuario, cliente_estado } = usuarioResult[0];
+        console.log('ID de usuario encontrado:', id_usuario);
+
+        // Verificar si el cliente ya está inactivo
+        if (cliente_estado === 'inactivo') {
+            return res.status(400).json({
+                error: 'El cliente ya está inactivo',
+                details: 'El estado del cliente ya está configurado como inactivo'
+            });
+        }
+
+        // Obtener una conexión y comenzar la transacción
+        const connection = await db.getConnection();
+        try {
+            await connection.beginTransaction();
+
+            // Actualizar estado del cliente
+            const [clientResult] = await connection.query(
+                'UPDATE clientes SET estado = ? WHERE id_clientes = ?',
+                [estado, id]
+            );
+
+            console.log('Resultado de actualización cliente:', clientResult);
+            
+            if (clientResult.affectedRows === 0) {
+                console.log('No se pudo actualizar el cliente:', id);
+                throw new Error('No se pudo actualizar el estado del cliente');
+            }
+
+            // Actualizar estado del usuario
+            const [userResult] = await connection.query(
+                'UPDATE usuarios SET estado = ? WHERE id_usuario = ?',
+                [estado, id_usuario]
+            );
+
+            console.log('Resultado de actualización usuario:', userResult);
+            
+            if (userResult.affectedRows === 0) {
+                console.log('No se pudo actualizar el usuario:', id_usuario);
+                throw new Error('No se pudo actualizar el estado del usuario');
+            }
+
+            // Confirmar transacción
+            await connection.commit();
+            console.log('Transacción completada exitosamente');
+
+            res.json({ 
+                message: 'Cuenta inactivada exitosamente',
+                estado
+            });
+
+        } catch (error) {
+            // Revertir transacción en caso de error
+            await connection.rollback();
+            console.error('Error durante la transacción:', {
+                error: error.message,
+                stack: error.stack,
+                details: {
+                    cliente_id: id,
+                    usuario_id: id_usuario
+                }
+            });
+            
+            // Proporcionar un mensaje de error más descriptivo
+            if (error.message.includes('foreign key')) {
+                return res.status(400).json({
+                    error: 'Error de clave foránea',
+                    details: 'No se puede inactivar el cliente debido a restricciones de integridad referencial'
+                });
+            }
+            
+            return res.status(500).json({ 
+                error: 'Error al inactivar la cuenta',
+                details: error.message
+            });
+        } finally {
+            // Liberar la conexión
+            connection.release();
+        }
+
+    } catch (error) {
+        console.error('Error al inactivar la cuenta:', {
+            error: error.message,
+            stack: error.stack
+        });
+        res.status(500).json({ 
+            error: 'Error al inactivar la cuenta',
+            details: error.message
+        });
+    }
+}); 
+
 app.get('/dashboard/stats', async (req, res) => {
     console.log('Recibida petición a /dashboard/stats');
     try {
@@ -407,36 +520,35 @@ app.post('/clientes', async (req, res) => {
 app.post('/login', async (req, res) => {
     const { nombre_usuario, pin_usuario } = req.body;
     try {
-        // Busca el usuario activo
+        // Verificar si el usuario existe y obtener su estado
         const [rows] = await db.query(
-            'SELECT * FROM usuarios WHERE nombre_usuario = ? AND estado = "activo"',
+            'SELECT * FROM usuarios WHERE nombre_usuario = ?',
             [nombre_usuario]
         );
-
+        
         if (rows.length === 0) {
             return res.status(401).json({ error: 'Usuario o contraseña incorrectos' });
         }
-
+        
         const usuario = rows[0];
-
-        // Log para diagnóstico (puedes eliminar esto después)
-        console.log("ID del usuario encontrado:", usuario.id_usuario);
-        console.log("Datos completos del usuario:", usuario);
+        
+        // Verificar si el usuario está inactivo
+        if (usuario.estado !== 'activo') {
+            return res.status(403).json({ error: 'Cuenta desactivada. Por favor, contacta al administrador.' });
+        }
 
         const match = await bcrypt.compare(pin_usuario, usuario.pin_usuario);
-
         if (!match) {
             return res.status(401).json({ error: 'Usuario o contraseña incorrectos' });
         }
 
-        // Devuelve los datos reales - SIN FORZAR NADA
         res.json({
             message: 'Login exitoso',
             rol: usuario.rol,
-            id_usuario: usuario.id_usuario  // USANDO EL ID REAL
+            id_usuario: usuario.id_usuario
         });
     } catch (error) {
-        console.error("Error completo:", error);
+        console.error('Error en el login:', error);
         res.status(500).json({ error: 'Error en el servidor', details: error.message });
     }
 });
@@ -2211,6 +2323,65 @@ app.get('/dashboard/ventas-hoy', async (req, res) => {
 
 
 // Nuevo endpoint para verificar si un nombre de usuario existe
+// Ruta para inactivar la cuenta de un cliente
+app.put('/clientes/:id/estado', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const estado = 'inactivo';
+
+        // Obtener el id_usuario asociado al cliente
+        const [usuarioResult] = await db.query(
+            'SELECT id_usuario FROM clientes WHERE id_clientes = ?',
+            [id]
+        );
+        
+        if (usuarioResult.length === 0) {
+            return res.status(404).json({ 
+                error: 'Usuario no encontrado',
+                details: 'No se encontró ningún usuario asociado al cliente'
+            });
+        }
+
+        // Actualizar estado del cliente
+        const [clientResult] = await db.query(
+            'UPDATE clientes SET estado = ? WHERE id_clientes = ?',
+            [estado, id]
+        );
+
+        if (clientResult.affectedRows === 0) {
+            return res.status(404).json({ 
+                error: 'Cliente no actualizado',
+                details: 'No se pudo actualizar el estado del cliente'
+            });
+        }
+
+        // Actualizar estado del usuario
+        const [userResult] = await db.query(
+            'UPDATE usuarios SET estado = ? WHERE id_usuario = ?',
+            [estado, usuarioResult[0].id_usuario]
+        );
+
+        if (userResult.affectedRows === 0) {
+            return res.status(404).json({ 
+                error: 'Usuario no actualizado',
+                details: 'No se pudo actualizar el estado del usuario'
+            });
+        }
+
+        res.json({ 
+            message: 'Cuenta inactivada exitosamente',
+            estado
+        });
+    } catch (error) {
+        console.error('Error al inactivar la cuenta:', error);
+        res.status(500).json({ 
+            error: 'Error al inactivar la cuenta',
+            details: error.message
+        });
+    }
+});
+
+// Ruta para verificar si un nombre de usuario existe
 app.get('/check-username/:nombre_usuario', async (req, res) => {
     const { nombre_usuario } = req.params;
     console.log(`Recibida petición para verificar usuario: ${nombre_usuario}`);

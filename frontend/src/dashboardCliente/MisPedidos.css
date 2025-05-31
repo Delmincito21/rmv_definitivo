@@ -1,0 +1,69 @@
+.motivo-cancelacion {
+  margin-top: 12px;
+  padding: 8px 20px;
+  background: #fff5f5;
+  border-left: 4px solid #e74c3c;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(231, 76, 60, 0.1);
+  transition: all 0.3s ease;
+  max-width: 110%;
+  margin-left: auto;
+  margin-right: 0;
+  display: grid;
+
+}
+
+.motivo-cancelacion strong {
+  color: #e74c3c;
+  font-size: 10px;
+  margin-bottom: 1px;
+  display: block;
+
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.motivo-cancelacion p {
+  color: #333;
+  margin: 0;
+  display: inline-block;
+
+  font-size: 10px;
+  line-height: 1.6;
+  font-style: italic;
+  white-space: pre-wrap;
+}
+
+.estado.cancelada {
+  background-color: #fee2e2;
+  color: #991b1b;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: bold;
+  text-transform: capitalize;
+  box-shadow: none;
+  letter-spacing: normal;
+}
+
+.estado.pendiente {
+    background-color: #fffbe0;
+    color: #78350f;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: bold;
+    text-transform: capitalize;
+    letter-spacing: normal;
+}
+
+.estado.completa, .estado.enviado {
+    background-color: #d1fae5;
+    color: #065f46;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: bold;
+    text-transform: capitalize;
+    letter-spacing: normal;
+} 

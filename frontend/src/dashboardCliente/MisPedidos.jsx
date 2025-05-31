@@ -4,6 +4,7 @@ import { FaShop } from "react-icons/fa6";
 import { NavLink, useNavigate } from "react-router-dom";
 import Swal from 'sweetalert2';
 import './Tienda.css';
+import './MisPedidos.css';
 import { useCart } from '../context/CartContext';
 
 const MisPedidos = () => {
@@ -41,11 +42,16 @@ const MisPedidos = () => {
               const envioRes = await fetch(`http://localhost:3000/envios/orden/${orden.id_orden}`);
               if (envioRes.ok) {
                 const envio = await envioRes.json();
-                return { ...pedido, envio_estado: envio.estado_envio, envio_fecha: envio.fecha_estimada_envio };
+                return {
+                  ...pedido,
+                  envio_estado: envio.estado_envio,
+                  envio_fecha: envio.fecha_estimada_envio,
+                  envio_direccion: envio.direccion_entrega_envio
+                };
               }
             }
           } catch (e) {}
-          return { ...pedido, envio_estado: null, envio_fecha: null };
+          return { ...pedido, envio_estado: null, envio_fecha: null, envio_direccion: null };
         }));
         setPedidos(pedidosConEnvio);
         setPedidosFiltrados(pedidosConEnvio);
@@ -186,7 +192,7 @@ const MisPedidos = () => {
 
   // Función para cancelar un pedido
   const handleCancelPedido = async (id_venta) => {
-    Swal.fire({
+    const { value: motivo } = await Swal.fire({
       title: '¿Estás seguro?',
       text: "¿Realmente quieres cancelar este pedido? Esta acción no se puede deshacer.",
       icon: 'warning',
@@ -194,42 +200,56 @@ const MisPedidos = () => {
       confirmButtonColor: '#d33',
       cancelButtonColor: '#3085d6',
       confirmButtonText: 'Sí, cancelar pedido',
-      cancelButtonText: 'No, mantener pedido'
-    }).then(async (result) => {
-      if (result.isConfirmed) {
-        try {
-          const response = await fetch(`http://localhost:3000/ventas/${id_venta}/estado`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ estado_venta: 'cancelado' })
-          });
-
-          if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'Error al cancelar el pedido');
-          }
-
-          Swal.fire(
-            '¡Cancelado!',
-            'Tu pedido ha sido cancelado exitosamente. Nos estaremos comunicando contigo para el reembolso del pago.',
-            'success'
-          );
-
-          // Actualizar estado localmente
-          setPedidos(pedidos.map(p =>
-            p.id_venta === id_venta ? { ...p, estado_venta: 'cancelado' } : p
-          ));
-
-        } catch (error) {
-          console.error('Error al cancelar pedido:', error);
-          Swal.fire(
-            'Error',
-            'Hubo un problema al intentar cancelar tu pedido: ' + error.message,
-            'error'
-          );
+      cancelButtonText: 'No, mantener pedido',
+      input: 'textarea',
+      inputLabel: 'Motivo de cancelación',
+      inputPlaceholder: 'Por favor, indique el motivo de la cancelación...',
+      inputAttributes: {
+        'aria-label': 'Motivo de cancelación'
+      },
+      inputValidator: (value) => {
+        if (!value) {
+          return 'Debe proporcionar un motivo para la cancelación';
         }
       }
     });
+
+    if (motivo) {
+      try {
+        const response = await fetch(`http://localhost:3000/ventas/${id_venta}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            estado_venta: 'cancelada',
+            motivo_cancelacion: motivo
+          })
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Error al cancelar el pedido');
+        }
+
+        Swal.fire(
+          '¡Cancelado!',
+          'Tu pedido ha sido cancelado exitosamente. Nos estaremos comunicando contigo para el reembolso del pago.',
+          'success'
+        );
+
+        // Actualizar estado localmente
+        setPedidos(pedidos.map(p =>
+          p.id_venta === id_venta ? { ...p, estado_venta: 'cancelada', motivo_cancelacion: motivo } : p
+        ));
+
+      } catch (error) {
+        console.error('Error al cancelar pedido:', error);
+        Swal.fire(
+          'Error',
+          'Hubo un problema al intentar cancelar tu pedido: ' + error.message,
+          'error'
+        );
+      }
+    }
   };
 
   // Función para editar la dirección de envío
@@ -262,9 +282,14 @@ const MisPedidos = () => {
 
       Swal.fire({
         title: 'Editar Dirección de Envío',
+        html: `
+          <p style="text-align: left; margin-bottom: 10px; color: #555;">
+            <b>Dirección Actual:</b> <span style="font-weight: normal;">${pedido.envio_direccion || 'No disponible'}</span>
+          </p>
+          <label for="swal2-input" class="swal2-label" style="text-align: left; width: 100%; margin-bottom: 5px;">Nueva Dirección:</label>
+        `,
         input: 'text',
-        inputLabel: 'Nueva Dirección',
-        inputValue: pedido.envio_direccion || '', // Usar la dirección actual si existe
+        inputValue: '', // Dejamos el campo vacío para la nueva dirección
         showCancelButton: true,
         confirmButtonText: 'Guardar',
         cancelButtonText: 'Cancelar',
@@ -567,17 +592,17 @@ const MisPedidos = () => {
                 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <span style={{ fontWeight: 'bold', color: '#27639b', fontSize: 18 }}>Numero de la orden #{pedido.id_venta}</span>
-                    <span style={{
-                      padding: '4px 10px',
-                      borderRadius: 12,
-                      fontSize: 12,
-                      fontWeight: 'bold',
-                      background: pedido.estado_venta === 'completado' ? '#dcfce7' :
-                        pedido.estado_venta === 'pendiente' ? '#fef9c3' : '#fee2e2',
-                      color: pedido.estado_venta === 'completado' ? '#166534' :
-                        pedido.estado_venta === 'pendiente' ? '#854d0e' : '#991b1b',
-                      textTransform: 'capitalize',
-                    }}>{pedido.estado_venta}</span>
+                    <div className="pedido-estado">
+                      <span className={`estado ${pedido.estado_venta.toLowerCase()}`}>
+                        {pedido.estado_venta}
+                      </span>
+                      {pedido.estado_venta === 'cancelada' && pedido.motivo_cancelacion && (
+                        <div className="motivo-cancelacion">
+                          <strong>Motivo de cancelación</strong>
+                          <p>"{pedido.motivo_cancelacion}"</p>
+                        </div>
+                      )}
+                    </div>
                   </div>
                   <div style={{ color: '#666', fontSize: 14, marginBottom: 4 }}>
                     {new Date(pedido.fecha_venta).toLocaleString()}

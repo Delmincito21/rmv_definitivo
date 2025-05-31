@@ -37,7 +37,12 @@ function AgregarProductoForm({ onCancel }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [categorias, setCategorias] = useState([]);
+  const [suplidores, setSuplidores] = useState([]);
+  const [loadingSuplidores, setLoadingSuplidores] = useState(true);
   const [mostrarSuplidores, setMostrarSuplidores] = useState(false);
+
+  // Lista de colores comunes
+  const commonColors = ['Negro', 'Blanco', 'Gris', 'Plata', 'Rojo', 'Azul', 'Verde', 'Amarillo', 'Marrón', 'Dorado'];
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -94,7 +99,25 @@ function AgregarProductoForm({ onCancel }) {
         setError('Error al cargar las categorías');
       }
     };
+
+    const fetchSuplidores = async () => {
+      setLoadingSuplidores(true);
+      try {
+        const response = await fetch('http://localhost:3000/suplidores');
+        if (!response.ok) {
+          throw new Error('Error al cargar suplidores');
+        }
+        const data = await response.json();
+        setSuplidores(data);
+      } catch (err) {
+        setError('Error al cargar los suplidores');
+      } finally {
+        setLoadingSuplidores(false);
+      }
+    };
+
     fetchCategorias();
+    fetchSuplidores();
   }, []);
 
   return (
@@ -162,13 +185,16 @@ function AgregarProductoForm({ onCancel }) {
           </div>
           <div className="form-field-horizontal">
             <label>Color</label>
-            <input
-              type="text"
+            <select
               name="color"
               value={formData.color}
               onChange={handleChange}
-              placeholder="Ej: Blanco"
-            />
+            >
+              <option value="">Seleccionar color</option>
+              {commonColors.map(color => (
+                <option key={color} value={color}>{color}</option>
+              ))}
+            </select>
           </div>
         </div>
         {/* Tercera fila */}
@@ -249,6 +275,8 @@ function AgregarProductoForm({ onCancel }) {
               setFormData(prev => ({ ...prev, id_suplidor: id }));
               setMostrarSuplidores(false);
             }}
+            suplidores={suplidores}
+            loading={loadingSuplidores}
           />
         )}
         {/* Botones de acción */}
@@ -358,6 +386,9 @@ function ModificarProductoList() {
   const [categorias, setCategorias] = useState([]);
   const [suplidores, setSuplidores] = useState([]);
   const [mostrarTablaSuplidores, setMostrarTablaSuplidores] = useState(false);
+
+  // Lista de colores comunes (repetida o importada si estuviera en otro archivo)
+  const commonColors = ['Negro', 'Blanco', 'Gris', 'Plata', 'Rojo', 'Azul', 'Verde', 'Amarillo', 'Marrón', 'Dorado'];
 
   useEffect(() => {
     const fetchData = async () => {
@@ -591,13 +622,17 @@ function ModificarProductoList() {
               </div>
               <div className="form-field">
                 <label>Color</label>
-                <input
-                  type="text"
+                <select
                   value={productoEditando.color || ''}
                   onChange={(e) =>
                     setProductoEditando((prev) => ({ ...prev, color: e.target.value }))
                   }
-                />
+                >
+                  <option value="">Seleccionar color</option>
+                  {commonColors.map(color => (
+                    <option key={color} value={color}>{color}</option>
+                  ))}
+                </select>
               </div>
               <div className="form-field">
                 <label>Precio:</label>

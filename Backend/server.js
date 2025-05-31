@@ -561,14 +561,15 @@ app.put('/ventas/:id', async (req, res) => {
     const connection = await db.getConnection();
     try {
         // Extraer detalles del cuerpo de la solicitud
-        const { detalles, ...ventaData } = req.body; // 'detalles' ahora se usará para actualizar detalle_venta
+        const { detalles, motivo_cancelacion, ...ventaData } = req.body; // Agregamos motivo_cancelacion
         const id_venta = req.params.id;
 
         console.log('Iniciando actualización de venta:', {
             id_venta,
-            datosRecibidos: req.body, // Log original para ver todo lo que llegó
-            datosParaVenta: ventaData, // Log para ver qué se usará en la tabla venta
-            detallesRecibidos: detalles // Log para ver qué detalles llegaron
+            datosRecibidos: req.body,
+            datosParaVenta: ventaData,
+            detallesRecibidos: detalles,
+            motivo_cancelacion
         });
 
         await connection.beginTransaction();
@@ -587,73 +588,21 @@ app.put('/ventas/:id', async (req, res) => {
         }
 
         const estadoAnterior = ventaActual[0].estado_venta;
-        const nuevoEstado = ventaData.estado_venta; // Usamos el estado del objeto filtrado
+        const nuevoEstado = ventaData.estado_venta;
 
-        console.log('Cambio de estado:', {
-            de: estadoAnterior,
-            a: nuevoEstado
-        });
-
-        // Solo verificar stock si el estado cambia a 'completa'
-        if (nuevoEstado === 'completa' && estadoAnterior !== 'completa') {
-             console.log('Verificando stock para venta completa');
-             const [detallesVentaActual] = await connection.query(
-                 'SELECT detalle_venta.*, productos.stock_producto FROM detalle_venta JOIN productos ON detalle_venta.id_producto = productos.id_producto WHERE detalle_venta.id_venta = ? AND detalle_venta.estado = "activo"',
-                 [id_venta]
-             );
-
-             console.log('Detalles de la venta para verificación de stock:', detallesVentaActual);
-
-             for (const detalle of detallesVentaActual) {
-                 if (detalle.stock_producto < detalle.cantidad_detalle_venta) {
-                     await connection.rollback();
-                     return res.status(400).json({
-                         error: 'Error al actualizar la venta',
-                         details: `Stock insuficiente para el producto con ID ${detalle.id_producto}. Stock disponible: ${detalle.stock_producto}`
-                     });
-                 }
-             }
-        }
-        // Si se está cancelando una venta que estaba completa, devolver el stock
-        else if (nuevoEstado === 'cancelada' && estadoAnterior === 'completa') {
-            console.log('Verificando detalles para venta cancelada');
-            try {
-                const [detallesCancelacion] = await connection.query(
-                    'SELECT detalle_venta.*, productos.stock_producto FROM detalle_venta JOIN productos ON detalle_venta.id_producto = productos.id_producto WHERE detalle_venta.id_venta = ? AND detalle_venta.estado = "activo"',
-                    [id_venta]
-                );
-                 console.log('Detalles encontrados para venta cancelada:', detallesCancelacion);
-                 // ** Lógica para devolver stock si es necesario **
-                 // if (detallesCancelacion.length > 0) {
-                 //     for (const detalle of detallesCancelacion) {
-                 //         await connection.query(
-                 //             'UPDATE productos SET stock_producto = stock_producto + ? WHERE id_producto = ?',
-                 //             [detalle.cantidad_detalle_venta, detalle.id_producto]
-                 //         );
-                 //     }
-                 //     console.log('Stock devuelto para venta cancelada.');
-                 // }
-                 // ** Fin lógica para devolver stock **
-
-            } catch (error) {
-                console.error('Error al verificar detalles para cancelación:', error);
-                throw error; // Propagar el error para que la transacción haga rollback
-            }
+        // Si el estado cambia a cancelada, requerir motivo de cancelación
+        if (nuevoEstado === 'cancelada' && !motivo_cancelacion) {
+            await connection.rollback();
+            return res.status(400).json({ 
+                error: 'Se requiere un motivo de cancelación',
+                details: 'Por favor, proporcione un motivo para cancelar la venta'
+            });
         }
 
-
-        // Formatear la fecha correctamente para MySQL si está presente en ventaData
-        if (ventaData.fecha_venta) {
-            const fecha = new Date(ventaData.fecha_venta);
-            ventaData.fecha_venta = fecha.toISOString().slice(0, 19).replace('T', ' ');
-        }
-
-        console.log('Actualizando datos de la tabla "venta":', ventaData);
-
-        // Actualizar la tabla 'venta' con los campos permitidos
+        // Actualizar la venta incluyendo el motivo de cancelación si aplica
         const [resultVenta] = await connection.query(
-            'UPDATE venta SET ? WHERE id_venta = ?',
-            [ventaData, id_venta]
+            'UPDATE venta SET estado_venta = ?, motivo_cancelacion = ? WHERE id_venta = ?',
+            [nuevoEstado, nuevoEstado === 'cancelada' ? motivo_cancelacion : null, id_venta]
         );
 
         console.log('Resultado de actualización de tabla "venta":', resultVenta);
@@ -710,7 +659,6 @@ app.put('/ventas/:id', async (req, res) => {
         }
         // --- Fin Lógica para actualizar los detalles de venta ---
 
-
         await connection.commit();
         console.log('Transacción completada exitosamente');
 
@@ -719,6 +667,30 @@ app.put('/ventas/:id', async (req, res) => {
             mensajeStock = 'Stock actualizado';
         } else if (nuevoEstado === 'cancelada' && estadoAnterior === 'completa') {
             mensajeStock = 'Stock devuelto';
+            console.log('Verificando detalles para venta cancelada');
+            try {
+                const [detallesCancelacion] = await connection.query(
+                    'SELECT detalle_venta.*, productos.stock_producto FROM detalle_venta JOIN productos ON detalle_venta.id_producto = productos.id_producto WHERE detalle_venta.id_venta = ? AND detalle_venta.estado = "activo"/ * Asegúrate de que solo devolvemos stock de ítems activos en la venta */',
+                    [id_venta]
+                );
+                 console.log('Detalles encontrados para venta cancelada:', detallesCancelacion);
+                 // ** Lógica para devolver stock si es necesario **
+                 if (detallesCancelacion.length > 0) {
+                     for (const detalle of detallesCancelacion) {
+                         await connection.query(
+                             'UPDATE productos SET stock_producto = stock_producto + ? WHERE id_producto = ?',
+                             [detalle.cantidad_detalle_venta, detalle.id_producto]
+                         );
+                     }
+                     console.log('Stock devuelto para venta cancelada.');
+                 }
+                 // ** Fin lógica para devolver stock **
+
+             } catch (error) {
+                 console.error('Error al verificar detalles de venta cancelada:', error);
+                 await connection.rollback();
+                 return res.status(500).json({ error: 'Error al verificar detalles de venta cancelada', details: error.message });
+             }
         }
 
         res.json({
@@ -2042,6 +2014,7 @@ app.get('/ventas/usuario/:id', async (req, res) => {
                 v.id_venta, 
                 v.fecha_venta, 
                 v.estado_venta,
+                v.motivo_cancelacion,
                 (
                     SELECT COALESCE(SUM(dv.subtotal_detalle_venta), 0)
                     FROM detalle_venta dv

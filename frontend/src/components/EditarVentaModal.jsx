@@ -10,6 +10,7 @@ const EditarVentaModal = ({ isOpen, onClose, ventaId, onVentaUpdate }) => {
   const [envioData, setEnvioData] = useState(null);
   const [loadingData, setLoadingData] = useState(true);
   const [currentEnvioId, setCurrentEnvioId] = useState(null);
+  const [motivoCancelacion, setMotivoCancelacion] = useState('');
 
   useEffect(() => {
     const loadData = async () => {
@@ -28,6 +29,7 @@ const EditarVentaModal = ({ isOpen, onClose, ventaId, onVentaUpdate }) => {
           ventaData.fecha_venta = fecha.toISOString().slice(0, 16);
         }
         setVentaData(ventaData || {});
+        setMotivoCancelacion(ventaData?.motivo_cancelacion || '');
 
         // Cargar detalles
         const detallesRes = await fetch(`http://localhost:3000/detalle-ventas/venta/${ventaId}`);
@@ -162,6 +164,12 @@ const EditarVentaModal = ({ isOpen, onClose, ventaId, onVentaUpdate }) => {
       switch (activeTab) {
         case 'venta': {
           if (ventaData) {
+            // Si el estado es cancelada, verificar que haya un motivo
+            if (ventaData.estado_venta === 'cancelada' && !motivoCancelacion) {
+              alert('Por favor, proporcione un motivo para la cancelación');
+              return;
+            }
+
             const ventaResponse = await fetch(`http://localhost:3000/ventas/${ventaId}`, {
               method: 'PUT',
               headers: { 'Content-Type': 'application/json' },
@@ -169,7 +177,8 @@ const EditarVentaModal = ({ isOpen, onClose, ventaId, onVentaUpdate }) => {
                 id_usuario: parseInt(ventaData.id_usuario),
                 fecha_venta: formatDateForMySQL(ventaData.fecha_venta),
                 estado_venta: ventaData.estado_venta,
-                estado: ventaData.estado || 'activo'
+                estado: ventaData.estado || 'activo',
+                motivo_cancelacion: ventaData.estado_venta === 'cancelada' ? motivoCancelacion : null
               })
             });
 
@@ -505,6 +514,17 @@ const EditarVentaModal = ({ isOpen, onClose, ventaId, onVentaUpdate }) => {
                   <option value="cancelada">Cancelada</option>
                 </select>
               </div>
+              {ventaData?.estado_venta === 'cancelada' && (
+                <div className="form-field full-width">
+                  <label>Motivo de Cancelación:</label>
+                  <textarea
+                    value={motivoCancelacion}
+                    onChange={(e) => setMotivoCancelacion(e.target.value)}
+                    placeholder="Escribe aquí el motivo de la cancelación por parte del admin"
+                    rows="2"
+                  ></textarea>
+                </div>
+              )}
             </div>
           )}
 

@@ -13,7 +13,7 @@ RUN npm install --legacy-peer-deps
 
 # Construir el frontend
 WORKDIR /app/frontend
-RUN npm install
+RUN npm install --legacy-peer-deps
 RUN npm run build
 
 # Volver al directorio principal

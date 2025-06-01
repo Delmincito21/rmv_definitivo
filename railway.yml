@@ -5,7 +5,7 @@ services:
     type: nodejs
     env:
       MYSQLDATABASE: railway
-      MYSQLHOST: containers-us-west-123.railway.app
+      MYSQLHOST: mysql.railway.internal
       MYSQLPASSWORD: JEWZIacsisWhxsrEdTrHKjGwEMjvPxKO
       MYSQLPORT: 3306
       MYSQLUSER: root
@@ -22,6 +22,7 @@ services:
     build:
       image: node:18
       command: |
+        cp railway.env .env
         npm install --legacy-peer-deps
         cd frontend
         npm install
@@ -30,6 +31,7 @@ services:
         npm install
     deploy:
       command: |
+        cp railway.env .env
         cd frontend
         npm run build
         cd ..
@@ -40,6 +42,7 @@ services:
     volumes:
       - ./frontend/dist:/app/frontend/dist
       - ./Backend:/app/Backend
+      - ./railway.env:/app/.env
     volumes:
       - ./frontend/dist:/app/frontend/dist
       - ./Backend:/app/Backend

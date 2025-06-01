@@ -7,11 +7,14 @@ const app = express();
 const port = process.env.PORT || 3000;
 
 const db = mysql.createConnection({
-  host: process.env.MYSQLHOST || 'mysql.railway.internal',
+  host: 'mysql.railway.internal',
   user: process.env.MYSQLUSER || 'root',
   password: process.env.MYSQLPASSWORD || 'JEWZIacsisWhxsrEdTrHKjGwEMjvPxKO',
   database: process.env.MYSQLDATABASE || 'railway',
-  port: process.env.MYSQLPORT || 3306
+  port: process.env.MYSQLPORT || 3306,
+  connectTimeout: 60000,
+  connectionTimeout: 60000,
+  acquireTimeout: 60000
 });
 
 db.connect(err => {

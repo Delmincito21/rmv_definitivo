@@ -6,13 +6,19 @@ dotenv.config();
 
 const pool = mysql.createPool(process.env.DATABASE_URL);
 
-try {
-  const connection = await pool.getConnection();
-  console.log('✅ Conexión exitosa a MySQL');
-  connection.release();
-} catch (error) {
-  console.error('❌ Error al conectar a MySQL:', error);
-  process.exit(1);
-}
+// Función para probar la conexión
+const testConnection = async () => {
+    try {
+        const [result] = await pool.query('SELECT 1');
+        console.log('✅ Conexión exitosa a MySQL');
+    } catch (error) {
+        console.error('❌ Error al conectar a MySQL:', error);
+        process.exit(1);
+    }
+};
 
-module.exports = pool;
+// Exportar la conexión y la función de prueba
+module.exports = {
+    pool,
+    testConnection
+};

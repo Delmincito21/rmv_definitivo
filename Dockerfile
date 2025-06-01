@@ -14,12 +14,8 @@ COPY package*.json ./
 # Instalar dependencias del backend
 RUN npm install --legacy-peer-deps
 
-# Copiar el código del backend
-COPY Backend/ ./Backend/
-
 # Copiar el resto del código
-COPY index.js .
-COPY .env .
+COPY . .
 
 # Construir el frontend
 WORKDIR /app/frontend

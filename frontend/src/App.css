@@ -327,27 +327,36 @@ html {
 
 /* === REGISTRO CLIENTE === */
 .registro-cliente-container {
-
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 100vh;
-  width: 100vw;
-  background-color: #f0f2f5;
-  border-radius: 1px;
-  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.2);
-  text-align: center;
+  min-height: 100vh;
+  width: 100%;
+  background: linear-gradient(120deg, #e0e7ff 0%, #f8fafc 100%);
+  padding: 2rem 1rem;
 }
 
 .registro-cliente-container h2 {
-  color: #333;
-  margin-bottom: 1.5rem;
-  font-size: 1.6rem;
+  color: #176bb3;
+  margin-bottom: 2rem;
+  font-size: 2rem;
+  font-weight: 800;
+  text-align: center;
+}
+
+.registro-form {
+  background: #fff;
+  padding: 2rem;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(23, 107, 179, 0.1);
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
 }
 
 .form-group {
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
   text-align: left;
 }
 
@@ -355,17 +364,26 @@ html {
   display: block;
   margin-bottom: 0.5rem;
   font-weight: 600;
-  color: #444;
+  color: #176bb3;
+  font-size: 0.95rem;
 }
 
 .form-group input,
 .form-group textarea {
   width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+  padding: 0.8rem 1rem;
+  border: 1.5px solid #e0e7ff;
+  border-radius: 8px;
   font-size: 1rem;
   background-color: #fff;
+  transition: all 0.3s ease;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #176bb3;
+  box-shadow: 0 0 0 3px rgba(23, 107, 179, 0.1);
 }
 
 .form-group textarea {
@@ -375,18 +393,21 @@ html {
 
 .submit-btn {
   width: 100%;
-  padding: 0.75rem;
-  background-color: #007bff;
+  padding: 1rem;
+  background: linear-gradient(90deg, #4596e7, #176bb3);
   color: white;
   border: none;
-  border-radius: 4px;
-  font-size: 1rem;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: all 0.3s ease;
+  margin-top: 1rem;
 }
 
 .submit-btn:hover {
-  background-color: #0056b3;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(23, 107, 179, 0.2);
 }
 
 /* Validación visual */
@@ -895,5 +916,96 @@ textarea:valid {
 
   .preview-image {
     height: 180px;
+  }
+}
+
+/* Media Queries para Registro */
+@media (max-width: 768px) {
+  .registro-cliente-container {
+    padding: 1.5rem 1rem;
+  }
+
+  .registro-cliente-container h2 {
+    font-size: 1.8rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .registro-form {
+    padding: 1.5rem;
+  }
+
+  .form-group {
+    margin-bottom: 1.2rem;
+  }
+
+  .form-group input,
+  .form-group textarea {
+    padding: 0.7rem 0.9rem;
+    font-size: 0.95rem;
+  }
+
+  .submit-btn {
+    padding: 0.9rem;
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .registro-cliente-container {
+    padding: 1rem 0.8rem;
+  }
+
+  .registro-cliente-container h2 {
+    font-size: 1.5rem;
+    margin-bottom: 1.2rem;
+  }
+
+  .registro-form {
+    padding: 1.2rem;
+    border-radius: 12px;
+  }
+
+  .form-group {
+    margin-bottom: 1rem;
+  }
+
+  .form-group label {
+    font-size: 0.9rem;
+  }
+
+  .form-group input,
+  .form-group textarea {
+    padding: 0.6rem 0.8rem;
+    font-size: 0.9rem;
+  }
+
+  .submit-btn {
+    padding: 0.8rem;
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .registro-cliente-container {
+    padding: 0.8rem 0.5rem;
+  }
+
+  .registro-cliente-container h2 {
+    font-size: 1.3rem;
+  }
+
+  .registro-form {
+    padding: 1rem;
+  }
+
+  .form-group input,
+  .form-group textarea {
+    padding: 0.5rem 0.7rem;
+    font-size: 0.85rem;
+  }
+
+  .submit-btn {
+    padding: 0.7rem;
+    font-size: 0.9rem;
   }
 }

@@ -1,0 +1,43 @@
+name: RMV
+
+services:
+  - name: app
+    type: nodejs
+    env:
+      MYSQLDATABASE: railway
+      MYSQLHOST: mysql.railway.internal
+      MYSQLPASSWORD: JEWZIacsisWhxsrEdTrHKjGwEMjvPxKO
+      MYSQLPORT: 3306
+      MYSQLUSER: root
+      SMTP_HOST: smtp.gmail.com
+      SMTP_PORT: 587
+      SMTP_USER: refrielectricmv@gmail.com
+      SMTP_PASS: rlfp pitl xfuu odnu
+      PAYPAL_CLIENT_ID: AX2kwfBLc6X6tevJto9iZ6-yUVrt5GjvXHe2cEQZzJg7aSQrFlGjOZy-SgZKgh4PAOGiPnQtG76XhwT9
+      PORT: 3000
+      NODE_ENV: production
+      REACT_APP_API_URL: http://localhost:3000
+      VITE_API_URL: http://localhost:3000
+    build:
+      image: node:18
+      command: npm install --legacy-peer-deps
+    deploy:
+      command: npm run build && npm start
+    ports:
+      - 3000:3000
+      - 5173:5173
+    volumes:
+      - ./frontend/dist:/app/frontend/dist
+      - ./Backend:/app/Backend
+
+  - name: mysql
+    type: mysql
+    env:
+      MYSQL_ROOT_PASSWORD: JEWZIacsisWhxsrEdTrHKjGwEMjvPxKO
+      MYSQL_DATABASE: railway
+      MYSQL_USER: root
+      MYSQL_PASSWORD: JEWZIacsisWhxsrEdTrHKjGwEMjvPxKO
+      MYSQL_PORT: 3306
+      RAILWAY_PRIVATE_DOMAIN: mysql.railway.internal
+    ports:
+      - 3306:3306

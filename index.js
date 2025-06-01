@@ -1,11 +1,6 @@
 import express from 'express';
 import mysql from 'mysql2';
 import dotenv from 'dotenv';
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 dotenv.config();
 const app = express();
@@ -38,7 +33,7 @@ db.connect(err => {
 });
 
 // Servir archivos estáticos del frontend
-app.use(express.static(path.join(__dirname, 'frontend', 'dist')));
+app.use(express.static('frontend/dist'));
 
 // Rutas API
 app.get('/api', (req, res) => {

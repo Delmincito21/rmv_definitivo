@@ -39,7 +39,7 @@ const Inicio = () => {
             setError(null);
 
             // Cargar estadísticas
-            const statsResponse = await fetch('http://localhost:3000/dashboard/stats');
+            const statsResponse = await fetch('https://backend-production-6925.up.railway.app/dashboard/stats');
             if (!statsResponse.ok) {
                 throw new Error('Error al cargar estadísticas');
             }
@@ -47,7 +47,7 @@ const Inicio = () => {
             setStats(statsData);
 
             // Cargar próximos envíos
-            const enviosResponse = await fetch('http://localhost:3000/dashboard/proximos-envios');
+            const enviosResponse = await fetch('https://backend-production-6925.up.railway.app/dashboard/proximos-envios');
             if (!enviosResponse.ok) {
                 throw new Error('Error al cargar próximos envíos');
             }
@@ -55,7 +55,7 @@ const Inicio = () => {
             setProximosEnvios(enviosData);
 
             // Cargar productos más vendidos
-            const productosResponse = await fetch('http://localhost:3000/dashboard/productos-mas-vendidos');
+            const productosResponse = await fetch('https://backend-production-6925.up.railway.app/dashboard/productos-mas-vendidos');
             if (!productosResponse.ok) {
                 throw new Error('Error al cargar productos más vendidos');
             }
@@ -63,7 +63,7 @@ const Inicio = () => {
             setProductosMasVendidos(productosData);
 
             // Cargar pedidos por mes
-            const pedidosResponse = await fetch('http://localhost:3000/dashboard/pedidos-por-mes');
+            const pedidosResponse = await fetch('https://backend-production-6925.up.railway.app/dashboard/pedidos-por-mes');
             if (!pedidosResponse.ok) {
                 throw new Error('Error al cargar pedidos por mes');
             }
@@ -84,7 +84,7 @@ const Inicio = () => {
 
     const confirmarEntrega = async (idEnvio) => {
         try {
-            const response = await fetch(`http://localhost:3000/envios/${idEnvio}/estado`, {
+            const response = await fetch(`https://backend-production-6925.up.railway.app/envios/${idEnvio}/estado`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',

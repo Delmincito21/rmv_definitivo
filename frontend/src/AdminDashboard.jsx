@@ -26,7 +26,7 @@ const AdminDashboard = () => {
     useEffect(() => {
         const fetchVentasHoy = async () => {
             try {
-                const response = await fetch('http://localhost:3000/dashboard/ventas-hoy');
+                const response = await fetch('https://backend-production-6925.up.railway.app/dashboard/ventas-hoy');
                 if (response.ok) {
                     const data = await response.json();
                     setVentasHoy(data.ventas_hoy);

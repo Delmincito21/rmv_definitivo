@@ -37,13 +37,13 @@ const Factura = ({ venta, id_venta: propIdVenta }) => {
                 }
 
                 // 2. Obtener la venta
-                const ventaResponse = await fetch(`http://localhost:3000/ventas/${id_venta}`);
+                const ventaResponse = await fetch(`https://backend-production-6925.up.railway.app/ventas/${id_venta}`);
                 if (!ventaResponse.ok) throw new Error('Error al obtener los detalles de la venta');
                 const ventaArray = await ventaResponse.json();
                 const ventaInfo = Array.isArray(ventaArray) ? ventaArray[0] : ventaArray;
 
                 // 3. Obtener los detalles de los productos
-                const detallesResponse = await fetch(`http://localhost:3000/detalle-ventas/venta/${id_venta}`);
+                const detallesResponse = await fetch(`https://backend-production-6925.up.railway.app/detalle-ventas/venta/${id_venta}`);
                 let detallesData = [];
                 try {
                     if (!detallesResponse.ok) {
@@ -65,7 +65,7 @@ const Factura = ({ venta, id_venta: propIdVenta }) => {
                     let nombreProducto = 'Producto no especificado';
                     let garantiaProducto = 'No especificado';
                     try {
-                        const productoResponse = await fetch(`http://localhost:3000/productos/${detalle.id_producto}`);
+                        const productoResponse = await fetch(`https://backend-production-6925.up.railway.app/productos/${detalle.id_producto}`);
                         if (productoResponse.ok) {
                             const productoData = await productoResponse.json();
                             nombreProducto = productoData.nombre_producto || nombreProducto;
@@ -93,17 +93,17 @@ const Factura = ({ venta, id_venta: propIdVenta }) => {
                 };
 
                 // 6. Obtener la información del pago
-                const pagoResponse = await fetch(`http://localhost:3000/pago/venta/${id_venta}`);
+                const pagoResponse = await fetch(`https://backend-production-6925.up.railway.app/pago/venta/${id_venta}`);
                 const pagoArray = await pagoResponse.json();
                 const pagoData = Array.isArray(pagoArray) ? pagoArray[0] : pagoArray;
                 setPago(pagoData);
 
                 // 7. Obtener la información del envío
-                const ordenResponse = await fetch(`http://localhost:3000/orden/venta/${id_venta}`);
+                const ordenResponse = await fetch(`https://backend-production-6925.up.railway.app/orden/venta/${id_venta}`);
                 if (ordenResponse.ok) {
                     const ordenData = await ordenResponse.json();
                     if (ordenData && ordenData.id_orden) {
-                        const envioResponse = await fetch(`http://localhost:3000/envios/orden/${ordenData.id_orden}`);
+                        const envioResponse = await fetch(`https://backend-production-6925.up.railway.app/envios/orden/${ordenData.id_orden}`);
                         if (envioResponse.ok) {
                             const envioData = await envioResponse.json();
                             setEnvio(envioData);

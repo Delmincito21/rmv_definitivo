@@ -30,16 +30,16 @@ const MisPedidos = () => {
   useEffect(() => {
     if (!userId) return;
     setLoading(true);
-    fetch(`http://localhost:3000/ventas/usuario/${userId}`)
+    fetch(`https://backend-production-6925.up.railway.app/ventas/usuario/${userId}`)
       .then(res => res.json())
       .then(async data => {
         // Para cada pedido, buscar su orden y su envío
         const pedidosConEnvio = await Promise.all(data.map(async pedido => {
           try {
-            const ordenRes = await fetch(`http://localhost:3000/orden/venta/${pedido.id_venta}`);
+            const ordenRes = await fetch(`https://backend-production-6925.up.railway.app/orden/venta/${pedido.id_venta}`);
             const orden = await ordenRes.json();
             if (orden && orden.id_orden) {
-              const envioRes = await fetch(`http://localhost:3000/envios/orden/${orden.id_orden}`);
+              const envioRes = await fetch(`https://backend-production-6925.up.railway.app/envios/orden/${orden.id_orden}`);
               if (envioRes.ok) {
                 const envio = await envioRes.json();
                 return {
@@ -109,20 +109,20 @@ const MisPedidos = () => {
     setEnvio(null);
     try {
       // 1. Detalles de productos
-      const detallesRes = await fetch(`http://localhost:3000/pedido/detalle/${id_venta}`);
+      const detallesRes = await fetch(`https://backend-production-6925.up.railway.app/pedido/detalle/${id_venta}`);
       const detallesData = await detallesRes.json();
       setDetalles(detallesData);
 
       // 2. Pago
-      const pagoRes = await fetch(`http://localhost:3000/pago/venta/${id_venta}`);
+      const pagoRes = await fetch(`https://backend-production-6925.up.railway.app/pago/venta/${id_venta}`);
       const pagoArray = await pagoRes.json();
       setPago(Array.isArray(pagoArray) ? pagoArray[0] : pagoArray);
 
       // 3. Envío (requiere buscar la orden primero)
-      const ordenRes = await fetch(`http://localhost:3000/orden/venta/${id_venta}`);
+      const ordenRes = await fetch(`https://backend-production-6925.up.railway.app/orden/venta/${id_venta}`);
       const orden = await ordenRes.json();
       if (orden && orden.id_orden) {
-        const envioRes = await fetch(`http://localhost:3000/envios/orden/${orden.id_orden}`);
+        const envioRes = await fetch(`https://backend-production-6925.up.railway.app/envios/orden/${orden.id_orden}`);
         const envioData = await envioRes.json();
         setEnvio(envioData);
       } else {
@@ -165,7 +165,7 @@ const MisPedidos = () => {
 
   useEffect(() => {
     if (!userId) return;
-    fetch(`http://localhost:3000/usuario/${userId}`)
+    fetch(`https://backend-production-6925.up.railway.app/usuario/${userId}`)
       .then(res => res.json())
       .then(data => {
         setUserInfo(data);
@@ -177,7 +177,7 @@ const MisPedidos = () => {
 
   useEffect(() => {
     if (!userId) return;
-    fetch(`http://localhost:3000/carrito/usuario/${userId}`)
+    fetch(`https://backend-production-6925.up.railway.app/carrito/usuario/${userId}`)
       .then(res => res.json())
       .then(data => {
         setCartItems(data);
@@ -216,7 +216,7 @@ const MisPedidos = () => {
 
     if (motivo) {
       try {
-        const response = await fetch(`http://localhost:3000/ventas/${id_venta}`, {
+        const response = await fetch(`https://backend-production-6925.up.railway.app/ventas/${id_venta}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ 
@@ -265,7 +265,7 @@ const MisPedidos = () => {
 
     // Obtener la orden para conseguir el id_envio
     try {
-      const ordenRes = await fetch(`http://localhost:3000/orden/venta/${pedido.id_venta}`);
+      const ordenRes = await fetch(`https://backend-production-6925.up.railway.app/orden/venta/${pedido.id_venta}`);
       const orden = await ordenRes.json();
 
       if (!orden || !orden.id_orden) {
@@ -273,7 +273,7 @@ const MisPedidos = () => {
       }
 
       // Obtener el envío para conseguir el id_envio (aunque ya lo hicimos al cargar, mejor asegurarnos)
-      const envioRes = await fetch(`http://localhost:3000/envios/orden/${orden.id_orden}`);
+      const envioRes = await fetch(`https://backend-production-6925.up.railway.app/envios/orden/${orden.id_orden}`);
       const envio = await envioRes.json();
 
       if (!envio || !envio.id_envio) {
@@ -304,7 +304,7 @@ const MisPedidos = () => {
           try {
             // Usar el endpoint PUT /envios/:id para actualizar la dirección
             console.log('Intentando actualizar envío con ID:', envio.id_envio, 'Nueva dirección:', nuevaDireccion);
-            const response = await fetch(`http://localhost:3000/envios/${envio.id_envio}`, {
+            const response = await fetch(`https://backend-production-6925.up.railway.app/envios/${envio.id_envio}`, {
               method: 'PUT',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ direccion_entrega_envio: nuevaDireccion })

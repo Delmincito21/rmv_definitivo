@@ -212,7 +212,7 @@ const EnvioForm = ({ onSubmit, setPaso, id_orden, datosEnvio, setDatosEnvio }) =
         if (datosEnvio.id_envio) { // Si ya tenemos un id_envio, ACTUALIZAMOS
             console.log(`Actualizando envío existente con ID: ${datosEnvio.id_envio}`);
             method = 'PUT';
-            url = `http://localhost:3000/envios/${datosEnvio.id_envio}`;
+            url = `https://backend-production-6925.up.railway.app/envios/${datosEnvio.id_envio}`;
             // Enviamos solo los campos que pueden ser actualizados si es necesario, o todo el objeto `datosEnvio`
             // El backend ya está diseñado para tomar solo los campos presentes.
              response = await fetch(url, {
@@ -224,7 +224,7 @@ const EnvioForm = ({ onSubmit, setPaso, id_orden, datosEnvio, setDatosEnvio }) =
         } else { // Si no tenemos id_envio, CREAMOS uno nuevo
             console.log('Creando nuevo envío...');
             method = 'POST';
-            url = 'http://localhost:3000/envios';
+            url = 'https://backend-production-6925.up.railway.app/envios';
              // Al crear, no enviamos id_envio
              const { id_envio, ...envioParaCrear } = envioConOrden; // Excluimos id_envio si estuviera accidentalmente
              response = await fetch(url, {
@@ -422,11 +422,11 @@ const Ventas = () => {
   // Función para cargar ventas con estado de envío
   const cargarVentasConEnvio = async () => {
     try {
-      const res = await fetch('http://localhost:3000/ventas');
+      const res = await fetch('https://backend-production-6925.up.railway.app/ventas');
       const data = await res.json();
       const ventasConEnvio = await Promise.all(data.map(async venta => {
         try {
-          const ordenRes = await fetch(`http://localhost:3000/orden/venta/${venta.id_venta}`);
+          const ordenRes = await fetch(`https://backend-production-6925.up.railway.app/orden/venta/${venta.id_venta}`);
           let ordenData = await ordenRes.json();
           let estadoEnvio = 'No hay envío';
           let id_orden = null;
@@ -436,7 +436,7 @@ const Ventas = () => {
             id_orden = ordenData.id_orden;
           }
           if (id_orden) {
-            const envioRes = await fetch(`http://localhost:3000/envios/orden/${id_orden}`);
+            const envioRes = await fetch(`https://backend-production-6925.up.railway.app/envios/orden/${id_orden}`);
             let envioData = await envioRes.json();
             if (Array.isArray(envioData) && envioData.length > 0 && envioData[0].estado_envio) {
               estadoEnvio = envioData[0].estado_envio;
@@ -503,8 +503,8 @@ const Ventas = () => {
     if (campo === 'id_producto' && valor) {
       try {
         const [precioResponse, productoResponse] = await Promise.all([
-          fetch(`http://localhost:3000/productos/${valor}/precio`),
-          fetch(`http://localhost:3000/productos/${valor}`)
+          fetch(`https://backend-production-6925.up.railway.app/productos/${valor}/precio`),
+          fetch(`https://backend-production-6925.up.railway.app/productos/${valor}`)
         ]);
 
         if (precioResponse.ok && productoResponse.ok) {
@@ -651,7 +651,7 @@ const Ventas = () => {
               estado: 'activo'
             }))
           };
-          const ventaResponse = await fetch('http://localhost:3000/ventas', {
+          const ventaResponse = await fetch('https://backend-production-6925.up.railway.app/ventas', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(ventaParaEnviar)
@@ -674,7 +674,7 @@ const Ventas = () => {
               estado: 'activo'
             }))
           };
-          const ventaResponse = await fetch(`http://localhost:3000/ventas/${idVenta}`, {
+          const ventaResponse = await fetch(`https://backend-production-6925.up.railway.app/ventas/${idVenta}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(ventaParaEnviar)
@@ -694,7 +694,7 @@ const Ventas = () => {
           fecha_orden: datosVenta.fecha_venta,
           estado: 'activo'
         };
-        const ordenResponse = await fetch('http://localhost:3000/orden', {
+        const ordenResponse = await fetch('https://backend-production-6925.up.railway.app/orden', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(ordenData)
@@ -726,7 +726,7 @@ const Ventas = () => {
       let idPago = datosPago?.id_pago;
       if (!idPago) {
         // Crear nuevo pago
-        const response = await fetch('http://localhost:3000/pago', {
+        const response = await fetch('https://backend-production-6925.up.railway.app/pago', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(datosPago)
@@ -737,7 +737,7 @@ const Ventas = () => {
         }
       } else {
         // Actualizar pago existente
-        const response = await fetch(`http://localhost:3000/pago/${idPago}`, {
+        const response = await fetch(`https://backend-production-6925.up.railway.app/pago/${idPago}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(datosPago)
@@ -784,7 +784,7 @@ const Ventas = () => {
   const handleDelete = async (id_venta) => {
     if (window.confirm('¿Estás seguro que quieres eliminar esta venta? Se cambiarán a inactivo todos los registros relacionados.')) {
       try {
-        const response = await fetch(`http://localhost:3000/ventas/${id_venta}/estado`, {
+        const response = await fetch(`https://backend-production-6925.up.railway.app/ventas/${id_venta}/estado`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
@@ -833,7 +833,7 @@ const Ventas = () => {
 
     if (valor) {
       try {
-        const response = await fetch(`http://localhost:3000/usuario/${valor}`);
+        const response = await fetch(`https://backend-production-6925.up.railway.app/usuario/${valor}`);
         if (response.ok) {
           const data = await response.json();
           setNombreUsuario(data.nombre_clientes || 'Usuario no encontrado');

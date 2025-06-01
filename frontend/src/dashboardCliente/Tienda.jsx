@@ -125,9 +125,9 @@ const Tienda = () => {
         }
 
         const [productosRes, categoriasRes, userRes] = await Promise.all([
-          axios.get('http://localhost:3000/productos'),
-          axios.get('http://localhost:3000/categorias_productos'),
-          axios.get(`http://localhost:3000/usuario/${userId}`)
+          axios.get('https://backend-production-6925.up.railway.app/productos'),
+          axios.get('https://backend-production-6925.up.railway.app/categorias_productos'),
+          axios.get(`https://backend-production-6925.up.railway.app/usuario/${userId}`)
         ]);
 
         const productosActivos = productosRes.data.filter(producto => producto.estado === 'activo');

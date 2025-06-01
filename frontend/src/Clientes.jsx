@@ -11,7 +11,7 @@ const Clientes = () => {
 
     // Cargar datos desde el backend
     useEffect(() => {
-        fetch('http://localhost:3000/clientes')
+        fetch('https://backend-production-6925.up.railway.app/clientes')
             .then(res => res.json())
             .then(data => {
                 console.log('Datos recibidos del backend:', data); // Verifica los datos aquí
@@ -36,7 +36,7 @@ const Clientes = () => {
 
     const handleGuardarEdicionCliente = async () => {
         try {
-            const response = await fetch(`http://localhost:3000/clientes/${clienteEditando.id_clientes}`, {
+            const response = await fetch(`https://backend-production-6925.up.railway.app/clientes/${clienteEditando.id_clientes}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -68,7 +68,7 @@ const Clientes = () => {
     const handleEliminarCliente = async (id) => {
         if (window.confirm('¿Estás seguro de que deseas inactivar este cliente?')) {
             try {
-                const response = await fetch(`http://localhost:3000/clientes/${id}/inactivar`, {
+                const response = await fetch(`https://backend-production-6925.up.railway.app/clientes/${id}/inactivar`, {
                     method: 'PUT',
                 });
 

@@ -38,7 +38,7 @@ function Carrito() {
     if (userId) {
       refreshCart(userId);
       // Obtener info del usuario
-      fetch(`http://localhost:3000/usuario/${userId}`)
+      fetch(`https://backend-production-6925.up.railway.app/usuario/${userId}`)
         .then(res => res.json())
         .then(data => setUserInfo(data))
         .catch(() => setUserInfo(null));
@@ -118,7 +118,7 @@ function Carrito() {
 
     setProcessingCheckout(true);
     try {
-      const response = await fetch('http://localhost:3000/procesar-compra', {
+      const response = await fetch('https://backend-production-6925.up.railway.app/procesar-compra', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -198,7 +198,7 @@ function Carrito() {
       if (!result.isConfirmed) return;
 
       // 1. Crear la venta
-      const ventaResponse = await fetch('http://localhost:3000/procesar-compra', {
+      const ventaResponse = await fetch('https://backend-production-6925.up.railway.app/procesar-compra', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -232,7 +232,7 @@ function Carrito() {
 
       // 2. Enviar el comprobante con el id_venta
       formData.append('id_venta', ventaData.id);
-      const pagoResponse = await fetch('http://localhost:3000/pago/transferencia', {
+      const pagoResponse = await fetch('https://backend-production-6925.up.railway.app/pago/transferencia', {
         method: 'POST',
         body: formData
       });

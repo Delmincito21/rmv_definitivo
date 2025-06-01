@@ -41,7 +41,7 @@ const RegistroCliente = () => {
     }
 
     try {
-      const response = await fetch('http://localhost:3000/clientes', {
+      const response = await fetch('https://backend-production-6925.up.railway.app/clientes', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -56,7 +56,7 @@ const RegistroCliente = () => {
 
       alert('Cliente registrado con éxito!');
 
-      const loginResponse = await fetch('http://localhost:3000/login', {
+      const loginResponse = await fetch('https://backend-production-6925.up.railway.app/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ nombre_usuario: cliente.nombre_usuario, pin_usuario: cliente.pin_usuario })
@@ -174,7 +174,7 @@ const RegistroCliente = () => {
 
                     try {
                       // Usar el nuevo endpoint del backend para verificar unicidad
-                      const response = await fetch(`http://localhost:3000/check-username/${encodeURIComponent(username)}`);
+                      const response = await fetch(`https://backend-production-6925.up.railway.app/check-username/${encodeURIComponent(username)}`);
                       const data = await response.json();
 
                       if (data.exists) {

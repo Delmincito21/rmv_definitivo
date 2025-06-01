@@ -32,7 +32,7 @@ const EditarPerfil = () => {
             navigate('/loginCliente');
             return;
         }
-        fetch(`http://localhost:3000/usuario/${userId}`)
+        fetch(`https://backend-production-6925.up.railway.app/usuario/${userId}`)
             .then(res => res.json())
             .then(data => {
                 setCliente({
@@ -82,7 +82,7 @@ const EditarPerfil = () => {
                 if (!userInfo || !userInfo.id_clientes) {
                     throw new Error('ID del cliente no encontrado');
                 }
-                const response = await fetch(`http://localhost:3000/clientes/${userInfo.id_clientes}/estado`, {
+                const response = await fetch(`https://backend-production-6925.up.railway.app/clientes/${userInfo.id_clientes}/estado`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json'
@@ -131,7 +131,7 @@ const EditarPerfil = () => {
             }
             // Petición aparte para cambiar contraseña
             try {
-                const res = await fetch('http://localhost:3000/cambiar-password', {
+                const res = await fetch('https://backend-production-6925.up.railway.app/cambiar-password', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -154,7 +154,7 @@ const EditarPerfil = () => {
         }
         // 2. Actualizar datos personales
         try {
-            const response = await fetch(`http://localhost:3000/clientes/${clienteId}`, {
+            const response = await fetch(`https://backend-production-6925.up.railway.app/clientes/${clienteId}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',

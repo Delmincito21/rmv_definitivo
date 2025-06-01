@@ -64,7 +64,7 @@ function AgregarProductoForm({ onCancel }) {
     };
 
     try {
-      const response = await fetch('http://localhost:3000/productos', {
+      const response = await fetch('https://backend-production-6925.up.railway.app/productos', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -89,7 +89,7 @@ function AgregarProductoForm({ onCancel }) {
   useEffect(() => {
     const fetchCategorias = async () => {
       try {
-        const response = await fetch('http://localhost:3000/categorias_productos');
+        const response = await fetch('https://backend-production-6925.up.railway.app/categorias_productos');
         if (!response.ok) {
           throw new Error('Error al cargar categorías');
         }
@@ -103,7 +103,7 @@ function AgregarProductoForm({ onCancel }) {
     const fetchSuplidores = async () => {
       setLoadingSuplidores(true);
       try {
-        const response = await fetch('http://localhost:3000/suplidores');
+        const response = await fetch('https://backend-production-6925.up.railway.app/suplidores');
         if (!response.ok) {
           throw new Error('Error al cargar suplidores');
         }
@@ -395,9 +395,9 @@ function ModificarProductoList() {
       setLoading(true);
       try {
         const [productosRes, categoriasRes, suplidoresRes] = await Promise.all([
-          fetch('http://localhost:3000/productos'),
-          fetch('http://localhost:3000/categorias_productos'),
-          fetch('http://localhost:3000/suplidores')
+          fetch('https://backend-production-6925.up.railway.app/productos'),
+          fetch('https://backend-production-6925.up.railway.app/categorias_productos'),
+          fetch('https://backend-production-6925.up.railway.app/suplidores')
         ]);
 
         if (!productosRes.ok) throw new Error('Error al cargar productos');
@@ -429,7 +429,7 @@ function ModificarProductoList() {
   const handleEliminar = async (id) => {
     if (window.confirm('¿Estás seguro de que deseas inactivar este producto?')) {
       try {
-        const response = await fetch(`http://localhost:3000/productos/${id}/estado`, {
+        const response = await fetch(`https://backend-production-6925.up.railway.app/productos/${id}/estado`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ estado: 'inactivo' })
@@ -459,7 +459,7 @@ function ModificarProductoList() {
     if (!productoEditando) return;
 
     try {
-      const response = await fetch(`http://localhost:3000/productos/${productoEditando.id_producto}`, {
+      const response = await fetch(`https://backend-production-6925.up.railway.app/productos/${productoEditando.id_producto}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -793,19 +793,19 @@ function DashboardCategorias() {
     const fetchData = async () => {
       try {
         // Obtener datos de categorías
-        const categoriasResponse = await fetch('http://localhost:3000/dashboard/categorias');
+        const categoriasResponse = await fetch('https://backend-production-6925.up.railway.app/dashboard/categorias');
         if (!categoriasResponse.ok) throw new Error('Error al cargar las categorías');
         const categoriasData = await categoriasResponse.json();
         setCategorias(categoriasData);
 
         // Obtener productos con bajo stock
-        const stockResponse = await fetch('http://localhost:3000/dashboard/productos-bajo-stock');
+        const stockResponse = await fetch('https://backend-production-6925.up.railway.app/dashboard/productos-bajo-stock');
         if (!stockResponse.ok) throw new Error('Error al cargar productos con bajo stock');
         const stockData = await stockResponse.json();
         setProductosBajoStock(stockData);
 
         // Obtener categorías más vendidas
-        const vendidasResponse = await fetch('http://localhost:3000/dashboard/categorias-mas-vendidas');
+        const vendidasResponse = await fetch('https://backend-production-6925.up.railway.app/dashboard/categorias-mas-vendidas');
         if (!vendidasResponse.ok) throw new Error('Error al cargar categorías más vendidas');
         const vendidasData = await vendidasResponse.json();
         setCategoriasMasVendidas(vendidasData);

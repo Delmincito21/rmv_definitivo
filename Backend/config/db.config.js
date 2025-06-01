@@ -5,7 +5,7 @@ require('dotenv').config();
 console.log('Variables de entorno disponibles:', process.env);
 
 const pool = mysql.createPool({
-    host: process.env.MYSQLHOST || process.env.RAILWAY_PRIVATE_DOMAIN || 'mysql.railway.internal',
+    host: 'mysql.railway.internal',
     user: process.env.MYSQLUSER || 'root',
     password: process.env.MYSQLPASSWORD || 'JEWZIacsisWhxsrEdTrHKjGwEMjvPxKO',
     database: process.env.MYSQLDATABASE || 'railway',
@@ -13,7 +13,9 @@ const pool = mysql.createPool({
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0,
-    connectTimeout: 60000
+    connectTimeout: 60000,
+    connectionTimeout: 60000,
+    acquireTimeout: 60000
 });
 
 const promisePool = pool.promise();

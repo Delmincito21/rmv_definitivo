@@ -21,6 +21,12 @@ RUN npm run build
 # Volver al directorio principal
 WORKDIR /app
 
+# Copiar package.json y package-lock.json del backend
+COPY package*.json ./
+
+# Instalar dependencias del backend
+RUN npm install --legacy-peer-deps
+
 # Copiar el resto del código
 COPY . .
 

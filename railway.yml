@@ -33,6 +33,10 @@ services:
         cd ..
         # Instalar dependencias del backend
         npm install --legacy-peer-deps
+        # Copiar package.json del backend
+        cp ../package*.json .
+        # Instalar dependencias del backend
+        npm install --legacy-peer-deps
     deploy:
       command: |
         cp railway.env .env

@@ -2,9 +2,9 @@ const mysql = require('mysql2');
 require('dotenv').config();
 
 const pool = mysql.createPool({
-    host: process.env.MYSQLHOST || 'mysql.railway.internal',
+    host: process.env.MYSQLHOST || 'localhost',
     user: process.env.MYSQLUSER || 'root',
-    password: process.env.MYSQLPASSWORD || 'JEWZIacsisWhxsrEdTrHKjGwEMjvPxKO',
+    password: process.env.MYSQLPASSWORD || '',
     database: process.env.MYSQLDATABASE || 'railway',
     port: process.env.MYSQLPORT || 3306,
     waitForConnections: true,

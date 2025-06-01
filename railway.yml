@@ -4,11 +4,7 @@ services:
   - name: app
     type: nodejs
     env:
-      MYSQLDATABASE: railway
-      MYSQLHOST: mysql.railway.internal
-      MYSQLPASSWORD: JEWZIacsisWhxsrEdTrHKjGwEMjvPxKO
-      MYSQLPORT: 3306
-      MYSQLUSER: root
+      DATABASE_URL: mysql://root:JEWZIacsisWhxsrEdTrHKjGwEMjvPxKO@mysql.railway.internal:3306/railway
       SMTP_HOST: smtp.gmail.com
       SMTP_PORT: 587
       SMTP_USER: refrielectricmv@gmail.com
@@ -30,6 +26,8 @@ services:
         # Instalar dependencias del frontend
         cd frontend
         npm install --legacy-peer-deps
+        # Instalar Vite globalmente
+        npm install -g vite
         # Copiar código fuente del frontend
         cp -r ../frontend/* .
         # Construir el frontend

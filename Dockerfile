@@ -5,17 +5,15 @@ WORKDIR /app
 # Copiar archivos de configuración
 COPY railway.env .env
 
-# Copiar package.json y package-lock.json del frontend
-COPY frontend/package*.json ./frontend/
+# Copiar package.json y package-lock.json
+COPY package*.json ./
 
-# Instalar dependencias del frontend
-WORKDIR /app/frontend
+# Instalar dependencias del backend
 RUN npm install --legacy-peer-deps
 
-# Copiar el resto del código del frontend
-COPY frontend/ .
-
 # Construir el frontend
+WORKDIR /app/frontend
+RUN npm install --legacy-peer-deps
 RUN npm run build
 
 # Volver al directorio principal

@@ -23,21 +23,17 @@ services:
       image: node:18
       command: |
         cp railway.env .env
-        # Instalar dependencias del frontend
+        npm install --legacy-peer-deps
         cd frontend
         npm install --legacy-peer-deps
-        # Copiar código fuente del frontend
-        cp -r ../frontend/* .
-        # Construir el frontend
         npm run build
         cd ..
-        # Instalar dependencias del backend
         npm install --legacy-peer-deps
     deploy:
       command: |
         cp railway.env .env
-        # Construir el frontend
         cd frontend
+        npm install --legacy-peer-deps
         npm run build
         cd ..
         npm start

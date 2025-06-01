@@ -25,15 +25,14 @@ services:
         cp railway.env .env
         npm install --legacy-peer-deps
         cd frontend
-        npm install --legacy-peer-deps
+        npm install
         npm run build
         cd ..
-        npm install --legacy-peer-deps
+        npm install
     deploy:
       command: |
         cp railway.env .env
         cd frontend
-        npm install --legacy-peer-deps
         npm run build
         cd ..
         npm start

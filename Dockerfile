@@ -19,7 +19,6 @@ COPY Backend/ ./Backend/
 
 # Copiar el resto del código
 COPY index.js .
-COPY .env .
 
 # Construir el frontend
 WORKDIR /app/frontend

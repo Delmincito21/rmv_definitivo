@@ -1,6 +1,6 @@
 const API_CONFIG = {
     // URL base según el entorno
-    baseUrl: process.env.VITE_API_URL || 'http://localhost:3000',
+    baseUrl: import.meta.env.VITE_API_URL || 'http://localhost:3000',
     // URLs específicas
     endpoints: {
         login: '/login',

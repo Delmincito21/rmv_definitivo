@@ -486,3 +486,25 @@ textarea:valid {
     width: 100%;
   }
 }
+/* Añade estas media queries al final del archivo */
+@media (max-width: 768px) {
+  .bienvenido-content {
+    padding: 1.5rem;
+    border-radius: 10px;
+  }
+  
+  .bienvenido-logo-container {
+    margin-bottom: 2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .bienvenido-content {
+    padding: 1rem;
+    border-radius: 8px;
+  }
+  
+  .bienvenido-logo-container {
+    margin-bottom: 1.5rem;
+  }
+}

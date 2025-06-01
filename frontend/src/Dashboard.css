@@ -5,6 +5,60 @@
     box-sizing: border-box;
 }
 
+/* Media queries para responsive */
+@media (max-width: 1200px) {
+  .admin-sidebar {
+    width: 200px;
+  }
+  
+  .main-content {
+    margin-left: 200px;
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-sidebar {
+    width: 70px;
+  }
+  
+  .main-content {
+    margin-left: 70px;
+  }
+  
+  .nav-item {
+    padding: 10px 15px;
+  }
+  
+  .nav-item .icon {
+    display: block;
+    margin-right: 0;
+  }
+  
+  .nav-item .text {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .main-content {
+    margin-left: 0;
+    width: 100%;
+  }
+  
+  .stat-card {
+    flex: 1 1 100%;
+    max-width: 100%;
+  }
+  
+  .table-responsive {
+    overflow-x: auto;
+  }
+  
+  .form-group {
+    width: 100%;
+  }
+}
+
 /* Contenedor principal - Flexbox */
 .dashboard-container {
     display: flex;

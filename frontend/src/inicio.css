@@ -346,3 +346,26 @@ body {
     min-height: 350px;
     position: relative;
 }
+
+/* Añade estas media queries al final del archivo */
+@media (max-width: 768px) {
+    .inicio-container {
+      max-width: 100%;
+      padding: 10px;
+      grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .inicio-header h1 {
+      font-size: 1.5rem;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .inicio-container {
+      grid-template-columns: 1fr;
+    }
+    
+    .inicio-header h1 {
+      font-size: 1.2rem;
+    }
+  }

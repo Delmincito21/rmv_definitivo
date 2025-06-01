@@ -9,10 +9,65 @@
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background-color: #f5f7fa;
   }
+
+/* Media queries para responsive */
+@media (max-width: 1200px) {
+  .sidebar {
+    width: 200px;
+  }
   
-  /* Layout principal */
-  .dashboard-container {
-    display: flex;
+  .main-content {
+    margin-left: 200px;
+  }
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    width: 70px;
+  }
+  
+  .main-content {
+    margin-left: 70px;
+  }
+  
+  .nav-item {
+    padding: 12px 15px;
+  }
+  
+  .nav-item .icon {
+    display: block;
+    margin-right: 0;
+  }
+  
+  .nav-item .text {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .main-content {
+    margin-left: 0;
+    width: 100%;
+  }
+  
+  .table-responsive {
+    overflow-x: auto;
+  }
+  
+  .form-group {
+    width: 100%;
+  }
+}
+
+  /* Media queries para responsive */
+  @media (max-width: 1200px) {
+    .sidebar {
+      width: 200px;
+    }
+    
+    .main-content {
+      margin-left: 200px;
+    }
     min-height: 100vh;
   }
   

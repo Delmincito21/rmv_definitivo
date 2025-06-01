@@ -5,9 +5,11 @@
   "type": "module",
   "scripts": {
     "start": "node --experimental-specifier-resolution=node index.js",
+    "build": "npm run build:frontend",
+    "build:frontend": "cd frontend && npm run build",
     "frontend": "cd frontend && npm run dev",
     "backend": "cd Backend && npm run dev",
-    "dev": "npm run start",
+    "dev": "npm run build && npm start",
     "start:frontend": "cd frontend && npm run dev",
     "start:backend": "cd Backend && npm run dev"
   },

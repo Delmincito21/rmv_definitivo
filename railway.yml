@@ -5,7 +5,7 @@ services:
     type: nodejs
     env:
       MYSQLDATABASE: railway
-      MYSQLHOST: containers-us-west-123.railway.app
+      MYSQLHOST: mysql.railway.internal
       MYSQLPASSWORD: JEWZIacsisWhxsrEdTrHKjGwEMjvPxKO
       MYSQLPORT: 3306
       MYSQLUSER: root
@@ -18,7 +18,7 @@ services:
       NODE_ENV: production
       REACT_APP_API_URL: http://localhost:3000
       VITE_API_URL: http://localhost:3000
-      RAILWAY_PRIVATE_DOMAIN: containers-us-west-123.railway.app
+      RAILWAY_PRIVATE_DOMAIN: mysql.railway.internal
     build:
       image: node:18
       command: |

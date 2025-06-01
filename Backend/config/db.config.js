@@ -4,9 +4,8 @@ require('dotenv').config();
 // Mostrar todas las variables de entorno disponibles
 console.log('Variables de entorno disponibles:', process.env);
 
-// Configuración de MySQL
 const pool = mysql.createPool({
-    host: process.env.MYSQLHOST || 'mysql.railway.internal',
+    host: 'mysql.railway.internal',
     user: process.env.MYSQLUSER || 'root',
     password: process.env.MYSQLPASSWORD || 'JEWZIacsisWhxsrEdTrHKjGwEMjvPxKO',
     database: process.env.MYSQLDATABASE || 'railway',
@@ -14,7 +13,9 @@ const pool = mysql.createPool({
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0,
-    connectTimeout: 30000,
+    connectTimeout: 60000,
+    timeout: 60000,
+    connectTimeout: 60000,
     acquireTimeout: 60000,
     timeout: 60000,
     debug: true

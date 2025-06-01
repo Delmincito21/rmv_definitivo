@@ -11,20 +11,18 @@ dotenv.config();
 const app = express();
 const port = 3000;
 
-const pool = mysql.createPool({
-  host: process.env.MYSQLHOST || 'mysql.railway.internal',
-  user: process.env.MYSQLUSER || 'root',
-  password: process.env.MYSQLPASSWORD || 'JEWZIacsisWhxsrEdTrHKjGwEMjvPxKO',
-  database: process.env.MYSQLDATABASE || 'railway',
-  port: process.env.MYSQLPORT || 3306,
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0,
-  connectTimeout: 30000
+const db = mysql.createConnection({
+  host: 'mysql.railway.internal',
+  user: 'root',
+  password: 'JEWZIacsisWhxsrEdTrHKjGwEMjvPxKO',
+  database: 'railway',
+  port: 3306,
+  connectTimeout: 30000,
+  timeout: 30000,
+  acquireTimeout: 30000
 });
 
-// Test de conexión
-pool.getConnection((err, connection) => {
+db.connect(err => {
   if (err) {
     console.error('Error al conectar a MySQL:', err);
     console.error('Variables de entorno:', {
@@ -36,7 +34,6 @@ pool.getConnection((err, connection) => {
     });
   } else {
     console.log('Conectado a MySQL');
-    connection.release();
   }
 });
 

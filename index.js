@@ -3,7 +3,7 @@ import express from 'express';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import pool from './db.config.js';
+import pool from './Backend/config/db.config.js';
 
 dotenv.config();
 

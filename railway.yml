@@ -18,6 +18,7 @@ services:
       NODE_ENV: production
       REACT_APP_API_URL: http://localhost:3000
       VITE_API_URL: http://localhost:3000
+      RAILWAY_PRIVATE_DOMAIN: mysql.railway.internal
     build:
       image: node:18
       command: npm install --legacy-peer-deps

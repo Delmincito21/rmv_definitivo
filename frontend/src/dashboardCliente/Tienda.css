@@ -78,7 +78,7 @@
     padding: 1.2rem;
   }
   
-  .sidebar {
+  .tienda-sidebar {
     width: 70px;
   }
   
@@ -161,27 +161,82 @@ button {
   scrollbar-color: var(--tienda-scrollbar-thumb) var(--tienda-scrollbar-track);
 }
 
+/* Reset básico */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
 /* Contenedor principal */
-.tienda-dashboard-container {
+.dashboard-container {
   display: flex;
   min-height: 100vh;
   background: linear-gradient(120deg, #f5f7fa 0%, #e9f0fb 100%);
+  position: relative;
 }
 
-/* Barra lateral (se mantiene el sidebar original) */
-/* .tienda-sidebar {
+/* Sidebar */
+aside.sidebar {
   width: 250px;
-  min-width: 220px;
-  background-color: #1e3a8a ;
-  color: #fff;
+  min-width: 250px;
+  background-color: #27639b;
+  color: white;
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
-  box-shadow: 2px 0 12px rgba(0, 0, 0, 0.10);
-  position: relative;
-  z-index: 10;
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 100;
   transition: width 0.3s ease;
-} */
+}
+
+/* Contenido principal */
+main.main-content {
+  flex: 1;
+  margin-left: 250px;
+  min-width: 0;
+  padding: 20px;
+  background: #f5f7fa;
+}
+
+/* Ajustes para pantallas pequeñas */
+@media (max-width: 768px) {
+  aside.sidebar {
+    width: 70px;
+    min-width: 70px;
+  }
+  
+  main.main-content {
+    margin-left: 70px;
+  }
+  
+  .nav-item {
+    padding: 12px 15px;
+  }
+  
+  .nav-item .icon {
+    display: block;
+    margin-right: 0;
+  }
+  
+  .nav-item .text {
+    display: none;
+  }
+}
+
+/* Ajustes para móviles */
+@media (max-width: 480px) {
+  aside.sidebar {
+    width: 70px;
+    min-width: 70px;
+  }
+  
+  main.main-content {
+    margin-left: 70px;
+  }
+}
 
 .tienda-sidebar-content {
   flex: 1;

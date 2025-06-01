@@ -2,8 +2,9 @@
   "name": "rmv-app",
   "version": "1.0.0",
   "description": "Fullstack application with React frontend and Node.js backend",
+  "type": "module",
   "scripts": {
-    "start": "node index.js",
+    "start": "node --experimental-specifier-resolution=node index.js",
     "build": "cd frontend && npm run build",
     "frontend": "cd frontend && npm run dev",
     "backend": "cd Backend && npm run dev",

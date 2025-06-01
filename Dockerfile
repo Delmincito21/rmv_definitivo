@@ -19,4 +19,4 @@ EXPOSE 3000
 EXPOSE 5173
 
 # Comando de inicio
-CMD ["npm", "run", "start"]
+CMD ["node", "--experimental-specifier-resolution=node", "index.js"]

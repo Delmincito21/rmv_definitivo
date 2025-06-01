@@ -1,41 +1,46 @@
 const mysql = require('mysql2');
-require('dotenv').config();
 
 const pool = mysql.createPool({
-    host: process.env.MYSQLHOST || 'localhost',
-    user: process.env.MYSQLUSER || 'root',
-    password: process.env.MYSQLPASSWORD || '',
-    database: process.env.MYSQLDATABASE || 'railway',
-    port: process.env.MYSQLPORT || 3306,
+    host: "localhost",
+    user: "root",
+    password: "Wyro2829",
+    database: "rmvfinal2",
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0,
-    connectTimeout: 60000
+    enableKeepAlive: true,
+    keepAliveInitialDelay: 0
 });
 
+// Convertir el pool en promesas
 const promisePool = pool.promise();
 
-// Intentar conexión a la base de datos
-async function testConnection() {
-    try {
-        // Esperar 5 segundos para que MySQL esté listo
-        await new Promise(resolve => setTimeout(resolve, 5000));
-        
-        const [result] = await promisePool.query('SELECT 1');
-        console.log('Conexión exitosa a MySQL');
-    } catch (error) {
-        console.error('Error al conectar a MySQL:', error);
-        console.error('Variables de entorno:', {
-            MYSQLHOST: process.env.MYSQLHOST,
-            MYSQLUSER: process.env.MYSQLUSER,
-            MYSQLPASSWORD: process.env.MYSQLPASSWORD,
-            MYSQLDATABASE: process.env.MYSQLDATABASE,
-            MYSQLPORT: process.env.MYSQLPORT
-        });
-        process.exit(1);
+// Verificar la conexión inicial
+pool.getConnection((err, connection) => {
+    if (err) {
+        console.error('Error al conectar a MySQL:', err);
+        if (err.code === 'PROTOCOL_CONNECTION_LOST') {
+            console.error('Se perdió la conexión con la base de datos');
+        }
+        if (err.code === 'ER_CON_COUNT_ERROR') {
+            console.error('La base de datos tiene demasiadas conexiones');
+        }
+        if (err.code === 'ECONNREFUSED') {
+            console.error('La conexión fue rechazada');
+        }
     }
-}
+    if (connection) {
+        console.log('Conectado a MySQL');
+        connection.release();
+    }
+});
 
-testConnection();
+// Manejar errores del pool
+pool.on('error', (err) => {
+    console.error('Error en el pool de MySQL:', err);
+    if (err.code === 'PROTOCOL_CONNECTION_LOST') {
+        console.error('Se perdió la conexión con la base de datos');
+    }
+});
 
 module.exports = promisePool;

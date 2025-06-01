@@ -1,11 +1,8 @@
 const mysql = require('mysql2');
 require('dotenv').config();
 
-// Mostrar todas las variables de entorno disponibles
-console.log('Variables de entorno disponibles:', process.env);
-
 const pool = mysql.createPool({
-    host: process.env.MYSQLHOST || process.env.RAILWAY_PRIVATE_DOMAIN || 'mysql.railway.internal',
+    host: process.env.MYSQLHOST || 'mysql.railway.internal',
     user: process.env.MYSQLUSER || 'root',
     password: process.env.MYSQLPASSWORD || 'JEWZIacsisWhxsrEdTrHKjGwEMjvPxKO',
     database: process.env.MYSQLDATABASE || 'railway',
@@ -30,7 +27,6 @@ async function testConnection() {
         console.error('Error al conectar a MySQL:', error);
         console.error('Variables de entorno:', {
             MYSQLHOST: process.env.MYSQLHOST,
-            RAILWAY_PRIVATE_DOMAIN: process.env.RAILWAY_PRIVATE_DOMAIN,
             MYSQLUSER: process.env.MYSQLUSER,
             MYSQLPASSWORD: process.env.MYSQLPASSWORD,
             MYSQLDATABASE: process.env.MYSQLDATABASE,

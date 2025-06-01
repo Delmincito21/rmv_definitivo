@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import API_CONFIG from '../config/api';
 import './LogiAdmin.css';
 import logo from './imagenes/lgo.png';
 import Swal from 'sweetalert2';
@@ -27,7 +28,7 @@ const LoginCliente = () => {
     setLoading(true);
 
     try {
-      const response = await fetch('https://rmv-production.up.railway.app/login', {
+      const response = await fetch(`${API_CONFIG.baseUrl}${API_CONFIG.endpoints.login}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ nombre_usuario: credenciales.usuario, pin_usuario: credenciales.contraseña })

@@ -2,23 +2,21 @@ const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const path = require('path');
-const db = require('./config/db.config'); // Cambiado a db.config.js
+const db = require('./config/db.config');
 const Producto = require('./models/productos');
 const Venta = require('./models/venta');
-const DetalleVenta = require('./models/DetalleVenta.js');
-const Orden = require('./models/Orden.js');
+const DetalleVenta = require('./models/DetalleVenta');
+const Orden = require('./models/Orden');
 const Envio = require('./models/Envio');
-const Pago = require('./models/Pago.js');
+const Pago = require('./models/Pago');
 const bcrypt = require('bcrypt');
 const clientes = require('./models/clientes');
 const nodemailer = require('nodemailer');
 const multer = require('multer');
 const crypto = require('crypto');
-// Abre la consola de Node.js con: node
-
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(cors());

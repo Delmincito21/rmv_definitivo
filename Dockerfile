@@ -5,9 +5,6 @@ WORKDIR /app
 # Copiar archivos de configuración
 COPY railway.env .env
 
-# Configurar la URL de conexión
-ENV DATABASE_URL="mysql://root:JEWZIacsisWhxsrEdTrHKjGwEMjvPxKO@mysql.railway.internal:3306/railway"
-
 # Copiar package.json y package-lock.json del backend
 COPY package*.json ./
 
@@ -17,10 +14,17 @@ RUN npm install --legacy-peer-deps
 # Copiar el resto del código
 COPY . .
 
-# Construir el frontend
+# Copiar package.json y package-lock.json del frontend
 WORKDIR /app/frontend
+COPY package*.json ./
+
+# Instalar dependencias del frontend
 RUN npm install --legacy-peer-deps
-RUN npm install -g vite
+
+# Copiar el resto del código del frontend
+COPY . .
+
+# Construir el frontend
 RUN npm run build
 
 # Volver al directorio principal

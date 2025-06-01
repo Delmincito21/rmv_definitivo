@@ -21,9 +21,11 @@ services:
       RAILWAY_PRIVATE_DOMAIN: mysql.railway.internal
     build:
       image: node:18
-      command: npm install --legacy-peer-deps
+      command: |
+        npm install --legacy-peer-deps
+        cd frontend && npm install && npm run build
     deploy:
-      command: npm run build && npm start
+      command: npm start
     ports:
       - 3000:3000
       - 5173:5173

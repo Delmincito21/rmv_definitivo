@@ -1,18 +1,49 @@
-// db.config.js
-import mysql from 'mysql2/promise';
-import dotenv from 'dotenv';
+const mysql = require('mysql2');
+require('dotenv').config();
 
-dotenv.config();
+// Mostrar todas las variables de entorno disponibles
+console.log('Variables de entorno disponibles:', process.env);
 
-const pool = mysql.createPool(process.env.DATABASE_URL);
+// Configuración de MySQL
+const pool = mysql.createPool({
+    host: process.env.MYSQLHOST || 'mysql.railway.internal',
+    user: process.env.MYSQLUSER || 'root',
+    password: process.env.MYSQLPASSWORD || 'JEWZIacsisWhxsrEdTrHKjGwEMjvPxKO',
+    database: process.env.MYSQLDATABASE || 'railway',
+    port: process.env.MYSQLPORT || 3306,
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0,
+    connectTimeout: 30000,
+    acquireTimeout: 60000,
+    timeout: 60000,
+    debug: true
+});
 
-try {
-  const connection = await pool.getConnection();
-  console.log('✅ Conexión exitosa a MySQL');
-  connection.release();
-} catch (error) {
-  console.error('❌ Error al conectar a MySQL:', error);
-  process.exit(1);
+const promisePool = pool.promise();
+
+// Intentar conexión a la base de datos
+async function testConnection() {
+    try {
+        // Esperar 5 segundos para que MySQL esté listo
+        await new Promise(resolve => setTimeout(resolve, 5000));
+        
+        const [result] = await promisePool.query('SELECT 1');
+        console.log('Conexión exitosa a MySQL');
+    } catch (error) {
+        console.error('Error al conectar a MySQL:', error);
+        console.error('Variables de entorno:', {
+            MYSQLHOST: process.env.MYSQLHOST,
+            RAILWAY_PRIVATE_DOMAIN: process.env.RAILWAY_PRIVATE_DOMAIN,
+            MYSQLUSER: process.env.MYSQLUSER,
+            MYSQLPASSWORD: process.env.MYSQLPASSWORD,
+            MYSQLDATABASE: process.env.MYSQLDATABASE,
+            MYSQLPORT: process.env.MYSQLPORT
+        });
+        process.exit(1);
+    }
 }
 
-export default pool;
+testConnection();
+
+module.exports = promisePool;

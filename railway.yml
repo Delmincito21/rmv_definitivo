@@ -26,6 +26,8 @@ services:
         cd frontend
         npm install
         npm run build
+        cd ..
+        npm install
     deploy:
       command: npm start
     ports:

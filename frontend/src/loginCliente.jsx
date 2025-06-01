@@ -27,7 +27,7 @@ const LoginCliente = () => {
     setLoading(true);
 
     try {
-      const response = await fetch('http://localhost:3000/login', {
+      const response = await fetch('https://backend-production-6925.up.railway.app/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ nombre_usuario: credenciales.usuario, pin_usuario: credenciales.contraseña })
@@ -119,7 +119,7 @@ const LoginCliente = () => {
 
     if (email) {
       try {
-        await fetch('http://localhost:3000/recuperar', {
+        await fetch('https://backend-production-6925.up.railway.app/recuperar', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email })

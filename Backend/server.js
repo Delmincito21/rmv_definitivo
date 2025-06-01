@@ -22,11 +22,23 @@ const PORT = process.env.PORT || 3000;
 testConnection();
 
 // Middleware
-app.use(cors());
+app.use(cors({
+    origin: ['http://localhost:5173', 'https://rmv-production.up.railway.app'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    credentials: true
+}));
 app.use(bodyParser.json());
 app.use(express.json());
 
-console.log('Iniciando servidor...');
+// Ruta de prueba
+app.get('/', (req, res) => {
+    res.json({ message: 'API RMV está funcionando' });
+});
+
+// Iniciar el servidor
+app.listen(PORT, () => {
+    console.log(`Servidor iniciado en http://localhost:${PORT}`);
+});
 
 // Ruta de prueba
 app.get('/test', (req, res) => {

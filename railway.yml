@@ -4,7 +4,11 @@ services:
   - name: app
     type: nodejs
     env:
-      DATABASE_URL: mysql://root:JEWZIacsisWhxsrEdTrHKjGwEMjvPxKO@mysql.railway.internal:3306/railway
+      MYSQL_HOST: mysql.railway.internal
+      MYSQL_USER: root
+      MYSQL_PASSWORD: JEWZIacsisWhxsrEdTrHKjGwEMjvPxKO
+      MYSQL_DATABASE: railway
+      MYSQL_PORT: 3306
       SMTP_HOST: smtp.gmail.com
       SMTP_PORT: 587
       SMTP_USER: refrielectricmv@gmail.com

@@ -9,17 +9,17 @@ const __dirname = path.dirname(__filename);
 
 dotenv.config();
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
 
 const db = mysql.createConnection({
   host: 'mysql.railway.internal',
-  user: 'root',
-  password: 'JEWZIacsisWhxsrEdTrHKjGwEMjvPxKO',
-  database: 'railway',
-  port: 3306,
-  connectTimeout: 30000,
-  timeout: 30000,
-  acquireTimeout: 30000
+  user: process.env.MYSQLUSER || 'root',
+  password: process.env.MYSQLPASSWORD || 'JEWZIacsisWhxsrEdTrHKjGwEMjvPxKO',
+  database: process.env.MYSQLDATABASE || 'railway',
+  port: process.env.MYSQLPORT || 3306,
+  connectTimeout: 60000,
+  connectionTimeout: 60000,
+  acquireTimeout: 60000
 });
 
 db.connect(err => {

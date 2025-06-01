@@ -18,7 +18,17 @@ const crypto = require('crypto');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Usar la función de prueba que importamos
+// Prueba la conexión
+async function testConnection() {
+    try {
+        const [result] = await pool.query('SELECT 1');
+        console.log('✅ Conexión exitosa a MySQL');
+    } catch (error) {
+        console.error('❌ Error al conectar a MySQL:', error);
+        process.exit(1);
+    }
+}
+
 testConnection();
 
 // Middleware

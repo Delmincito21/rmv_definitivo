@@ -14,11 +14,8 @@ const pool = mysql.createPool({
     connectionLimit: 10,
     queueLimit: 0,
     connectTimeout: 60000,
-    timeout: 60000,
-    connectTimeout: 60000,
-    acquireTimeout: 60000,
-    timeout: 60000,
-    debug: true
+    connectionTimeout: 60000,
+    acquireTimeout: 60000
 });
 
 const promisePool = pool.promise();

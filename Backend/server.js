@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const path = require('path');
-const { pool, testConnection } = require('./config/db.config');
+const db = require('./config/db.config');
 const Producto = require('./models/productos');
 const Venta = require('./models/venta');
 const DetalleVenta = require('./models/DetalleVenta');
@@ -17,6 +17,9 @@ const crypto = require('crypto');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Inicializar la conexión a la base de datos
+const pool = db;
 
 // Prueba la conexión
 async function testConnection() {

@@ -33,30 +33,43 @@ const MisPedidos = () => {
     fetch(`https://backend-production-6925.up.railway.app/ventas/usuario/${userId}`)
       .then(res => res.json())
       .then(async data => {
-        // Para cada pedido, buscar su orden y su envío
-        const pedidosConEnvio = await Promise.all(data.map(async pedido => {
-          try {
-            const ordenRes = await fetch(`https://backend-production-6925.up.railway.app/orden/venta/${pedido.id_venta}`);
-            const orden = await ordenRes.json();
-            if (orden && orden.id_orden) {
-              const envioRes = await fetch(`https://backend-production-6925.up.railway.app/envios/orden/${orden.id_orden}`);
-              if (envioRes.ok) {
-                const envio = await envioRes.json();
-                return {
-                  ...pedido,
-                  envio_estado: envio.estado_envio,
-                  envio_fecha: envio.fecha_estimada_envio,
-                  envio_direccion: envio.direccion_entrega_envio
-                };
+        try {
+          // Para cada pedido, buscar su orden y su envío
+          const pedidosConEnvio = await Promise.all(data.map(async pedido => {
+            try {
+              const ordenRes = await fetch(`https://backend-production-6925.up.railway.app/orden/venta/${pedido.id_venta}`);
+              if (!ordenRes.ok) {
+                throw new Error(`Error al obtener orden: ${ordenRes.status}`);
               }
+              const orden = await ordenRes.json();
+              
+              if (orden && orden.id_orden) {
+                const envioRes = await fetch(`https://backend-production-6925.up.railway.app/envios/orden/${orden.id_orden}`);
+                if (envioRes.ok) {
+                  const envio = await envioRes.json();
+                  return {
+                    ...pedido,
+                    envio_estado: envio.estado_envio,
+                    envio_fecha: envio.fecha_estimada_envio,
+                    envio_direccion: envio.direccion_entrega_envio
+                  };
+                }
+              }
+            } catch (e) {
+              console.error(`Error al procesar pedido ${pedido.id_venta} en fetch de orden/envio:`, e);
             }
-          } catch (e) {}
-          return { ...pedido, envio_estado: null, envio_fecha: null, envio_direccion: null };
-        }));
-        setPedidos(pedidosConEnvio);
-        setPedidosFiltrados(pedidosConEnvio);
+            return { ...pedido, envio_estado: null, envio_fecha: null, envio_direccion: null };
+          }));
+          
+          setPedidos(pedidosConEnvio);
+          setPedidosFiltrados(pedidosConEnvio);
+        } catch (error) {
+          console.error('Error al procesar pedidos:', error);
+          Swal.fire('Error', 'No se pudieron cargar tus pedidos', 'error');
+        }
       })
       .catch(err => {
+        console.error('Error al cargar pedidos en el fetch inicial:', err);
         Swal.fire('Error', 'No se pudieron cargar tus pedidos', 'error');
       })
       .finally(() => {
@@ -185,7 +198,7 @@ const MisPedidos = () => {
       .catch(() => {
         setCartItems([]);
       });
-  }, [userId]);
+  }, [userId, setCartItems]);
 
   console.log("pedidos:", pedidos);
   console.log("pedidosFiltrados:", pedidosFiltrados);

@@ -24,7 +24,7 @@ const MisPedidos = () => {
   const [ordenAscendente, setOrdenAscendente] = useState(false);
   const navigate = useNavigate();
   const [userInfo, setUserInfo] = useState(null);
-  const { cartItems } = useCart();
+  const { cartItems, setCartItems } = useCart();
 
   // Cargar pedidos del usuario
   useEffect(() => {

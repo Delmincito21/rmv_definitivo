@@ -22,7 +22,7 @@ export const CartProvider = ({ children }) => {
     console.log("Intentando cargar carrito para userId:", userId);
 
     try {
-      const response = await fetch(`http://localhost:3000/carrito/${userId}`);
+      const response = await fetch(`https://backend-production-6925.up.railway.app/carrito/${userId}`);
 
       if (!response.ok) {
         throw new Error(`Error al cargar el carrito (${response.status})`);
@@ -107,7 +107,7 @@ export const CartProvider = ({ children }) => {
       };
       console.log("Enviando al servidor:", requestBody);
 
-      const response = await fetch(`http://localhost:3000/carrito/${currentUserId}/item`, {
+      const response = await fetch(`https://backend-production-6925.up.railway.app/carrito/${currentUserId}/item`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(requestBody)
@@ -139,7 +139,7 @@ export const CartProvider = ({ children }) => {
     setError(null);
 
     try {
-      const response = await fetch(`http://localhost:3000/carrito/${currentUserId}/item/${productId}`, {
+      const response = await fetch(`https://backend-production-6925.up.railway.app/carrito/${currentUserId}/item/${productId}`, {
         method: 'DELETE'
       });
 
@@ -170,7 +170,7 @@ export const CartProvider = ({ children }) => {
     setError(null);
 
     try {
-      const response = await fetch(`http://localhost:3000/carrito/${currentUserId}/item/${productId}`, {
+      const response = await fetch(`https://backend-production-6925.up.railway.app/carrito/${currentUserId}/item/${productId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ cantidad: newQuantity })
@@ -199,7 +199,7 @@ export const CartProvider = ({ children }) => {
     setError(null);
 
     try {
-      const response = await fetch(`http://localhost:3000/carrito/${currentUserId}`, {
+      const response = await fetch(`https://backend-production-6925.up.railway.app/carrito/${currentUserId}`, {
         method: 'DELETE'
       });
 

@@ -2236,7 +2236,7 @@ app.post('/pago/transferencia', upload.single('voucher'), async (req, res) => {
         const id_pago = result.insertId;
 
         // Construye el enlace de validación
-        const urlValidar = `http://localhost:3000/validar-pago/${id_pago}/${token}`;
+        const urlValidar = `https://backend-production-6925.up.railway.app/validar-pago/${id_pago}/${token}`;
 
         // Envía el correo al admin con el voucher adjunto (usando buffer)
         await transporter.sendMail({

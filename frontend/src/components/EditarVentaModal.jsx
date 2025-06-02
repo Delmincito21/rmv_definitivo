@@ -26,33 +26,33 @@ const EditarVentaModal = ({ isOpen, onClose, ventaId, onVentaUpdate }) => {
       setLoadingData(true);
       try {
         // Cargar Venta
-        const ventaRes = await fetch(`http://localhost:3000/ventas/${ventaId}`);
+        const ventaRes = await fetch(`https://backend-production-6925.up.railway.app/ventas/${ventaId}`);
         if (!ventaRes.ok) throw new Error('Error al obtener la venta');
         const ventaData = await ventaRes.json();
         setVentaData(ventaData || {});
         setMotivoCancelacion(ventaData?.motivo_cancelacion || '');
 
         // Cargar Detalles
-        const detallesRes = await fetch(`http://localhost:3000/detalle-ventas/venta/${ventaId}`);
+        const detallesRes = await fetch(`https://backend-production-6925.up.railway.app/detalle-ventas/venta/${ventaId}`);
         if (!detallesRes.ok) throw new Error('Error al obtener los detalles');
         const detallesData = await detallesRes.json();
         setDetalleVentaData(Array.isArray(detallesData) ? detallesData : []);
 
         // Cargar Pago
-        const pagoRes = await fetch(`http://localhost:3000/pago/venta/${ventaId}`);
+        const pagoRes = await fetch(`https://backend-production-6925.up.railway.app/pago/venta/${ventaId}`);
         if (!pagoRes.ok) throw new Error('Error al obtener el pago');
         const pagoArray = await pagoRes.json();
         setPagoData(Array.isArray(pagoArray) && pagoArray.length > 0 ? pagoArray[0] : {});
 
         // Cargar Orden
-        const ordenRes = await fetch(`http://localhost:3000/orden/venta/${ventaId}`);
+        const ordenRes = await fetch(`https://backend-production-6925.up.railway.app/orden/venta/${ventaId}`);
         if (!ordenRes.ok) throw new Error('Error al obtener la orden');
         const ordenData = await ordenRes.json();
         setOrdenData(ordenData || {});
 
         // Cargar Envío si existe orden
         if (ordenData && ordenData.id_orden) {
-          const envioRes = await fetch(`http://localhost:3000/envios/orden/${ordenData.id_orden}`);
+          const envioRes = await fetch(`https://backend-production-6925.up.railway.app/envios/orden/${ordenData.id_orden}`);
           if (envioRes.ok) {
             const envioData = await envioRes.json();
             setEnvioData(envioData || {});
@@ -95,7 +95,7 @@ const EditarVentaModal = ({ isOpen, onClose, ventaId, onVentaUpdate }) => {
   const obtenerPrecioProducto = async (idProducto) => {
     try {
       if (!idProducto) return 0;
-      const response = await fetch(`http://localhost:3000/productos/${idProducto}/precio`);
+      const response = await fetch(`https://backend-production-6925.up.railway.app/productos/${idProducto}/precio`);
       if (!response.ok) throw new Error('Error al obtener el precio');
       const data = await response.json();
       return data.precio || 0;
@@ -191,7 +191,7 @@ const EditarVentaModal = ({ isOpen, onClose, ventaId, onVentaUpdate }) => {
       };
 
       // --- 1. Actualizar Venta y Detalles (en una sola petición) ---
-      const ventaUpdateResponse = await fetch(`http://localhost:3000/ventas/${ventaId}`, {
+      const ventaUpdateResponse = await fetch(`https://backend-production-6925.up.railway.app/ventas/${ventaId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(consolidatedData) // Enviamos todos los datos consolidados
@@ -205,7 +205,7 @@ const EditarVentaModal = ({ isOpen, onClose, ventaId, onVentaUpdate }) => {
 
       // --- 2. Actualizar Pago (si existe) ---
       if (pagoData?.id_pago) {
-          const pagoUpdateResponse = await fetch(`http://localhost:3000/pago/${pagoData.id_pago}`, {
+          const pagoUpdateResponse = await fetch(`https://backend-production-6925.up.railway.app/pago/${pagoData.id_pago}`, {
               method: 'PUT',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
@@ -219,7 +219,7 @@ const EditarVentaModal = ({ isOpen, onClose, ventaId, onVentaUpdate }) => {
 
       // --- 3. Actualizar Orden (si existe) ---
       if (ordenData?.id_orden) {
-          const ordenUpdateResponse = await fetch(`http://localhost:3000/orden/${ordenData.id_orden}`, {
+          const ordenUpdateResponse = await fetch(`https://backend-production-6925.up.railway.app/orden/${ordenData.id_orden}`, {
               method: 'PUT',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
@@ -233,7 +233,7 @@ const EditarVentaModal = ({ isOpen, onClose, ventaId, onVentaUpdate }) => {
 
       // --- 4. Actualizar Envío (si existe) ---
       if (envioData?.id_envio) {
-          const envioUpdateResponse = await fetch(`http://localhost:3000/envios/${envioData.id_envio}`, {
+          const envioUpdateResponse = await fetch(`https://backend-production-6925.up.railway.app/envios/${envioData.id_envio}`, {
               method: 'PUT',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
@@ -248,7 +248,7 @@ const EditarVentaModal = ({ isOpen, onClose, ventaId, onVentaUpdate }) => {
       // Si todo fue bien
       alert('Venta actualizada exitosamente');
       // Recargar la venta actualizada y pasarla al padre para actualizar la tabla principal
-      const updatedVentaRes = await fetch(`http://localhost:3000/ventas/${ventaId}`);
+      const updatedVentaRes = await fetch(`https://backend-production-6925.up.railway.app/ventas/${ventaId}`);
       if (updatedVentaRes.ok) {
           const updatedVentaData = await updatedVentaRes.json();
           // Asegurarse de que la fecha tiene el formato correcto para el estado local en el padre si es necesario

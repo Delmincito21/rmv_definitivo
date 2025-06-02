@@ -458,6 +458,7 @@ const Tienda = () => {
                       </p>
                       <div style={{ display: 'flex', gap: 12 }}>
                         <button
+                          className="ver-detalles-btn"
                           style={{
                             background: '#27639b',
                             color: '#fff',

@@ -31,46 +31,65 @@ const MisPedidos = () => {
     if (!userId) return;
     setLoading(true);
     fetch(`https://backend-production-6925.up.railway.app/ventas/usuario/${userId}`)
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        return res.json();
+      })
       .then(async data => {
+        // Envuelve toda la lógica asíncrona en un try-catch principal aquí
         try {
           // Para cada pedido, buscar su orden y su envío
           const pedidosConEnvio = await Promise.all(data.map(async pedido => {
+            // Try-catch interno para llamadas individuales
             try {
               const ordenRes = await fetch(`https://backend-production-6925.up.railway.app/orden/venta/${pedido.id_venta}`);
               if (!ordenRes.ok) {
-                throw new Error(`Error al obtener orden: ${ordenRes.status}`);
+                 console.warn(`Orden no encontrada o error (${ordenRes.status}) para pedido ${pedido.id_venta}.`);
+                 return null;
               }
               const orden = await ordenRes.json();
-              
+
               if (orden && orden.id_orden) {
                 const envioRes = await fetch(`https://backend-production-6925.up.railway.app/envios/orden/${orden.id_orden}`);
-                if (envioRes.ok) {
-                  const envio = await envioRes.json();
-                  return {
-                    ...pedido,
-                    envio_estado: envio.estado_envio,
-                    envio_fecha: envio.fecha_estimada_envio,
-                    envio_direccion: envio.direccion_entrega_envio
-                  };
+                if (!envioRes.ok) {
+                   console.warn(`Envío no encontrado o error (${envioRes.status}) para orden ${orden.id_orden}.`);
+                   return null;
                 }
+                const envio = await envioRes.json();
+                return {
+                  ...pedido,
+                  envio_estado: envio.estado_envio,
+                  envio_fecha: envio.fecha_estimada_envio,
+                  envio_direccion: envio.direccion_entrega_envio,
+                  id_orden: orden.id_orden
+                };
+              } else {
+                 console.warn(`No se pudo obtener información de orden válida para pedido ${pedido.id_venta}.`);
+                 return { ...pedido, envio_estado: null, envio_fecha: null, envio_direccion: null };
               }
             } catch (e) {
-              console.error(`Error al procesar pedido ${pedido.id_venta} en fetch de orden/envio:`, e);
+              console.error(`Error en el procesamiento individual del pedido ${pedido.id_venta}:`, e);
+              return null;
             }
-            return { ...pedido, envio_estado: null, envio_fecha: null, envio_direccion: null };
-          }));
-          
-          setPedidos(pedidosConEnvio);
-          setPedidosFiltrados(pedidosConEnvio);
+          })).catch(promiseAllError => {
+            console.error('Error durante Promise.all en carga de pedidos:', promiseAllError);
+            return [];
+          });
+
+          const pedidosValidos = pedidosConEnvio ? pedidosConEnvio.filter(p => p != null) : [];
+
+          setPedidos(pedidosValidos);
+          setPedidosFiltrados(pedidosValidos);
         } catch (error) {
-          console.error('Error al procesar pedidos:', error);
-          Swal.fire('Error', 'No se pudieron cargar tus pedidos', 'error');
+          console.error('Error general al procesar pedidos después del fetch inicial:', error);
+          Swal.fire('Error', 'Ocurrió un problema al procesar la lista de pedidos.', 'error');
         }
       })
       .catch(err => {
-        console.error('Error al cargar pedidos en el fetch inicial:', err);
-        Swal.fire('Error', 'No se pudieron cargar tus pedidos', 'error');
+        console.error('Error crítico al cargar pedidos (fetch inicial o JSON parse):', err);
+        Swal.fire('Error crítico', 'No se pudieron cargar tus pedidos. Intenta más tarde.', 'error');
       })
       .finally(() => {
         setLoading(false);
@@ -176,26 +195,50 @@ const MisPedidos = () => {
 
   const toggleSidebar = () => setIsCollapsed(!isCollapsed);
 
+  // Cargar info del usuario
   useEffect(() => {
     if (!userId) return;
     fetch(`https://backend-production-6925.up.railway.app/usuario/${userId}`)
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) { // Añadir verificación de respuesta OK
+          throw new Error(`HTTP error fetching user info! status: ${res.status}`);
+        }
+        return res.json();
+      })
       .then(data => {
         setUserInfo(data);
       })
-      .catch(() => {
-        setUserInfo(null);
+      .catch(error => { // Añadir catch con logging
+        console.error('Error al cargar información del usuario:', error);
+        setUserInfo(null); // Asegurarse de limpiar el estado si falla
       });
   }, [userId]);
 
+  // Cargar ítems del carrito
   useEffect(() => {
     if (!userId) return;
     fetch(`https://backend-production-6925.up.railway.app/carrito/usuario/${userId}`)
-      .then(res => res.json())
-      .then(data => {
-        setCartItems(data);
+      .then(res => {
+        if (!res.ok) { // Añadir verificación de respuesta OK
+           // No lanzar error fatal si el carrito no existe (ej. 404), solo registrar advertencia y setear a vacío
+           if (res.status === 404) {
+             console.warn(`Carrito no encontrado para usuario ${userId}. Status: ${res.status}`);
+             return null; // Devolver null para manejarlo en el siguiente then
+           } else {
+             throw new Error(`HTTP error fetching cart items! status: ${res.status}`);
+           }
+        }
+        return res.json();
       })
-      .catch(() => {
+      .then(data => {
+         if (data === null) {
+            setCartItems([]); // Si se devolvió null por 404, setear a vacío
+         } else {
+            setCartItems(data);
+         }
+      })
+      .catch(err => { // Usar err y loguear
+        console.error('Error al cargar el carrito:', err);
         setCartItems([]);
       });
   }, [userId, setCartItems]);

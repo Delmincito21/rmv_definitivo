@@ -14,7 +14,7 @@ const Bienvenido = () => {
       <header className="bienvenido-header">
         <div className="header-logo">
           <img src={logo} alt="Logo" className="logo-img" />
-          <span className="logo-text">RMV</span>
+          <span className="logo-text">Refrielectric Martin Vasquez SRL</span>
         </div>
         <button
           onClick={() => navigate('/loginCliente')}
@@ -40,7 +40,7 @@ const Bienvenido = () => {
           {/* Centro: texto y botón */}
           <div className="main-text-container">
             <h1 className="main-title">
-              COMIENZA HOY A COMPRAR EN <span className="highlight">RMV</span>
+              COMIENZA HOY A COMPRAR EN <span className="highlight">Refrielectric Martin Vasquez SRL</span>
             </h1>
             <p className="main-description">
               Descubre productos, gestiona tus pedidos y vive la mejor experiencia de compra online. ¡Todo en un solo lugar!

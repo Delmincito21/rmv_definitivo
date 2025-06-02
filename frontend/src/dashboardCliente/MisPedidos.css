@@ -66,4 +66,68 @@
     font-weight: bold;
     text-transform: capitalize;
     letter-spacing: normal;
+}
+
+@media (max-width: 600px) {
+  .mis-pedidos-container {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0.5rem !important;
+    box-sizing: border-box !important;
+    overflow-x: hidden !important;
+  }
+
+  .mis-pedidos-container .pedido-card {
+    width: 100% !important;
+    margin: 0.5rem 0 !important;
+    padding: 0.5rem !important;
+    box-sizing: border-box !important;
+  }
+
+  .mis-pedidos-container table {
+    display: block !important;
+    width: 100% !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  .mis-pedidos-container th,
+  .mis-pedidos-container td {
+    white-space: nowrap !important;
+    padding: 0.5rem !important;
+    font-size: 0.9rem !important;
+  }
+
+  .mis-pedidos-container .pedido-info {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.5rem !important;
+    padding: 0.5rem !important;
+  }
+
+  .mis-pedidos-container .pedido-detalles {
+    width: 100% !important;
+    overflow-x: auto !important;
+    padding: 0.5rem !important;
+  }
+
+  .mis-pedidos-container .pedido-acciones {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.5rem !important;
+    width: 100% !important;
+  }
+
+  .mis-pedidos-container .pedido-acciones button {
+    width: 100% !important;
+    margin: 0 !important;
+  }
+
+  .motivo-cancelacion {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0.5rem 0 !important;
+    padding: 0.5rem !important;
+  }
 } 

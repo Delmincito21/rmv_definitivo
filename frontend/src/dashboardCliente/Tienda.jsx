@@ -295,7 +295,7 @@ const Tienda = () => {
                   color: '#27639b'
                 }} />
                 <input
-                  type="text"
+                  type="search"
                   placeholder="Buscar productos..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
@@ -315,6 +315,7 @@ const Tienda = () => {
               </div>
             </div>
             <select
+              className="categoria-select"
               value={filtros.categoria}
               onChange={(e) => setFiltros({ ...filtros, categoria: e.target.value })}
               style={{
@@ -418,18 +419,22 @@ const Tienda = () => {
           >
             {filteredProducts.length > 0 ? (
               filteredProducts.map((producto) => (
-                <div key={producto.id_producto} style={{
-                  width: '100%',
-                  background: '#f9fafb',
-                  borderRadius: 12,
-                  boxShadow: '0 2px 8px #2563eb11',
-                  padding: 24,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 12,
-                  border: '1px solid #e0e7ff',
-                  position: 'relative',
-                }}>
+                <div
+                  key={producto.id_producto}
+                  className="producto-card"
+                  style={{
+                    width: '100%',
+                    background: '#f9fafb',
+                    borderRadius: 12,
+                    boxShadow: '0 2px 8px #2563eb11',
+                    padding: 24,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 12,
+                    border: '1px solid #e0e7ff',
+                    position: 'relative',
+                  }}
+                >
                   <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
                     <div style={{ minWidth: 120, maxWidth: 120, height: 90, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fff', borderRadius: 8, overflow: 'hidden', border: '1px solid #e0e7ff' }}>
                       <img
@@ -443,9 +448,9 @@ const Tienda = () => {
                       />
                     </div>
                     <div style={{ flex: 1 }}>
-                      <h3 style={{ fontWeight: 'bold', color: '#27639b', fontSize: 18, margin: 0 }}>{producto.nombre_producto}</h3>
-                      <div style={{ color: '#888', fontSize: 15, marginBottom: 4 }}>{producto.marca_producto}</div>
-                      <div style={{ fontWeight: 600, fontSize: 16, color: '#2196F3', marginBottom: 8 }}>
+                      <h3 className="tienda-catalogo-nombre" style={{ fontWeight: 'bold', color: '#27639b', fontSize: 18, margin: 0 }}>{producto.nombre_producto}</h3>
+                      <div className="tienda-catalogo-marca" style={{ color: '#888', fontSize: 15, marginBottom: 4 }}>{producto.marca_producto}</div>
+                      <div className="tienda-catalogo-precio" style={{ fontWeight: 600, fontSize: 16, color: '#2196F3', marginBottom: 8 }}>
                         ${formatPrice(producto.precio_producto)}
                       </div>
                       <p className="stock-info" style={{ fontSize: '0.9em', color: producto.stock_producto > 5 ? '#28a745' : producto.stock_producto > 0 ? '#ffc107' : '#dc3545', fontWeight: 'bold' }}>

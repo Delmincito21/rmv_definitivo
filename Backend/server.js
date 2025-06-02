@@ -1541,7 +1541,7 @@ app.post('/recuperar', async (req, res) => {
     );
 
     // Enlace de recuperación (ajusta la URL a tu frontend)
-    const resetLink = `https://frontend-production-df6b.up.railway.ap/reset-password?token=${token}&email=${email}`;
+    const resetLink = `https://frontend-production-df6b.up.railway.app/reset-password?token=${token}&email=${email}`;
 
     // Envía el correo
     await transporter.sendMail({

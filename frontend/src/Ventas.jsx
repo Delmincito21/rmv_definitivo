@@ -400,6 +400,11 @@ const Ventas = () => {
     id_envio: null
   });
 
+  // Estado para filtros y ordenación
+  const [filterStatus, setFilterStatus] = useState('Todos los estados');
+  const [sortCriteria, setSortCriteria] = useState('fecha');
+  const [sortDirection, setSortDirection] = useState('descendente');
+
   useEffect(() => {
     if (mostrarFormulario && paso === 'venta') {
       setDatosVenta(prev => ({ ...prev, fecha_venta: getNowDateTimeLocalRD() }));
@@ -465,22 +470,48 @@ const Ventas = () => {
   }, []);
 
   useEffect(() => {
-    if (searchTerm === '') {
-      setVentasFiltradas(ventas);
-      return;
+    let currentVentas = [...ventas];
+
+    // 1. Filtrar por término de búsqueda
+    if (searchTerm) {
+      const termLower = searchTerm.toLowerCase();
+      currentVentas = currentVentas.filter(venta => {
+        const fechaVenta = new Date(venta.fecha_venta).toLocaleDateString();
+        return (
+          venta.id_venta.toString().includes(termLower) ||
+          (venta.cliente && venta.cliente.toLowerCase().includes(termLower)) || // Check if venta.cliente exists
+          fechaVenta.includes(termLower)
+        );
+      });
     }
 
-    const termLower = searchTerm.toLowerCase();
-    const filtered = ventas.filter(venta => {
-      const fechaVenta = new Date(venta.fecha_venta).toLocaleDateString();
-      return (
-        venta.id_venta.toString().includes(termLower) ||
-        venta.cliente.toLowerCase().includes(termLower) ||
-        fechaVenta.includes(termLower)
-      );
-    });
-    setVentasFiltradas(filtered);
-  }, [searchTerm, ventas]);
+    // 2. Filtrar por estado de envío
+    if (filterStatus !== 'Todos los estados') {
+        currentVentas = currentVentas.filter(venta => {
+            // Normalizar estadoEnvio para comparación si es necesario, o comparar directamente
+            // Asumiendo que venta.estadoEnvio ya está en un formato comparable ('pendiente', 'caminando', 'entregado', 'No hay envío', 'Envío pendiente', 'Error al cargar envío')
+             return venta.estadoEnvio === filterStatus;
+        });
+    }
+
+
+    // 3. Ordenar
+    if (sortCriteria === 'fecha') {
+      currentVentas.sort((a, b) => {
+        const dateA = new Date(a.fecha_venta);
+        const dateB = new Date(b.fecha_venta);
+        if (sortDirection === 'ascendente') {
+          return dateA - dateB;
+        } else { // descendente
+          return dateB - dateA;
+        }
+      });
+    }
+    // Añadir otras opciones de ordenación si es necesario (ej: por total)
+
+
+    setVentasFiltradas(currentVentas);
+  }, [searchTerm, ventas, filterStatus, sortCriteria, sortDirection]); // Add dependencies
 
   const calcularSubtotal = (detalle) => {
     const cantidad = parseFloat(detalle.cantidad) || 0;
@@ -764,10 +795,41 @@ const Ventas = () => {
     // Ahora datosEnvioForm ya debería incluir id_envio si fue una creación
     setDatosEnvio(datosEnvioForm); // Aseguramos que el estado se actualice con los datos del envío, incluyendo id_envio
 
-    // Actualizar datosPago con el id_venta antes de pasar al formulario de pago
-     // Asegurarnos de tener el id_venta actual
-     const currentIdVenta = datosVenta.id_venta; // Asumiendo que datosVenta tiene el id_venta
-     if (currentIdVenta) {
+    const costoEnvio = getCostoEnvio(datosEnvioForm.provincia_envio);
+    const currentIdVenta = datosVenta.id_venta; // Asumiendo que datosVenta tiene el id_venta
+
+    if (costoEnvio > 0 && currentIdVenta) {
+      try {
+        const detalleEnvio = {
+          id_venta: currentIdVenta,
+          id_producto: 99999, // ID del producto "Servicio de Envío"
+          cantidad_detalle_venta: 1,
+          precio_unitario_detalle_venta: costoEnvio,
+          subtotal_detalle_venta: costoEnvio,
+          estado: 'activo'
+        };
+
+        const response = await fetch('https://backend-production-6925.up.railway.app/detalle_venta', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(detalleEnvio)
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          console.error('Error al agregar detalle de envío a la venta:', errorData);
+          // Considera si quieres alertar al usuario o manejar este error de otra forma
+          // Por ahora, continuaremos al pago incluso si esto falla, pero es importante registrarlo.
+        }
+      } catch (error) {
+        console.error('Error en fetch al agregar detalle de envío:', error);
+        // Manejo del error de red/fetch
+      }
+    }
+
+        // Actualizar datosPago con el id_venta antes de pasar al formulario de pago
+    // Asegurarnos de tener el id_venta actual (ya lo tenemos en currentIdVenta de arriba)
+    if (currentIdVenta) {
           setDatosPago(prev => ({
              ...prev,
              id_venta: currentIdVenta,
@@ -863,9 +925,80 @@ const Ventas = () => {
               className="search-input"
             />
           </div>
+
+          {/* Filtro por estado de envío */}
+          <div className="filter-container">
+              <select
+                  value={filterStatus}
+                  onChange={(e) => setFilterStatus(e.target.value)}
+                  className="filter-select"
+              >
+                  <option value="Todos los estados">Todos los estados</option>
+                  <option value="pendiente">Envío Pendiente</option>
+                  <option value="caminando">En camino</option>
+                  <option value="entregado">Entregado</option>
+                  <option value="No hay envío">Sin envío</option> {/* Add option for no shipping */}
+                   {/* Optionally add other states like 'Error al cargar envío' if needed for filtering */}
+              </select>
+          </div>
+
+          {/* Ordenación */}
+          <div className="sort-container">
+              
+               <button
+                   className="sort-direction-button"
+                   onClick={() => setSortDirection(sortDirection === 'descendente' ? 'ascendente' : 'descendente')}
+               >
+                   {sortDirection === 'descendente' ? 'Descendente' : 'Ascendente'}
+               </button>
+          </div>
+
           <button
             className="add-button"
-            onClick={() => setMostrarFormulario(true)}
+            onClick={() => {
+                setMostrarFormulario(true);
+                 // Reset form state when opening for a new sale
+                setDatosVenta({
+                    id_usuario: '',
+                    fecha_venta: getNowDateTimeLocalRD(),
+                    estado_venta: 'pendiente',
+                    estado: 'activo',
+                    total: 0,
+                    id_venta: null
+                });
+                setDetalles([{
+                    id_producto: '',
+                    cantidad: '',
+                    precio: '',
+                    subtotal: 0,
+                    nombre_producto: ''
+                }]);
+                setNombreUsuario('');
+                setErrores({ datosVenta: {}, detalles: [{}] });
+                setPaso('venta'); // Start at 'venta' step
+                setOrdenId(null); // Clear order ID
+                setDatosEnvio({ // Clear shipping data
+                    fecha_estimada_envio: '',
+                    direccion_entrega_envio: '',
+                    provincia_envio: '',
+                    estado_envio: 'pendiente',
+                    estado: 'activo',
+                    id_orden: null,
+                    id_envio: null
+                });
+                setDatosPago({ // Clear payment data
+                    monto_pago: 0,
+                    fecha_pago: getNowDateTimeLocalRD(),
+                    metodo_pago: 'transferencia',
+                    referencia: '',
+                    banco_emisor: '',
+                    estado_pago: 'pendiente',
+                    id_venta: null,
+                    id_pago: null,
+                });
+                setVentaKey(prev => prev + 1); // Refresh date inputs
+                setPagoKey(prev => prev + 1);
+            }}
           >
             <FaPlus /> Nueva Venta
           </button>

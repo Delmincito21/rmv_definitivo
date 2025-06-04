@@ -778,7 +778,7 @@ function DashboardCategorias() {
     'Aire acondicionado': <FaSnowflake />,
     'Nevera': <FaTemperatureHigh />,
     'Estufas': <FaFire />,
-    'Estractores de grasa': <FaWind />
+    'Extractores de grasa': <FaWind />
   };
 
   // Mapeo de colores por categoría
@@ -786,7 +786,7 @@ function DashboardCategorias() {
     'Aire acondicionado': '#3B82F6', // Azul
     'Nevera': '#2ecc71', // Verde
     'Estufas': '#EF4444', // Rojo
-    'Estractores de grasa': '#f39c12' // Amarillo
+    'Extractores de grasa': '#f39c12' // Amarillo
   };
 
   useEffect(() => {

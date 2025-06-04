@@ -68,7 +68,6 @@
     .main-content {
       margin-left: 200px;
     }
-    min-height: 100vh;
   }
   
   /* Sidebar */
@@ -254,33 +253,48 @@
   
   /* Tabla de datos */
   .table-container {
-    background: white;
-    border-radius: 6px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    margin-bottom: 20px;
+    flex: 1;
+    overflow-y: auto;
+    margin-top: 20px;
+    border-radius: 8px;
     overflow-x: auto;
   }
   
   .data-table {
     width: 100%;
     border-collapse: collapse;
+    background-color: white;
+    table-layout: auto;
+  }
+  
+  .data-table thead {
+    position: sticky;
+    top: 0;
+    background-color: #f8f9fa;
+    z-index: 1;
   }
   
   .data-table th,
   .data-table td {
     padding: 12px 15px;
     text-align: left;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid #dee2e6;
+    font-weight: 600;
   }
   
-  .data-table th {
-    background-color: #f8f9fa;
-    color: #2c3e50;
-    font-weight: 500;
+  .data-table td {
+    padding: 12px 15px;
+    border-bottom: 1px solid #dee2e6;
   }
   
-  .data-table tbody tr:hover {
-    background-color: #f9f9f9;
+  .data-table th:nth-child(1), .data-table td:nth-child(1) { white-space: nowrap; }
+  .data-table th:nth-child(2), .data-table td:nth-child(2) { white-space: nowrap; }
+  .data-table th:nth-child(4), .data-table td:nth-child(4) { white-space: nowrap; }
+  .data-table th:nth-child(5), .data-table td:nth-child(5) { white-space: nowrap; }
+  .data-table th:nth-child(3), .data-table td:nth-child(3) { white-space: normal; }
+  .data-table th:nth-child(6), .data-table td:nth-child(6) {
+    white-space: normal;
+    min-width: 150px;
   }
   
   .empty-data {
@@ -673,13 +687,14 @@
     background-color: #3498db;
     color: white;
     border: none;
-    padding: 10px 20px;
-    border-radius: 4px;
+    padding: 0.5rem 1.5rem;
+    border-radius: 20px;
     cursor: pointer;
     display: flex;
     align-items: center;
     gap: 8px;
     font-size: 0.95rem;
+    transition: background-color 0.2s;
   }
   
   .add-button:hover {
@@ -783,12 +798,14 @@
     margin-top: 20px;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    overflow-x: auto;
   }
   
   .data-table {
     width: 100%;
     border-collapse: collapse;
     background-color: white;
+    table-layout: auto;
   }
   
   .data-table thead {
@@ -798,15 +815,16 @@
     z-index: 1;
   }
   
-  .data-table th {
-    padding: 12px;
+  .data-table th,
+  .data-table td {
+    padding: 12px 15px;
     text-align: left;
-    border-bottom: 2px solid #dee2e6;
+    border-bottom: 1px solid #dee2e6;
     font-weight: 600;
   }
   
   .data-table td {
-    padding: 12px;
+    padding: 12px 15px;
     border-bottom: 1px solid #dee2e6;
   }
   
@@ -869,23 +887,25 @@
     display: flex;
     align-items: center;
     gap: 1rem;
+    flex-wrap: wrap;
+    justify-content: flex-end;
   }
   
   .search-container {
     position: relative;
-    flex: 1;
-    max-width: 400px;
+    width: 250px;
   }
   
   .search-input {
     width: 100%;
-    padding: 0.75rem 1rem;
+    padding: 0.5rem 1rem;
     border: 1px solid #ddd;
-    border-radius: 4px;
+    border-radius: 20px;
     font-size: 1rem;
     transition: all 0.3s ease;
     background-color: white;
     color: black;
+    padding-left: 35px;
   }
   
   .search-input:focus {
@@ -906,5 +926,51 @@
     background-color: #f0f7ff;
     border-radius: 4px;
     border-left: 3px solid #176bb3;
+  }
+  
+  /* Styles for the new filter and sort controls */
+  .filter-container,
+  .sort-container {
+    width: 180px;
+  }
+  
+  .filter-select,
+  .sort-select,
+  .sort-direction-button {
+    width: 100%;
+    padding: 0.5rem 1rem;
+    border: 1px solid #ddd;
+    border-radius: 20px;
+    font-size: 1rem;
+    background-color: white;
+    color: #2c3e50;
+    cursor: pointer;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%3E%3Cpath%20fill%3D%22%232c3e50%22%20d%3D%22M5%206l5%205%205-5%202%202-7%207-7-7z%22%2F%3E%3C%2Fsvg%3E');
+    background-repeat: no-repeat;
+    background-position: right 10px top 50%;
+    background-size: 12px auto;
+    padding-right: 30px;
+  }
+  
+  .sort-direction-button {
+    background-image: none;
+    text-align: center;
+    padding-right: 1rem;
+  }
+  
+  /* Add icons to sort direction button - This is done in JSX */
+  
+  /* Style for the total display */
+  .total-display {
+    background-color: #eef2ff;
+    color: #2c3e50;
+    padding: 0.5rem 1.5rem;
+    border-radius: 20px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
   }
    

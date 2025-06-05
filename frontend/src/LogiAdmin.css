@@ -37,7 +37,7 @@
     border-radius: 24px;
     box-shadow: 0 8px 32px 0 rgba(23, 107, 179, 0.10);
     border: 1px solid #e3eaf2;
-    height: 100vh;
+    min-height: 100vh;
     overflow-y: auto;
 }
 
@@ -238,23 +238,28 @@
         padding: 2rem;
         max-width: 100%;
         height: auto;
-        min-height: calc(100vh - 200px);
+        min-height: auto;
         border-radius: 24px 24px 0 0;
+        overflow-y: visible;
     }
 
-    .form-title {
-        font-size: 1.8rem;
-        margin-bottom: 1.5rem;
+    .form-content {
+        display: flex;
+        flex-direction: column;
+        min-height: 100%;
     }
 
-    .form-row {
-        margin-bottom: 1.2rem;
+    .form-actions {
+        position: relative;
+        margin-top: 2rem;
+        padding: 1rem 0;
     }
 
-    .form-row input,
-    .textarea-field {
-        padding: 12px;
-        font-size: 0.95rem;
+    .submit-button,
+    .register-button {
+        position: relative;
+        width: 100%;
+        margin-bottom: 1rem;
     }
 }
 
@@ -282,6 +287,7 @@
     .register-button {
         padding: 12px;
         font-size: 1rem;
+        margin-bottom: 0.5rem;
     }
 }
 
@@ -318,6 +324,11 @@
     .register-button {
         padding: 10px;
         font-size: 0.95rem;
+    }
+
+    .form-actions {
+        margin-top: 1rem;
+        padding: 0.5rem 0;
     }
 }
 

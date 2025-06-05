@@ -3,6 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import './LogiAdmin.css';
 import logo from './imagenes/lgo.png';
 
+const formatTelefono = (numero) => {
+  if (!numero) return '';
+  const cleaned = numero.replace(/[^0-9]/g, '');
+  if (cleaned.length < 3) return cleaned;
+  if (cleaned.length < 6) return `${cleaned.substring(0, 3)}-${cleaned.substring(3)}`;
+  return `${cleaned.substring(0, 3)}-${cleaned.substring(3, 6)}-${cleaned.substring(6)}`;
+};
+
 const RegistroCliente = () => {
   const [cliente, setCliente] = useState({
     nombre_clientes: '',
@@ -105,14 +113,20 @@ const RegistroCliente = () => {
                 <input
                   type="text"
                   name="telefono_clientes"
-                  value={cliente.telefono_clientes}
-                  onChange={handleChange}
+                  value={formatTelefono(cliente.telefono_clientes)}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/[^0-9]/g, ''); // Solo permitir números
+                    setCliente(prev => ({
+                      ...prev,
+                      telefono_clientes: value
+                    }));
+                  }}
                   placeholder="Teléfono (ejemplo: 123-456-7890)"
                   required
-                  maxLength="12"
+                  maxLength="10" // Solo 10 dígitos sin guiones
                   className="input-field"
                   inputMode="tel"
-                  pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}"
+                  pattern="[0-9]*"
                 />
               </div>
               <div className="form-row">

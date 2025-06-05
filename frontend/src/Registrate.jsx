@@ -123,7 +123,7 @@ const RegistroCliente = () => {
                   }}
                   placeholder="Teléfono (ejemplo: 123-456-7890)"
                   required
-                  maxLength="10" // Solo 10 dígitos sin guiones
+                  maxLength="12" // Solo 10 dígitos sin guiones
                   className="input-field"
                   inputMode="tel"
                   pattern="[0-9]*"

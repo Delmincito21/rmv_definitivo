@@ -103,16 +103,16 @@ const RegistroCliente = () => {
               </div>
               <div className="form-row">
                 <input
-                  type="tel"
+                  type="text"
                   name="telefono_clientes"
-                  pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}"
                   value={cliente.telefono_clientes}
                   onChange={handleChange}
-                  placeholder="Teléfono"
-                  title="El teléfono debe tener el formato 123-456-7890"
+                  placeholder="Teléfono (ejemplo: 123-456-7890)"
                   required
                   maxLength="12"
                   className="input-field"
+                  inputMode="tel"
+                  pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}"
                 />
               </div>
               <div className="form-row">

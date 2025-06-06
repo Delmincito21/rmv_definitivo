@@ -41,6 +41,24 @@ const RegistroCliente = () => {
       return;
     }
 
+    // Explicitly check username uniqueness again before submitting
+    const username = cliente.nombre_usuario.trim();
+    if (username) {
+      try {
+        const response = await fetch(`https://backend-production-6925.up.railway.app/check-username/${encodeURIComponent(username)}`);
+        const data = await response.json();
+
+        if (data.exists) {
+          alert('Este nombre de usuario ya está en uso.');
+          return; // Prevent submission
+        }
+      } catch (error) {
+        console.error('Error verificando usuario antes de registrar:', error);
+        alert('Error al verificar usuario. Intenta de nuevo.');
+        return; // Prevent submission on error
+      }
+    }
+
     // Validación del correo electrónico
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     if (!emailRegex.test(cliente.correo_clientes)) {
@@ -78,7 +96,10 @@ const RegistroCliente = () => {
 
       navigate('/loginCliente', { replace: true });
     } catch (error) {
-      alert('Error al registrar el cliente: ' + error.message);
+      console.error('Registration error details:', error); // Log the full error object
+
+      // Directly use error.message which should contain the backend error
+      alert(error.message || 'Error desconocido al registrar el cliente');
     }
   };
 
@@ -126,7 +147,6 @@ const RegistroCliente = () => {
                   maxLength="12" // Solo 10 dígitos sin guiones
                   className="input-field"
                   inputMode="tel"
-                  pattern="[0-9]*"
                 />
               </div>
               <div className="form-row">

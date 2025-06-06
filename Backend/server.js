@@ -473,6 +473,27 @@ app.post('/clientes', async (req, res) => {
         return res.status(400).json({ error: 'El nombre de usuario y el pin (contraseña) son obligatorios' });
     }
     try {
+        const [existingUser] = await db.query(
+            'SELECT id_usuario FROM usuarios WHERE nombre_usuario = ?',
+            [nombre_usuario]
+        );
+
+        if (existingUser.length > 0) {
+            console.log(`Intento de registro con usuario existente: ${nombre_usuario}`);
+            return res.status(400).json({ error: 'El nombre de usuario ya está en uso.' });
+        }
+
+        // Add this check: Verify if the email already exists
+        const [existingEmail] = await db.query(
+            'SELECT id_clientes FROM clientes WHERE correo_clientes = ?',
+            [clienteData.correo_clientes]
+        );
+
+        if (existingEmail.length > 0) {
+            console.log(`Intento de registro con correo existente: ${clienteData.correo_clientes}`);
+            return res.status(400).json({ error: 'Este correo electrónico ya está en uso.' });
+        }
+
         // 1. Hashear el pin_usuario
         const hashedPin = await bcrypt.hash(pin_usuario, 10);
         // 2. Insertar en la tabla usuarios primero

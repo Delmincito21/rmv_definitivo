@@ -284,15 +284,15 @@ app.get('/ventas', async (req, res) => {
                 v.fecha_venta, 
                 c.nombre_clientes AS cliente, 
                 v.estado_venta,
+                v.estado,  -- Asegurarse de incluir el campo de estado para el filtrado en frontend
                 (
                     SELECT COALESCE(SUM(dv.subtotal_detalle_venta), 0)
                     FROM detalle_venta dv
-                    WHERE dv.id_venta = v.id_venta AND dv.estado = 'activo'
+                    WHERE dv.id_venta = v.id_venta
                 ) as total
             FROM venta v
             JOIN usuarios u ON v.id_usuario = u.id_usuario
             JOIN clientes c ON u.id_usuario = c.id_usuario
-            WHERE v.estado = 'activo'
             ORDER BY 
                 CASE v.estado_venta 
                     WHEN 'pendiente' THEN 1
@@ -304,7 +304,7 @@ app.get('/ventas', async (req, res) => {
         `;
 
         const [results] = await db.query(query);
-        console.log('Ventas obtenidas:', results);
+        console.log('Ventas obtenidas del DB (incluyendo estado, antes de enviar):', results);
         res.json(results);
     } catch (err) {
         console.error('Error al obtener las ventas:', err);

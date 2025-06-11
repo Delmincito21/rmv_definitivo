@@ -94,7 +94,7 @@ class Venta {
 
     static async delete(id) {
         try {
-            const [result] = await db.query('DELETE FROM venta WHERE id_venta = ?', [id]);
+            const [result] = await db.query('UPDATE venta SET estado = "inactivo" WHERE id_venta = ?', [id]);
             return result;
         } catch (error) {
             throw error;

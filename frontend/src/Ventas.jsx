@@ -429,8 +429,10 @@ const Ventas = () => {
   // Función para cargar ventas con estado de envío
   const cargarVentasConEnvio = async () => {
     try {
+      console.log('Intentando cargar ventas desde:', 'https://backend-production-6925.up.railway.app/ventas');
       const res = await fetch('https://backend-production-6925.up.railway.app/ventas');
       const data = await res.json();
+      console.log('Datos recibidos del backend para /ventas (desde Railway):', data);
       const ventasConEnvio = await Promise.all(data.map(async venta => {
         try {
           const ordenRes = await fetch(`https://backend-production-6925.up.railway.app/orden/venta/${venta.id_venta}`);

@@ -973,4 +973,28 @@
     display: flex;
     align-items: center;
   }
+  
+  .view-button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background-color: #e3f2fd;
+    border: 1px solid #90caf9;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: #1976d2;
+    font-size: 0.95rem;
+  }
+  
+  .view-button:hover {
+    background-color: #bbdefb;
+  }
+  
+  .view-button.active {
+    background-color: #1976d2;
+    color: white;
+    border-color: #1976d2;
+  }
    

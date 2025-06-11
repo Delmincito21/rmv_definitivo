@@ -542,7 +542,6 @@ function ModificarProductoList() {
       </div>
       <div className="table-container" style={{ overflowX: "auto", width: "100%" }}>
         <table className="data-table" style={{ minWidth: 600 }}>
-
           <thead>
             <tr>
               <th>ID</th>

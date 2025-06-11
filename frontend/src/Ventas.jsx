@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FaCalendarAlt, FaMinus, FaPlus, FaArrowLeft, FaCreditCard, FaTruck } from 'react-icons/fa';
+import { FiClock } from 'react-icons/fi';
 import './Ventas.css';
 import EditarVentaModal from './components/EditarVentaModal';
 import { useNavigate } from 'react-router-dom';
@@ -404,6 +405,7 @@ const Ventas = () => {
   const [filterStatus, setFilterStatus] = useState('Todos los estados');
   const [sortCriteria, setSortCriteria] = useState('fecha');
   const [sortDirection, setSortDirection] = useState('descendente');
+  const [showHistory, setShowHistory] = useState(false);
 
   useEffect(() => {
     if (mostrarFormulario && paso === 'venta') {
@@ -479,7 +481,7 @@ const Ventas = () => {
         const fechaVenta = new Date(venta.fecha_venta).toLocaleDateString();
         return (
           venta.id_venta.toString().includes(termLower) ||
-          (venta.cliente && venta.cliente.toLowerCase().includes(termLower)) || // Check if venta.cliente exists
+          (venta.cliente && venta.cliente.toLowerCase().includes(termLower)) ||
           fechaVenta.includes(termLower)
         );
       });
@@ -488,30 +490,32 @@ const Ventas = () => {
     // 2. Filtrar por estado de envío
     if (filterStatus !== 'Todos los estados') {
         currentVentas = currentVentas.filter(venta => {
-            // Normalizar estadoEnvio para comparación si es necesario, o comparar directamente
-            // Asumiendo que venta.estadoEnvio ya está en un formato comparable ('pendiente', 'caminando', 'entregado', 'No hay envío', 'Envío pendiente', 'Error al cargar envío')
              return venta.estadoEnvio === filterStatus;
         });
     }
 
+    // 3. Filtrar por estado activo/inactivo
+    currentVentas = currentVentas.filter(venta => {
+        // Si no tiene estado definido, asumimos que está activo
+        const estado = venta.estado || 'activo';
+        return showHistory ? estado === 'inactivo' : estado === 'activo';
+    });
 
-    // 3. Ordenar
+    // 4. Ordenar
     if (sortCriteria === 'fecha') {
       currentVentas.sort((a, b) => {
         const dateA = new Date(a.fecha_venta);
         const dateB = new Date(b.fecha_venta);
         if (sortDirection === 'ascendente') {
           return dateA - dateB;
-        } else { // descendente
+        } else {
           return dateB - dateA;
         }
       });
     }
-    // Añadir otras opciones de ordenación si es necesario (ej: por total)
-
 
     setVentasFiltradas(currentVentas);
-  }, [searchTerm, ventas, filterStatus, sortCriteria, sortDirection]); // Add dependencies
+  }, [searchTerm, ventas, filterStatus, sortCriteria, sortDirection, showHistory]);
 
   const calcularSubtotal = (detalle) => {
     const cantidad = parseFloat(detalle.cantidad) || 0;
@@ -858,9 +862,16 @@ const Ventas = () => {
           throw new Error('Error al cambiar el estado de la venta');
         }
 
+        // Actualizar el estado local de las ventas
+        setVentas(prevVentas => 
+          prevVentas.map(venta => 
+            venta.id_venta === id_venta 
+              ? { ...venta, estado: 'inactivo' }
+              : venta
+          )
+        );
+
         alert('Se ha cambiado el estado exitosamente');
-        // Recargar la lista de ventas con estado de envío
-        cargarVentasConEnvio();
       } catch (error) {
         console.error('Error:', error);
         alert('Error al cambiar el estado de la venta: ' + error.message);
@@ -926,7 +937,6 @@ const Ventas = () => {
             />
           </div>
 
-          {/* Filtro por estado de envío */}
           <div className="filter-container">
               <select
                   value={filterStatus}
@@ -937,14 +947,11 @@ const Ventas = () => {
                   <option value="pendiente">Envío Pendiente</option>
                   <option value="caminando">En camino</option>
                   <option value="entregado">Entregado</option>
-                  <option value="No hay envío">Sin envío</option> {/* Add option for no shipping */}
-                   {/* Optionally add other states like 'Error al cargar envío' if needed for filtering */}
+              <option value="No hay envío">Sin envío</option>
               </select>
           </div>
 
-          {/* Ordenación */}
           <div className="sort-container">
-              
                <button
                    className="sort-direction-button"
                    onClick={() => setSortDirection(sortDirection === 'descendente' ? 'ascendente' : 'descendente')}
@@ -952,6 +959,13 @@ const Ventas = () => {
                    {sortDirection === 'descendente' ? 'Descendente' : 'Ascendente'}
                </button>
           </div>
+
+          <button 
+            className={`view-button ${showHistory ? 'active' : ''}`}
+            onClick={() => setShowHistory(!showHistory)}
+          >
+            <FiClock /> {showHistory ? 'Ver Ventas Activas' : 'Ver Historial'}
+          </button>
 
           <button
             className="add-button"

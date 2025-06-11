@@ -693,7 +693,7 @@ const MisPedidos = () => {
                     </button>
 
                     {/* Botón de Cancelar Pedido */}
-                    {pedido.estado_venta !== 'cancelado' && pedido.estado_venta !== 'completado' && ( /* Mostrar solo si no está cancelado o completado */
+                    {pedido.estado_venta.toLowerCase() !== 'cancelada' && pedido.estado_venta.toLowerCase() !== 'completa' && ( /* Mostrar solo si no está cancelado o completa */
                       <button
                         onClick={() => handleCancelPedido(pedido.id_venta)}
                         style={{
@@ -715,7 +715,7 @@ const MisPedidos = () => {
                     )}
 
                     {/* Botón de Editar Dirección */}
-                    {pedido.envio_estado !== null && ( /* Mostrar solo si hay info de envío */
+                    {pedido.envio_estado !== null && pedido.estado_venta.toLowerCase() !== 'completa' && ( /* Mostrar solo si hay info de envío y no está completa */
                       <button
                         onClick={() => handleEditAddress(pedido)}
                         disabled={pedido.envio_estado === 'caminando'} /* Deshabilitar si está en camino */

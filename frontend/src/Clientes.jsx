@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FiUser, FiSearch, FiEye, FiPhone, FiMapPin, FiMail, FiEdit, FiTrash2 } from 'react-icons/fi';
+import { FiUser, FiSearch, FiEye, FiPhone, FiMapPin, FiMail, FiEdit, FiTrash2, FiClock } from 'react-icons/fi';
 import './Dashboard.css';
 
 const Clientes = () => {
@@ -8,6 +8,7 @@ const Clientes = () => {
     const [error, setError] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [clienteEditando, setClienteEditando] = useState(null);
+    const [showHistory, setShowHistory] = useState(false);
 
     // Cargar datos desde el backend
     useEffect(() => {
@@ -25,11 +26,13 @@ const Clientes = () => {
             });
     }, []);
 
-    // Filtrar clientes por término de búsqueda
-    const filteredClientes = clientes.filter(cliente =>
-        cliente.nombre_clientes.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        cliente.correo_clientes.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    // Filtrar clientes por término de búsqueda y estado
+    const filteredClientes = clientes.filter(cliente => {
+        const matchesSearch = cliente.nombre_clientes.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            cliente.correo_clientes.toLowerCase().includes(searchTerm.toLowerCase());
+        
+        return matchesSearch && (showHistory ? cliente.estado === 'inactivo' : cliente.estado === 'activo');
+    });
 
     // Filtrar clientes activos para el card
     const activeClientes = clientes.filter(cliente => cliente.estado === 'activo');
@@ -116,8 +119,11 @@ const Clientes = () => {
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
                     </div>
-                    <button className="add-button">
-                        <FiEye /> Ver Clientes
+                    <button 
+                        className={`view-button ${showHistory ? 'active' : ''}`}
+                        onClick={() => setShowHistory(!showHistory)}
+                    >
+                        <FiClock /> {showHistory ? 'Ver Clientes Activos' : 'Ver Historial'}
                     </button>
                 </div>
             </div>
@@ -133,13 +139,14 @@ const Clientes = () => {
                     <p>{activeClientes.length}</p>
                 </div>
                 <div className="stat-card">
-                    <h3>Nuevos este mes</h3>
-                    <p>12</p>
+                    <h3>Clientes Inactivos</h3>
+                    <p>{clientes.filter(cliente => cliente.estado === 'inactivo').length}</p>
                 </div>
             </div>
 
             {/* Tabla de clientes */}
             <div className="table-container">
+                <h2 className="table-title">{showHistory ? 'Historial de Clientes Inactivos' : 'Clientes Activos'}</h2>
                 <table className="data-table">
                     <thead>
                         <tr>

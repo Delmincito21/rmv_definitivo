@@ -924,6 +924,39 @@ const Ventas = () => {
     }
   };
 
+  const handleRecuperar = async (id_venta) => {
+    if (window.confirm('¿Estás seguro que quieres recuperar esta venta? Se cambiará su estado a activo.')) {
+      try {
+        const response = await fetch(`https://backend-production-6925.up.railway.app/ventas/${id_venta}/estado`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ estado: 'activo' })
+        });
+
+        if (!response.ok) {
+          throw new Error('Error al recuperar la venta');
+        }
+
+        // Actualizar el estado local de las ventas
+        setVentas(prevVentas => 
+          prevVentas.map(venta => 
+            venta.id_venta === id_venta 
+              ? { ...venta, estado: 'activo' }
+              : venta
+          )
+        );
+
+        alert('Venta recuperada exitosamente');
+        cargarVentasConEnvio(); // Recargar para asegurar la consistencia y la visibilidad
+      } catch (error) {
+        console.error('Error:', error);
+        alert('Error al recuperar la venta: ' + error.message);
+      }
+    }
+  };
+
   return (
     <div className="ventas-container">
       <div className="dashboard-header">
@@ -1020,6 +1053,8 @@ const Ventas = () => {
           </button>
         </div>
       </div>
+
+      {showHistory && <h3 className="history-title">Ventas Eliminadas (Historial)</h3>}
 
       {mostrarFormulario ? (
         <div className="venta-container">
@@ -1271,24 +1306,46 @@ const Ventas = () => {
                       <span className={`estado ${venta.estadoEnvio ? venta.estadoEnvio.toLowerCase().replace(/ /g, '-') : 'no-envio'}`}>{venta.estadoEnvio || 'No hay envío'}</span>
                     </td>
                     <td className="actions-cell">
-                      <button
-                        className="action-button view"
-                        onClick={() => navigate(`/admin/factura/${venta.id_venta}`, { state: { volverA: '/admin/ventas' } })}
-                      >
-                        Ver Factura
-                      </button>
-                      <button
-                        className="action-button edit"
-                        onClick={() => handleEdit(venta.id_venta)}
-                      >
-                        Ver detalles
-                      </button>
-                      <button
-                        className="action-button delete"
-                        onClick={() => handleDelete(venta.id_venta)}
-                      >
-                        Eliminar
-                      </button>
+                      {venta.estado === 'inactivo' ? (
+                        <button
+                          className="action-button recover"
+                          onClick={() => handleRecuperar(venta.id_venta)}
+                          style={{
+                            background: '#28a745',
+                            color: '#fff',
+                            border: 'none',
+                            borderRadius: 8,
+                            padding: '8px 16px',
+                            fontWeight: 'bold',
+                            fontSize: 14,
+                            cursor: 'pointer',
+                            transition: 'background 0.2s',
+                          }}
+                        >
+                          Recuperar
+                        </button>
+                      ) : (
+                        <>
+                          <button
+                            className="action-button view"
+                            onClick={() => navigate(`/admin/factura/${venta.id_venta}`, { state: { volverA: '/admin/ventas' } })}
+                          >
+                            Ver Factura
+                          </button>
+                          <button
+                            className="action-button edit"
+                            onClick={() => handleEdit(venta.id_venta)}
+                          >
+                            Ver detalles
+                          </button>
+                          <button
+                            className="action-button delete"
+                            onClick={() => handleDelete(venta.id_venta)}
+                          >
+                            Eliminar
+                          </button>
+                        </>
+                      )}
                     </td>
                   </tr>
                 ))

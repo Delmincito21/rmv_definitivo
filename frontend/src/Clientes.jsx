@@ -94,6 +94,32 @@ const Clientes = () => {
         }
     };
 
+    const handleRecuperarCliente = async (id) => {
+        if (window.confirm('¿Estás seguro de que deseas recuperar este cliente? Su estado cambiará a activo.')) {
+            try {
+                const response = await fetch(`https://backend-production-6925.up.railway.app/clientes/${id}/activar`, {
+                    method: 'PUT',
+                });
+
+                if (!response.ok) {
+                    throw new Error('Error al activar el cliente');
+                }
+
+                alert('Cliente recuperado exitosamente');
+
+                // Actualiza la lista de clientes en el frontend
+                setClientes((prevClientes) =>
+                    prevClientes.map((cliente) =>
+                        cliente.id_clientes === id ? { ...cliente, estado: 'activo' } : cliente
+                    )
+                );
+            } catch (error) {
+                console.error('Error al activar el cliente:', error);
+                alert('Hubo un error al activar el cliente. Inténtalo de nuevo.');
+            }
+        }
+    };
+
     const handleEditarCliente = (cliente) => {
         setClienteEditando(cliente);
     };
@@ -146,7 +172,11 @@ const Clientes = () => {
 
             {/* Tabla de clientes */}
             <div className="table-container">
-                <h2 className="table-title">{showHistory ? 'Historial de Clientes Inactivos' : 'Clientes Activos'}</h2>
+                {showHistory ? (
+                    <h2 className="table-title">Historial de Clientes Inactivos</h2>
+                ) : (
+                    <h2 className="table-title">Clientes Activos</h2>
+                )}
                 <table className="data-table">
                     <thead>
                         <tr>
@@ -182,12 +212,34 @@ const Clientes = () => {
                                         </span>
                                     </td>
                                     <td className="actions-cell">
-                                        <button className="action-button edit" onClick={() => handleEditarCliente(cliente)}>
-                                            Editar
-                                        </button>
-                                        <button className="action-button delete" onClick={() => handleEliminarCliente(cliente.id_clientes)}>
-                                            Eliminar
-                                        </button>
+                                        {cliente.estado === 'inactivo' ? (
+                                            <button
+                                                className="action-button recover"
+                                                onClick={() => handleRecuperarCliente(cliente.id_clientes)}
+                                                style={{
+                                                    background: '#28a745',
+                                                    color: '#fff',
+                                                    border: 'none',
+                                                    borderRadius: 8,
+                                                    padding: '8px 16px',
+                                                    fontWeight: 'bold',
+                                                    fontSize: 14,
+                                                    cursor: 'pointer',
+                                                    transition: 'background 0.2s',
+                                                }}
+                                            >
+                                                Recuperar
+                                            </button>
+                                        ) : (
+                                            <>
+                                                <button className="action-button edit" onClick={() => handleEditarCliente(cliente)}>
+                                                    Editar
+                                                </button>
+                                                <button className="action-button delete" onClick={() => handleEliminarCliente(cliente.id_clientes)}>
+                                                    Eliminar
+                                                </button>
+                                            </>
+                                        )}
                                     </td>
                                 </tr>
                             ))

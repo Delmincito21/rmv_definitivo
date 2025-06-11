@@ -2399,3 +2399,38 @@ app.get('/check-username/:nombre_usuario', async (req, res) => {
         res.status(500).json({ error: 'Error al verificar usuario', details: error.message });
     }
 });
+
+// Ruta para activar un cliente
+app.put('/clientes/:id/activar', async (req, res) => {
+    const { id } = req.params;
+    try {
+        const [result] = await db.query(
+            'UPDATE clientes SET estado = "activo" WHERE id_clientes = ?',
+            [id]
+        );
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Cliente no encontrado' });
+        }
+        res.json({ message: 'Cliente activado exitosamente' });
+    } catch (error) {
+        console.error('Error al activar el cliente:', error);
+        res.status(500).json({ error: 'Error al activar el cliente', details: error.message });
+    }
+});
+
+// Ruta para obtener un cliente por ID
+app.get('/clientes/:id', async (req, res) => {
+    try {
+        const [result] = await db.query(
+            'SELECT * FROM clientes WHERE id_clientes = ?',
+            [req.params.id]
+        );
+        if (result.length === 0) {
+            return res.status(404).json({ error: 'Cliente no encontrado' });
+        }
+        res.json(result[0]);
+    } catch (error) {
+        console.error('Error al obtener el cliente:', error);
+        res.status(500).json({ error: 'Error al obtener el cliente' });
+    }
+});

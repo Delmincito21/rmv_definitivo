@@ -321,7 +321,7 @@ const EditarPerfil = () => {
                         </button>
                         <div style={{ marginTop: 18 }}>
                             <h3>Cambiar contraseña</h3>
-                            <div className="editar-perfil-form-fields">
+                            <div className="editar-password-fields">
                                 <div className="editar-perfil-form-col">
                                     <div className="input-group">
                                         <FaUser className="input-icon" />
@@ -363,22 +363,14 @@ const EditarPerfil = () => {
                             {passwordError && <div style={{ color: 'red', marginTop: 8 }}>{passwordError}</div>}
                             {passwordSuccess && <div style={{ color: 'green', marginTop: 8 }}>{passwordSuccess}</div>}
                         </div>
-                        <div className="delete-account-section" style={{ marginTop: 24 }}>
+                        <div className="delete-account-section">
                             <button 
                                 onClick={(e) => {
                                     e.preventDefault();
                                     handleDeleteAccount();
                                 }}
                                 className="delete-account-btn"
-                                style={{
-                                    backgroundColor: '#dc3545',
-                                    color: 'white',
-                                    border: 'none',
-                                    padding: '8px 16px',
-                                    borderRadius: '4px',
-                                    cursor: 'pointer',
-                                    marginTop: 8
-                                }}
+                                
                             >
                                 Eliminar cuenta
                             </button>
